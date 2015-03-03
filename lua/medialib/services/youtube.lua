@@ -48,7 +48,7 @@ function YoutubeService:load(url)
 	local media = oop.class("HTMLMedia")()
 
 	local urlData = self:parseUrl(url)
-	local playerUrl = "http://wyozi.github.io/wmc/players/youtube.html?id=" .. urlData.id
+	local playerUrl = "http://wyozi.github.io/gmod-medialib/youtube.html?id=" .. urlData.id
 
 	media:openUrl(playerUrl)
 

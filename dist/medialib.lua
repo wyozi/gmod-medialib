@@ -1,6 +1,9 @@
 medialib = {}
 medialib.Modules = {}
 
+function medialib.modulePlaceholder(name)
+	medialib.Modules[name] = {}
+end
 function medialib.module(name, opts)
 	local mod = {
 		name = name,
@@ -71,6 +74,7 @@ function medialib.folderIterator(folder)
 	return pairs(files)
 end
 -- Module oop
+medialib.modulePlaceholder("oop")
 do
 	local oop = medialib.module("oop")
 	oop.Classes = {}
@@ -168,6 +172,7 @@ do
 	end
 end
 -- Module service_html
+medialib.modulePlaceholder("service_html")
 do
 	local oop = medialib.load("oop")
 	local panel_width, panel_height = 1280, 720
@@ -216,6 +221,7 @@ do
 	local HTMLService = oop.class("HTMLService", "Service")
 end
 -- Module service_bass
+medialib.modulePlaceholder("service_bass")
 do
 	local oop = medialib.load("oop")
 	local HTMLService = oop.class("BASSService", "Service")
@@ -280,6 +286,7 @@ end\
 \
 medialib.load(\"media\").RegisterService(\"youtube\", YoutubeService)"
 -- Module servicebase
+medialib.modulePlaceholder("servicebase")
 do
 	local oop = medialib.load("oop")
 	local Service = oop.class("Service")
@@ -305,6 +312,7 @@ do
 	end
 end
 -- Module media
+medialib.modulePlaceholder("media")
 do
 	local media = medialib.module("media")
 	media.Services = {}
@@ -323,6 +331,7 @@ do
 	end
 end
 -- Module __loader
+medialib.modulePlaceholder("__loader")
 do
 	-- This file loads all the requires modules.
 	-- It is in different file than medialib.lua for medialib build purposes

@@ -1,6 +1,9 @@
 medialib = {}
 medialib.Modules = {}
 
+function medialib.modulePlaceholder(name)
+	medialib.Modules[name] = {}
+end
 function medialib.module(name, opts)
 	local mod = {
 		name = name,

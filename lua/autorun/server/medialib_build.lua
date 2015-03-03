@@ -40,6 +40,10 @@ local function Build()
 
 		-- Add code as a fragment
 		table.insert(fragments, "-- Module " .. name)
+
+		-- Add module placeholder. Required because all files dont define a module
+		table.insert(fragments, string.format("medialib.modulePlaceholder(%q)", name))
+		
 		table.insert(fragments, "do")
 		indent(code, function(line) table.insert(fragments, line) end)
 		table.insert(fragments, "end")

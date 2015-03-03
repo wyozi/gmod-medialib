@@ -51,10 +51,10 @@ medialib = {};
 	};
 	exports.emitEvent = function(id, obj) {
 		console.log("MediaLib event: ", id, obj);
-		if (!("mediabridgelua" in window)) {
+		if (!("medialiblua" in window)) {
 			return;
 		}
 
-		mediabridgelua.Event(id, JSON.stringify(obj));
+		medialiblua.Event(id, JSON.stringify(obj));
 	};
 })(medialib);

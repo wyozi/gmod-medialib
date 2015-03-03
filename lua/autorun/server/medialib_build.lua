@@ -22,17 +22,22 @@ local function Build()
 			code = file.Read("medialib/" .. name .. ".lua", "LUA")
 		end
 
-		-- Go through code seaching for module loads
-		for mod in string.gfind(code, "medialib%.load%(" .. pat_ws .. pat_quote .."(" .. pat_negate_quote .. "*)" .. pat_quote .. pat_ws .. "%)") do
-			ParseModule(mod)
+		local function CheckModuleDeps(code)
+			for mod in string.gfind(code, "medialib%.load%(" .. pat_ws .. pat_quote .."(" .. pat_negate_quote .. "*)" .. pat_quote .. pat_ws .. "%)") do
+				ParseModule(mod)
+			end
 		end
+
+		-- Go through code seaching for module loads
+		CheckModuleDeps(code)
 
 		-- Go through code searching for folderIterators
 		for folder in string.gfind(code, "medialib%.folderIterator%(" .. pat_ws .. pat_quote .."(" .. pat_negate_quote .. "*)" .. pat_quote .. pat_ws .. "%)") do
-			table.insert(fragments, "-- Package folderIterator results from '" .. folder .. "'")
-
+			
 			for _, file in medialib.folderIterator(folder) do
 				local source = file:read():Replace("\r", "")
+				CheckModuleDeps(source)
+
 				local package = string.format("medialib.FolderItems[%q] = %q", folder .. "/" .. file.name, source)
 				table.insert(fragments, package)
 			end

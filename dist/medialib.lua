@@ -226,7 +226,25 @@ do
 	local oop = medialib.load("oop")
 	local HTMLService = oop.class("BASSService", "Service")
 end
--- Package folderIterator results from 'services'
+-- Module media
+medialib.modulePlaceholder("media")
+do
+	local media = medialib.module("media")
+	media.Services = {}
+	function media.RegisterService(name, cls)
+		media.Services[name] = cls()
+	end
+	function media.Service(name)
+		return media.Services[name]
+	end
+	function media.GuessService(url)
+		for _,service in pairs(media.Services) do
+			if service:validateUrl(url) then
+				return service
+			end
+		end
+	end
+end
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\
@@ -309,25 +327,6 @@ do
 	-- Load the actual service files
 	for _,file in medialib.folderIterator("services") do
 		file:load()
-	end
-end
--- Module media
-medialib.modulePlaceholder("media")
-do
-	local media = medialib.module("media")
-	media.Services = {}
-	function media.RegisterService(name, cls)
-		media.Services[name] = cls()
-	end
-	function media.Service(name)
-		return media.Services[name]
-	end
-	function media.GuessService(url)
-		for _,service in pairs(media.Services) do
-			if service:validateUrl(url) then
-				return service
-			end
-		end
 	end
 end
 -- Module __loader

@@ -45,22 +45,73 @@
 				width: '100%',
 				videoId: id,
 				events: {
-					'onReady': function(event) {
+					onReady: function(event) {
 						event.target.pauseVideo();
+						medialib.emitEvent("stateChange", {state: "paused"});
 					}
 				}
 			});
-		}
 
-		mediabridge = {
-			setVolume: function(vol) {
-				player.setVolume(vol);
-			}
+			player.addEventListener("onStateChange", function(event) {
+				var state;
+				switch(event.data) {
+				case 0:
+					state = "ended";
+					break;
+				case 1:
+					state = "playing";
+					break;
+				case 2:
+					state = "paused";
+					break;
+				case 3:
+					state = "buffering";
+					break;
+
+				case -1:// we don't need to know that the video is unloaded
+				default:
+					return;
+				}
+				medialib.emitEvent("stateChange", {state: state});
+			});
+			player.addEventListener("onError", function(event) {
+				var error;
+				switch(event.data) {
+				case 2:
+					error = "invalid parameter";
+					break;
+				case 100:
+					error = "video not found";
+					break;
+				case 101:
+				case 150:
+					state = "embed not allowed";
+					break;
+				default:
+					return;
+				}
+				medialib.emitEvent("error", {message: error});
+			});
 		}
 
 		if (id) {
 			playVideo(id, params.start);
 		}
+
+		medialibjs = {
+			play: function() {
+				player.playVideo();
+			},
+			pause: function() {
+				player.pauseVideo();
+			},
+			seek: function(time) {
+				player.seekTo(time, true);
+			},
+			setVolume: function(vol) {
+				player.setVolume(vol);
+			}
+		};
 	</script>
 </body>
 </html>

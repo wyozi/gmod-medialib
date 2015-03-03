@@ -48,7 +48,13 @@ medialib = {};
 			}
 			return a ? b : false;
 		})();
-	}
+	};
+	exports.emitEvent = function(id, obj) {
+		console.log("MediaLib event: ", id, obj);
+		if (!("mediabridgelua" in window)) {
+			return;
+		}
 
-
+		mediabridgelua.Event(id, JSON.stringify(obj));
+	};
 })(medialib);

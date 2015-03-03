@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: calc(100% - 5px);
+	}
+	#playerdiv, embed {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="playerdiv"></div>
+
+	<script src="https://www.youtube.com/iframe_api"></script>
+	<script type="text/javascript" src="medialib.js"></script>
+
+	<script type="text/javascript">
+		var params = medialib.getParams();
+		var id = params.id || params.vid;
+
+		function playVideo(id, start) {
+			// Load the IFrame Player API code asynchronously.
+			var tag = document.createElement('script');
+
+			tag.src = "//www.youtube.com/iframe_api";
+			var firstScriptTag = document.getElementsByTagName('script')[0];
+			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+		}
+
+		// If this function gets called, we're using HTML5
+		var player;
+		function onYouTubeIframeAPIReady() {
+			player = new YT.Player('playerdiv', {
+				height: '100%',
+				width: '100%',
+				videoId: id,
+				events: {
+					'onReady': function(event) {
+						event.target.pauseVideo();
+					}
+				}
+			});
+		}
+
+		mediabridge = {
+			setVolume: function(vol) {
+				player.setVolume(vol);
+			}
+		}
+
+		if (id) {
+			playVideo(id, params.start);
+		}
+	</script>
+</body>
+</html>

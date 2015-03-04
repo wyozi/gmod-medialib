@@ -2,6 +2,8 @@
 -- It is in different file than medialib.lua for medialib build purposes
 
 medialib.load("mediabase")
-medialib.load("servicebase")
+
+medialib.load("service_html")
+medialib.load("service_bass")
 
 medialib.load("media")

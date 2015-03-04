@@ -228,82 +228,6 @@ do
 	function Media:stop() end
 	function Media:draw(x, y, w, h) end
 end
--- Module service_html
-medialib.modulePlaceholder("service_html")
-do
-	local oop = medialib.load("oop")
-	local HTMLService = oop.class("HTMLService", "Service")
-	local HTMLMedia = oop.class("HTMLMedia", "Media")
-	local panel_width, panel_height = 1280, 720
-	function HTMLMedia:initialize()
-		self.panel = vgui.Create("DHTML")
-		local pnl = self.panel
-		pnl:SetPos(0, 0)
-		pnl:SetSize(panel_width, panel_height)
-		local hookid = "MediaLib.HTMLMedia.FakeThink-" .. self:hashCode()
-		hook.Add("Think", hookid, function()
-			if not IsValid(pnl) then
-				hook.Remove("Think", hookid)
-				return
-			end
-			pnl:Think()
-		end)
-		local oldcm = pnl.ConsoleMessage
-		pnl.ConsoleMessage = function(pself, msg)
-			-- Filter some things out
-			if string.find(msg, "XMLHttpRequest") then return end
-			if string.find(msg, "Unsafe JavaScript attempt to access") then return end
-			return oldcm(pself, msg)
-		end
-		pnl:SetPaintedManually(true)
-		pnl:SetVisible(false)
-		pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
-			self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
-		end)
-	end
-	function HTMLMedia:openUrl(url)
-		self.panel:OpenURL(url)
-		self.URLChanged = CurTime()
-	end
-	function HTMLMedia:runJS(js, ...)
-		local code = string.format(js, ...)
-		self.panel:QueueJavascript(code)
-	end
-	function HTMLMedia:stop()
-		self.panel:Remove()
-	end
-	function HTMLMedia:handleHTMLEvent(id, event)
-	end
-	function HTMLMedia:draw(x, y, w, h)
-		self.panel:UpdateHTMLTexture()
-		local mat = self.panel:GetHTMLMaterial()
-		surface.SetMaterial(mat)
-		surface.SetDrawColor(255, 255, 255)
-		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
-		surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
-	end
-	function HTMLMedia:setVolume(vol)
-		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
-	end
-	function HTMLMedia:seek(time)
-		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
-	end
-	function HTMLMedia:play()
-		self:runJS("medialibDelegate.run('play')")
-	end
-	function HTMLMedia:pause()
-		self:runJS("medialibDelegate.run('pause')")
-	end
-	function HTMLMedia:stop()
-		self.panel:Remove()
-	end
-end
--- Module service_bass
-medialib.modulePlaceholder("service_bass")
-do
-	local oop = medialib.load("oop")
-	local HTMLService = oop.class("BASSService", "Service")
-end
 -- Module media
 medialib.modulePlaceholder("media")
 do
@@ -404,9 +328,6 @@ do
 	function Service:load(url) end
 	function Service:isValidUrl(url) end
 	function Service:query(url, callback) end
-	-- Load service types
-	medialib.load("service_html")
-	medialib.load("service_bass")
 	-- AddCSLuaFile all services
 	if SERVER then
 		for _,fname in pairs(file.Find("medialib/services/*", "LUA")) do
@@ -421,12 +342,93 @@ do
 		file:load()
 	end
 end
+-- Module service_html
+medialib.modulePlaceholder("service_html")
+do
+	local oop = medialib.load("oop")
+	-- Add service dependency
+	medialib.load("servicebase")
+	local HTMLService = oop.class("HTMLService", "Service")
+	local HTMLMedia = oop.class("HTMLMedia", "Media")
+	local panel_width, panel_height = 1280, 720
+	function HTMLMedia:initialize()
+		self.panel = vgui.Create("DHTML")
+		local pnl = self.panel
+		pnl:SetPos(0, 0)
+		pnl:SetSize(panel_width, panel_height)
+		local hookid = "MediaLib.HTMLMedia.FakeThink-" .. self:hashCode()
+		hook.Add("Think", hookid, function()
+			if not IsValid(pnl) then
+				hook.Remove("Think", hookid)
+				return
+			end
+			pnl:Think()
+		end)
+		local oldcm = pnl.ConsoleMessage
+		pnl.ConsoleMessage = function(pself, msg)
+			-- Filter some things out
+			if string.find(msg, "XMLHttpRequest") then return end
+			if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+			return oldcm(pself, msg)
+		end
+		pnl:SetPaintedManually(true)
+		pnl:SetVisible(false)
+		pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
+			self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
+		end)
+	end
+	function HTMLMedia:openUrl(url)
+		self.panel:OpenURL(url)
+		self.URLChanged = CurTime()
+	end
+	function HTMLMedia:runJS(js, ...)
+		local code = string.format(js, ...)
+		self.panel:QueueJavascript(code)
+	end
+	function HTMLMedia:stop()
+		self.panel:Remove()
+	end
+	function HTMLMedia:handleHTMLEvent(id, event)
+	end
+	function HTMLMedia:draw(x, y, w, h)
+		self.panel:UpdateHTMLTexture()
+		local mat = self.panel:GetHTMLMaterial()
+		surface.SetMaterial(mat)
+		surface.SetDrawColor(255, 255, 255)
+		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
+		surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
+	end
+	function HTMLMedia:setVolume(vol)
+		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+	end
+	function HTMLMedia:seek(time)
+		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+	end
+	function HTMLMedia:play()
+		self:runJS("medialibDelegate.run('play')")
+	end
+	function HTMLMedia:pause()
+		self:runJS("medialibDelegate.run('pause')")
+	end
+	function HTMLMedia:stop()
+		self.panel:Remove()
+	end
+end
+-- Module service_bass
+medialib.modulePlaceholder("service_bass")
+do
+	local oop = medialib.load("oop")
+	-- Add service dependency
+	medialib.load("servicebase")
+	local HTMLService = oop.class("BASSService", "Service")
+end
 -- Module __loader
 medialib.modulePlaceholder("__loader")
 do
 	-- This file loads all the requires modules.
 	-- It is in different file than medialib.lua for medialib build purposes
 	medialib.load("mediabase")
-	medialib.load("servicebase")
+	medialib.load("service_html")
+	medialib.load("service_bass")
 	medialib.load("media")
 end

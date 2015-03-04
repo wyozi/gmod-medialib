@@ -17,10 +17,6 @@ function Service:load(url) end
 function Service:isValidUrl(url) end
 function Service:query(url, callback) end
 
--- Load service types
-medialib.load("service_html")
-medialib.load("service_bass")
-
 -- AddCSLuaFile all services
 if SERVER then
 	for _,fname in pairs(file.Find("medialib/services/*", "LUA")) do

@@ -1,5 +1,8 @@
 local oop = medialib.load("oop")
 
+-- Add service dependency
+medialib.load("servicebase")
+
 local HTMLService = oop.class("HTMLService", "Service")
 
 local HTMLMedia = oop.class("HTMLMedia", "Media")

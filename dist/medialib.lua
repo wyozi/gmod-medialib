@@ -370,7 +370,7 @@ function YoutubeService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\
-player_url = \"http://localhost:8080/youtube.html?rand=\" .. math.random() .. \"&id=%s\"\
+--player_url = \"http://localhost:8080/youtube.html?rand=\" .. math.random() .. \"&id=%s\"\
 \
 function YoutubeService:load(url)\
 \9local media = oop.class(\"HTMLMedia\")()\

@@ -185,12 +185,13 @@ do
 		pnl:SetPaintedManually(true)
 		pnl:SetVisible(false)
 		pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
-			local json = util.JSONToTable(jsonstr)
-			print("Received event ", id, ": ", table.ToString(json))
+			self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
 		end)
 	end
 	function HTMLMedia:stop()
 		self.panel:Remove()
+	end
+	function HTMLMedia:handleHTMLEvent(id, event)
 	end
 	function HTMLMedia:draw(x, y, w, h)
 		self.panel:UpdateHTMLTexture()

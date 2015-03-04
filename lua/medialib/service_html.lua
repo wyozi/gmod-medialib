@@ -17,7 +17,7 @@ function HTMLMedia:initialize()
 			hook.Remove("Think", hookid)
 			return
 		end
-		
+
 		pnl:Think()
 	end)
 
@@ -28,10 +28,6 @@ function HTMLMedia:initialize()
 		if string.find(msg, "Unsafe JavaScript attempt to access") then return end
 
 		return oldcm(pself, msg)
-	end
-
-	pnl.FinishedURL = function()
-		print("FinishedURL")
 	end
 
 	pnl:SetPaintedManually(true)
@@ -47,8 +43,6 @@ function HTMLMedia:openUrl(url)
 	self.URLChanged = CurTime()
 end
 function HTMLMedia:runJS(js, ...)
-
-	print("calling queuejs with ", js)
 	local code = string.format(js, ...)
 	self.panel:QueueJavascript(code)
 end

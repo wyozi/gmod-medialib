@@ -11,7 +11,7 @@ end
 
 function media.GuessService(url)
 	for _,service in pairs(media.Services) do
-		if service:validateUrl(url) then
+		if service:isValidUrl(url) then
 			return service
 		end
 	end

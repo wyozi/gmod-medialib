@@ -62,4 +62,11 @@ end
 
 if SERVER then
 	concommand.Add("medialib_build", function(ply) if IsValid(ply) then return end Build() end)
+
+	local autobuild = CreateConVar("medialib_autobuild", "0", FCVAR_ARCHIVE)
+	timer.Create("medialib_autobuild", 5, 0, function()
+		if not autobuild:GetBool() then return end
+
+		Build()
+	end)
 end

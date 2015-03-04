@@ -10,7 +10,7 @@ medialib = {};
 			result[item[0]] = item[1];
 		}
 		return result;
-	}
+	};
 	exports.flashVersion = function() {
 		// Detect flash (http://stackoverflow.com/a/9865667)
 		return (function() {
@@ -50,11 +50,44 @@ medialib = {};
 		})();
 	};
 	exports.emitEvent = function(id, obj) {
-		console.log("MediaLib event: ", id, obj);
+		console.log("MediaLib event: " + id + obj);
 		if (!("medialiblua" in window)) {
 			return;
 		}
 
 		medialiblua.Event(id, JSON.stringify(obj));
+	};
+
+	function EventDelegate(map) {
+		this.map = map;
+		this.eventQueue = [];
+	}
+
+	EventDelegate.prototype.run = function(id, obj) {
+		if (this.loaded) {
+			this.map[id].call(this.loadedPlayer, obj);
+			console.log("calling event "+ id + " directly")
+		}
+		else {
+			this.eventQueue.push({id: id, obj: obj});
+			console.log("queueing event " + id);
+		}
+	};
+
+	EventDelegate.prototype.playerLoaded = function(player) {
+		this.loaded = true;
+		this.loadedPlayer = player;
+
+		var that = this;
+		this.eventQueue.forEach(function(item) {
+			that.run(item.id, item.obj);
+		});
+
+		// Clear array
+		this.eventQueue = [];
+	};
+
+	exports.createEventDelegate = function(handlerMap) {
+		return new EventDelegate(handlerMap);
 	};
 })(medialib);

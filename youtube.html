@@ -25,22 +25,37 @@
 	<script type="text/javascript" src="medialib.js"></script>
 
 	<script type="text/javascript">
+		// Load the IFrame Player API code asynchronously.
+		var tag = document.createElement('script');
+
+		tag.src = "//www.youtube.com/iframe_api";
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
 		var params = medialib.getParams();
 		var id = params.id || params.vid;
 
-		function playVideo(id, start) {
-			// Load the IFrame Player API code asynchronously.
-			var tag = document.createElement('script');
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.playVideo();
+			},
+			pause: function() {
+				this.pauseVideo();
+			},
+			seek: function(obj) {
+				this.seekTo(obj.time, true);
+			},
+			setVolume: function(obj) {
+				this.setVolume(obj.vol * 100);
+			}
+		});
 
-			tag.src = "//www.youtube.com/iframe_api";
-			var firstScriptTag = document.getElementsByTagName('script')[0];
-			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-		}
-
-		// If this function gets called, we're using HTML5
-		var player;
 		function onYouTubeIframeAPIReady() {
-			player = new YT.Player('playerdiv', {
+			if (!id) {
+				return;
+			}
+
+			var player = new YT.Player('playerdiv', {
 				height: '100%',
 				width: '100%',
 				videoId: id,
@@ -48,6 +63,8 @@
 					onReady: function(event) {
 						event.target.pauseVideo();
 						medialib.emitEvent("stateChange", {state: "paused"});
+
+						medialibDelegate.playerLoaded(event.target);
 					}
 				}
 			});
@@ -93,25 +110,6 @@
 				medialib.emitEvent("error", {message: error});
 			});
 		}
-
-		if (id) {
-			playVideo(id, params.start);
-		}
-
-		medialibjs = {
-			play: function() {
-				player.playVideo();
-			},
-			pause: function() {
-				player.pauseVideo();
-			},
-			seek: function(time) {
-				player.seekTo(time, true);
-			},
-			setVolume: function(vol) {
-				player.setVolume(vol * 100);
-			}
-		};
 	</script>
 </body>
 </html>

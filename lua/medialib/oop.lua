@@ -1,11 +1,15 @@
 local oop = medialib.module("oop")
-oop.Classes = {}
+oop.Classes = oop.Classes or {}
 
 function oop.class(name, parent)
 	local cls = oop.Classes[name]
 	if not cls then
 		cls = oop.createClass(name, parent)
 		oop.Classes[name] = cls
+
+		if medialib.DEBUG then
+			print("[MediaLib] Registering oopclass " .. name)
+		end
 	end
 
 	return cls
@@ -18,7 +22,10 @@ function oop.resolveClass(obj)
 
 	local t = type(obj)
 	if t == "string" then
-		return oop.Classes[obj]
+		local clsobj = oop.Classes[obj]
+		if clsobj then return clsobj end
+
+		error("Resolving class from inexistent class string '" .. tostring(obj) .. "'")
 	end
 	if t == "table" then
 		return obj

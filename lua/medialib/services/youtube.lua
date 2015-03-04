@@ -44,13 +44,18 @@ function YoutubeService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
+local player_url = "http://wyozi.github.io/gmod-medialib/youtube.html?id=%s"
+player_url = "http://localhost:8080/youtube.html?rand=" .. math.random() .. "&id=%s"
+
 function YoutubeService:load(url)
 	local media = oop.class("HTMLMedia")()
 
 	local urlData = self:parseUrl(url)
-	local playerUrl = "http://wyozi.github.io/gmod-medialib/youtube.html?id=" .. urlData.id
+	local playerUrl = string.format(player_url, urlData.id)
 
 	media:openUrl(playerUrl)
+
+	if urlData.start then media:seek(urlData.start) end
 
 	return media
 end

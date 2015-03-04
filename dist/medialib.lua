@@ -1,13 +1,17 @@
 medialib = {}
 medialib.Modules = {}
+medialib.DEBUG = false
 
 function medialib.modulePlaceholder(name)
 	medialib.Modules[name] = {}
 end
 function medialib.module(name, opts)
-	local mod = {
+	if medialib.DEBUG then
+		print("[MediaLib] Creating module " .. name)
+	end
+
+	local mod = medialib.Modules[name] or {
 		name = name,
-		dependencies = {},
 		options = opts,
 	}
 
@@ -16,12 +20,22 @@ function medialib.module(name, opts)
 	return mod
 end
 
+-- AddCSLuaFile all medialib modules
+if SERVER then
+	for _,fname in pairs(file.Find("medialib/*", "LUA")) do
+		AddCSLuaFile("medialib/" .. fname)
+	end
+end
+
 function medialib.load(name)
 	local mod = medialib.Modules[name]
 	if mod then return mod end
 
+	if medialib.DEBUG then
+		print("[MediaLib] Loading unreferenced module " .. name)
+	end
+
 	local file = "medialib/" .. name .. ".lua"
-	if SERVER then AddCSLuaFile(file) end
 	include(file)
 
 	return medialib.Modules[name]
@@ -32,7 +46,6 @@ local real_file_meta = {
 		return file.Read(self.lua_path, "LUA")
 	end,
 	load = function(self)
-		if SERVER then AddCSLuaFile(self.lua_path) end
 		include(self.lua_path)
 	end,
 }
@@ -77,12 +90,15 @@ end
 medialib.modulePlaceholder("oop")
 do
 	local oop = medialib.module("oop")
-	oop.Classes = {}
+	oop.Classes = oop.Classes or {}
 	function oop.class(name, parent)
 		local cls = oop.Classes[name]
 		if not cls then
 			cls = oop.createClass(name, parent)
 			oop.Classes[name] = cls
+			if medialib.DEBUG then
+				print("[MediaLib] Registering oopclass " .. name)
+			end
 		end
 		return cls
 	end
@@ -92,7 +108,9 @@ do
 		end
 		local t = type(obj)
 		if t == "string" then
-			return oop.Classes[obj]
+			local clsobj = oop.Classes[obj]
+			if clsobj then return clsobj end
+			error("Resolving class from inexistent class string '" .. tostring(obj) .. "'")
 		end
 		if t == "table" then
 			return obj
@@ -171,22 +189,85 @@ do
 		return string.format("%s@%s", self.class.name, self:hashCode())
 	end
 end
+-- Module mediabase
+medialib.modulePlaceholder("mediabase")
+do
+	local oop = medialib.load("oop")
+	local Media = oop.class("Media")
+	function Media:on(event, callback)
+		self._events = {}
+		self._events[event] = self._events[event] or {}
+		self._events[event][callback] = true
+	end
+	function Media:emit(event, ...)
+		for k,_ in pairs(self._events[event] or {}) do
+			k(...)
+		end
+	end
+	-- vol must be a float between 0 and 1
+	function Media:setVolume(vol) end
+	function Media:getVolume() end
+	-- time must be an integer between 0 and duration
+	function Media:seek(time) end
+	function Media:getTime() end
+	function Media:getDuration() end
+	function Media:getFraction()
+		local time = self:getTime()
+		local dur = self:getDuration()
+		if not time or not dur then return end
+		return time / dur
+	end
+	function Media:isStream()
+		return not self:getDuration()
+	end
+	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
+	function Media:getState() end
+	function Media:getLoadedFraction() end
+	function Media:play() end
+	function Media:pause() end
+	function Media:stop() end
+	function Media:draw(x, y, w, h) end
+end
 -- Module service_html
 medialib.modulePlaceholder("service_html")
 do
 	local oop = medialib.load("oop")
-	local panel_width, panel_height = 1280, 720
+	local HTMLService = oop.class("HTMLService", "Service")
 	local HTMLMedia = oop.class("HTMLMedia", "Media")
+	local panel_width, panel_height = 1280, 720
 	function HTMLMedia:initialize()
 		self.panel = vgui.Create("DHTML")
 		local pnl = self.panel
 		pnl:SetPos(0, 0)
 		pnl:SetSize(panel_width, panel_height)
+		local hookid = "MediaLib.HTMLMedia.FakeThink-" .. self:hashCode()
+		hook.Add("Think", hookid, function()
+			if not IsValid(pnl) then
+				hook.Remove("Think", hookid)
+				return
+			end
+			pnl:Think()
+		end)
+		local oldcm = pnl.ConsoleMessage
+		pnl.ConsoleMessage = function(pself, msg)
+			-- Filter some things out
+			if string.find(msg, "XMLHttpRequest") then return end
+			if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+			return oldcm(pself, msg)
+		end
 		pnl:SetPaintedManually(true)
 		pnl:SetVisible(false)
 		pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
 			self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
 		end)
+	end
+	function HTMLMedia:openUrl(url)
+		self.panel:OpenURL(url)
+		self.URLChanged = CurTime()
+	end
+	function HTMLMedia:runJS(js, ...)
+		local code = string.format(js, ...)
+		self.panel:QueueJavascript(code)
 	end
 	function HTMLMedia:stop()
 		self.panel:Remove()
@@ -201,28 +282,21 @@ do
 		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
 		surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 	end
-	function HTMLMedia:openUrl(url)
-		self.panel:OpenURL(url)
-	end
-	function HTMLMedia:runJS(js, ...)
-		self.panel:QueueJavascript(string.format(js, ...))
-	end
 	function HTMLMedia:setVolume(vol)
-		self:runJS("medialibjs.setVolume(%f)", vol)
+		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
 	end
 	function HTMLMedia:seek(time)
-		self:runJS("medialibjs.seek(%d)", time)
+		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
 	end
 	function HTMLMedia:play()
-		self:runJS("medialibjs.play()")
+		self:runJS("medialibDelegate.run('play')")
 	end
 	function HTMLMedia:pause()
-		self:runJS("medialibjs.pause()")
+		self:runJS("medialibDelegate.run('pause')")
 	end
 	function HTMLMedia:stop()
 		self.panel:Remove()
 	end
-	local HTMLService = oop.class("HTMLService", "Service")
 end
 -- Module service_bass
 medialib.modulePlaceholder("service_bass")
@@ -295,13 +369,18 @@ function YoutubeService:isValidUrl(url)\
 \9return self:parseUrl(url) ~= nil\
 end\
 \
+local player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\
+player_url = \"http://localhost:8080/youtube.html?rand=\" .. math.random() .. \"&id=%s\"\
+\
 function YoutubeService:load(url)\
 \9local media = oop.class(\"HTMLMedia\")()\
 \
 \9local urlData = self:parseUrl(url)\
-\9local playerUrl = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=\" .. urlData.id\
+\9local playerUrl = string.format(player_url, urlData.id)\
 \
 \9media:openUrl(playerUrl)\
+\
+\9if urlData.start then media:seek(urlData.start) end\
 \
 \9return media\
 end\
@@ -328,8 +407,17 @@ do
 	-- Load service types
 	medialib.load("service_html")
 	medialib.load("service_bass")
+	-- AddCSLuaFile all services
+	if SERVER then
+		for _,fname in pairs(file.Find("medialib/services/*", "LUA")) do
+			AddCSLuaFile("medialib/services/" .. fname)
+		end
+	end
 	-- Load the actual service files
 	for _,file in medialib.folderIterator("services") do
+		if medialib.DEBUG then
+			print("[MediaLib] Registering service " .. file.name)
+		end
 		file:load()
 	end
 end
@@ -338,6 +426,7 @@ medialib.modulePlaceholder("__loader")
 do
 	-- This file loads all the requires modules.
 	-- It is in different file than medialib.lua for medialib build purposes
+	medialib.load("mediabase")
 	medialib.load("servicebase")
 	medialib.load("media")
 end

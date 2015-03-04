@@ -1,13 +1,17 @@
 medialib = {}
 medialib.Modules = {}
+medialib.DEBUG = false
 
 function medialib.modulePlaceholder(name)
 	medialib.Modules[name] = {}
 end
 function medialib.module(name, opts)
-	local mod = {
+	if medialib.DEBUG then
+		print("[MediaLib] Creating module " .. name)
+	end
+
+	local mod = medialib.Modules[name] or {
 		name = name,
-		dependencies = {},
 		options = opts,
 	}
 
@@ -16,12 +20,22 @@ function medialib.module(name, opts)
 	return mod
 end
 
+-- AddCSLuaFile all medialib modules
+if SERVER then
+	for _,fname in pairs(file.Find("medialib/*", "LUA")) do
+		AddCSLuaFile("medialib/" .. fname)
+	end
+end
+
 function medialib.load(name)
 	local mod = medialib.Modules[name]
 	if mod then return mod end
 
+	if medialib.DEBUG then
+		print("[MediaLib] Loading unreferenced module " .. name)
+	end
+
 	local file = "medialib/" .. name .. ".lua"
-	if SERVER then AddCSLuaFile(file) end
 	include(file)
 
 	return medialib.Modules[name]
@@ -32,7 +46,6 @@ local real_file_meta = {
 		return file.Read(self.lua_path, "LUA")
 	end,
 	load = function(self)
-		if SERVER then AddCSLuaFile(self.lua_path) end
 		include(self.lua_path)
 	end,
 }

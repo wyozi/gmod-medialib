@@ -204,11 +204,14 @@ do
 	function HTMLMedia:openUrl(url)
 		self.panel:OpenURL(url)
 	end
-	function HTMLMedia:runJS(js)
-		self.panel:QueueJavascript(js)
+	function HTMLMedia:runJS(js, ...)
+		self.panel:QueueJavascript(string.format(js, ...))
 	end
 	function HTMLMedia:setVolume(vol)
-		self:runJS(string.format("medialibjs.setVolume(%f)", vol))
+		self:runJS("medialibjs.setVolume(%f)", vol)
+	end
+	function HTMLMedia:seek(time)
+		self:runJS("medialibjs.seek(%d)", time)
 	end
 	function HTMLMedia:play()
 		self:runJS("medialibjs.play()")

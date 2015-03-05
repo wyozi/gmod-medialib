@@ -60,4 +60,33 @@ function YoutubeService:load(url)
 	return media
 end
 
+function YoutubeService:query(url, callback)
+	local urlData = self:parseUrl(url)
+
+	local metaurl = Format("http://gdata.youtube.com/feeds/api/videos/%s?alt=json", urlData.id)
+
+	http.Fetch(metaurl, function(result, size)
+		if size == 0 then
+			callback("http body size = 0")
+			return
+		end
+
+		local data = {}
+		data.id = urlData.id
+
+		local jsontbl = util.JSONToTable(result)
+
+		if jsontbl and jsontbl.entry then
+			local entry = jsontbl.entry
+			data.title = entry["title"]["$t"]
+			data.duration = tonumber(entry["media$group"]["yt$duration"]["seconds"])
+		else
+			data.title = "ERROR"
+			data.duration = 60 -- this seems fine
+		end
+
+		callback(nil, data)
+	end)
+end
+
 medialib.load("media").RegisterService("youtube", YoutubeService)

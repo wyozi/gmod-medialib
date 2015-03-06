@@ -50,7 +50,7 @@ medialib = {};
 		})();
 	};
 	exports.emitEvent = function(id, obj) {
-		console.log("MediaLib event: " + id + obj);
+		//console.log("MediaLib event: " + id + obj);
 		if (!("medialiblua" in window)) {
 			return;
 		}
@@ -66,11 +66,11 @@ medialib = {};
 	EventDelegate.prototype.run = function(id, obj) {
 		if (this.loaded) {
 			this.map[id].call(this.loadedPlayer, obj);
-			console.log("calling event "+ id + " directly")
+			//console.log("calling event "+ id + " directly")
 		}
 		else {
 			this.eventQueue.push({id: id, obj: obj});
-			console.log("queueing event " + id);
+			//console.log("queueing event " + id);
 		}
 	};
 

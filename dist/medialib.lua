@@ -402,6 +402,67 @@ function TwitchService:query(url, callback)\
 end\
 \
 medialib.load(\"media\").RegisterService(\"twitch\", TwitchService)"
+medialib.FolderItems["services/ustream.lua"] = "local oop = medialib.load(\"oop\")\
+\
+local UstreamService = oop.class(\"UstreamService\", \"HTMLService\")\
+\
+local all_patterns = {\
+\9\"https?://www.ustream.tv/channel/([A-Za-z0-9_%-]+)\",\
+\9\"https?://ustream.tv/channel/([A-Za-z0-9_%-]+)\"\
+}\
+\
+function UstreamService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function UstreamService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+local player_url = \"http://wyozi.github.io/gmod-medialib/ustream.html?id=%s\"\
+function UstreamService:load(url)\
+\9local media = oop.class(\"HTMLMedia\")()\
+\
+\9-- For ustream we need to query metadata to get the embed id\
+\9self:query(url, function(err, data)\
+\9\9media:openUrl(string.format(player_url, data.embed_id))\
+\9end)\
+\
+\9return media\
+end\
+\
+function UstreamService:query(url, callback)\
+\9local urlData = self:parseUrl(url)\
+\9local metaurl = string.format(\"http://api.ustream.tv/json/channel/%s/getInfo\", urlData.id)\
+\
+\9http.Fetch(metaurl, function(result, size)\
+\9\9if size == 0 then\
+\9\9\9callback(\"http body size = 0\")\
+\9\9\9return\
+\9\9end\
+\
+\9\9local data = {}\
+\9\9data.id = urlData.id\
+\
+\9\9local jsontbl = util.JSONToTable(result)\
+\
+\9\9if jsontbl then\
+\9\9\9data.embed_id = jsontbl.results.id\
+\9\9\9data.title = jsontbl.results.title\
+\9\9else\
+\9\9\9data.title = \"ERROR\"\
+\9\9end\
+\
+\9\9callback(nil, data)\
+\9end)\
+end\
+\
+medialib.load(\"media\").RegisterService(\"ustream\", UstreamService)"
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\

@@ -58,6 +58,16 @@ medialib = {};
 		medialiblua.Event(id, JSON.stringify(obj));
 	};
 
+	exports.loadAsync = function(js, cb) {
+		var tag = document.createElement('script');
+
+		tag.src = js;
+		tag.onload = cb;
+		
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+	}
+
 	function EventDelegate(map) {
 		this.map = map;
 		this.eventQueue = [];

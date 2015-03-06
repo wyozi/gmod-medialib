@@ -22,8 +22,6 @@
 <body>
 	<iframe id="stream"></iframe>
 
-	<!-- http://api.ustream.tv/json/channel/iss-hdev-payload/getInfo -->
-	<script type="text/javascript" src="http://ustream.github.io/api-docs/js/ustream-embedapi.min.js"></script>
 	<script type="text/javascript" src="medialib.js"></script>
 	<script type="text/javascript">
 		var params = medialib.getParams();
@@ -46,8 +44,10 @@
 			}
 		});
 
-		var viewer = UstreamEmbed('stream');
-		medialibDelegate.playerLoaded(viewer);
+		medialib.loadAsync("//ustream.github.io/api-docs/js/ustream-embedapi.min.js", function() {
+			var viewer = UstreamEmbed('stream');
+			medialibDelegate.playerLoaded(viewer);
+		});
 	</script>
 	</body>
 </html>

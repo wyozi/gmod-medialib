@@ -22,7 +22,6 @@
 <body>
 	<div id="stream"></div>
 
-	<script type="text/javascript" src="//api.dmcdn.net/all.js"></script>
 	<script type="text/javascript" src="medialib.js"></script>
 	<script type="text/javascript">
 		var params = medialib.getParams();
@@ -43,9 +42,9 @@
 			}
 		});
 
-		var player = DM.player(document.getElementById("stream"), {video: id});
-
-		medialibDelegate.playerLoaded(player);
+		medialib.loadAsync("//api.dmcdn.net/all.js", function() {
+			medialibDelegate.playerLoaded(DM.player(document.getElementById("stream"), {video: id}));
+		});
 	</script>
 	</body>
 </html>

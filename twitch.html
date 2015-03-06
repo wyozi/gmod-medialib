@@ -18,8 +18,6 @@
 			<div id="twitch_embed_player"></div>
 		</div>
 
-		<script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="medialib.js"></script>
 		<script>
 			medialibDelegate = medialib.createEventDelegate({
@@ -47,11 +45,11 @@
 
 			var channel = params.id || params.channel;
 
-			$(function () {
+			medialib.loadAsync("//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js", function() {
 				window.onPlayerEvent = function (data) {
 					data.forEach(function(event) {
 						if (event.event == "playerInit") {
-							var player = $("#twitch_embed_player")[0];
+							var player = document.getElementById("twitch_embed_player");
 							medialibDelegate.playerLoaded(player);
 						}
 					});

@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				overflow-y: hidden;
+			}
+			#twitch_wrapper {
+				position: absolute;
+				left: 0; top: 0; right: 0; bottom: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="twitch_wrapper">
+			<div id="twitch_embed_player"></div>
+		</div>
+
+		<script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="medialib.js"></script>
+		<script>
+			medialibDelegate = medialib.createEventDelegate({
+				play: function() {
+					this.playVideo();
+				},
+				pause: function() {
+					this.pauseVideo();
+				},
+				seek: function(obj) {
+					this.videoSeek(obj.time);
+				},
+				setVolume: function(obj) {
+					// Twitch pls
+					if (obj.vol == 0) {
+						this.mute();
+					}
+					else {
+						this.unmute();
+					}
+				}
+			});
+
+			var params = medialib.getParams();
+
+			var channel = params.id || params.channel;
+
+			$(function () {
+				window.onPlayerEvent = function (data) {
+					data.forEach(function(event) {
+						if (event.event == "playerInit") {
+							var player = $("#twitch_embed_player")[0];
+							medialibDelegate.playerLoaded(player);
+						}
+					});
+				}
+
+				swfobject.embedSWF("//www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf", "twitch_embed_player", "100%", "104%", "11", null,
+					{
+						"eventsCallback": "onPlayerEvent",
+						"embed": 1,
+						"channel": channel,
+						"auto_play": "false",
+						"scale": "exactFit"
+					},
+					{
+						"allowScriptAccess": "always",
+						"allowFullScreen": "true"
+					}
+				);
+			});
+		</script>
+	</body>
+</html>

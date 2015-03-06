@@ -43,7 +43,10 @@
 		});
 
 		medialib.loadAsync("//api.dmcdn.net/all.js", function() {
-			medialibDelegate.playerLoaded(DM.player(document.getElementById("stream"), {video: id}));
+			var player = DM.player(document.getElementById("stream"), {video: id});
+			player.addEventListener("apiready", function() {
+				medialibDelegate.playerLoaded(player);
+			});
 		});
 	</script>
 	</body>

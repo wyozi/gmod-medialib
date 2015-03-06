@@ -253,7 +253,7 @@ do
 	local oop = medialib.load("oop")
 	local HTMLService = oop.class("HTMLService", "Service")
 	local HTMLMedia = oop.class("HTMLMedia", "Media")
-	local panel_width, panel_height = 1280, 720
+	local panel_width, panel_height = 1920, 1080
 	function HTMLMedia:initialize()
 		self.panel = vgui.Create("DHTML")
 		local pnl = self.panel
@@ -365,6 +365,7 @@ function DailyMotionService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/dailymotion.html?id=%s\"\
+player_url = \"http://localhost:8081/dailymotion.html?id=%s\"\
 function DailyMotionService:load(url)\
 \9local media = oop.class(\"HTMLMedia\")()\
 \

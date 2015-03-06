@@ -46,7 +46,9 @@
 
 		medialib.loadAsync("//ustream.github.io/api-docs/js/ustream-embedapi.min.js", function() {
 			var viewer = UstreamEmbed('stream');
-			medialibDelegate.playerLoaded(viewer);
+			setTimeout(function() {
+				medialibDelegate.playerLoaded(viewer);
+			}, 4500);
 		});
 	</script>
 	</body>

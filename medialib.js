@@ -63,7 +63,7 @@ medialib = {};
 
 		tag.src = js;
 		tag.onload = cb;
-		
+
 		var firstScriptTag = document.getElementsByTagName('script')[0];
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 	}
@@ -87,6 +87,8 @@ medialib = {};
 	EventDelegate.prototype.playerLoaded = function(player) {
 		this.loaded = true;
 		this.loadedPlayer = player;
+
+		console.log("[MediaLib] playerLoaded; running " + this.eventQueue.length + " pending commands");
 
 		var that = this;
 		this.eventQueue.forEach(function(item) {

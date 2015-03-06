@@ -43,11 +43,21 @@
 		});
 
 		medialib.loadAsync("//api.dmcdn.net/all.js", function() {
-			var player = DM.player(document.getElementById("stream"), {video: id});
-			player.addEventListener("apiready", function() {
-				medialibDelegate.playerLoaded(player);
+			var domel = document.getElementById("stream");
+			var player = DM.player(domel, {
+				video: id,
+				events: {
+					apiready: function(e) {
+						// when apiready is called api isn't actually ready.
+						// WORKAROUNDS!
+						setTimeout(function() {
+							medialibDelegate.playerLoaded(player);
+						}, 2500);
+					}
+				}
 			});
 		});
+		
 	</script>
 	</body>
 </html>

@@ -62,8 +62,7 @@ end
 
 function YoutubeService:query(url, callback)
 	local urlData = self:parseUrl(url)
-
-	local metaurl = Format("http://gdata.youtube.com/feeds/api/videos/%s?alt=json", urlData.id)
+	local metaurl = string.format("http://gdata.youtube.com/feeds/api/videos/%s?alt=json", urlData.id)
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then

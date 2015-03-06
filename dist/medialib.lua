@@ -342,6 +342,66 @@ do
 		end
 	end
 end
+medialib.FolderItems["services/twitch.lua"] = "local oop = medialib.load(\"oop\")\
+\
+local TwitchService = oop.class(\"TwitchService\", \"HTMLService\")\
+\
+local all_patterns = {\
+\9\"https?://www.twitch.tv/([A-Za-z0-9_%-]+)\",\
+\9\"https?://twitch.tv/([A-Za-z0-9_%-]+)\"\
+}\
+\
+function TwitchService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function TwitchService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+local player_url = \"http://wyozi.github.io/gmod-medialib/twitch.html?channel=%s\"\
+function TwitchService:load(url)\
+\9local media = oop.class(\"HTMLMedia\")()\
+\
+\9local urlData = self:parseUrl(url)\
+\9local playerUrl = string.format(player_url, urlData.id)\
+\
+\9media:openUrl(playerUrl)\
+\
+\9return media\
+end\
+\
+function TwitchService:query(url, callback)\
+\9local urlData = self:parseUrl(url)\
+\9local metaurl = string.format(\"https://api.twitch.tv/kraken/channels/%s\", urlData.id)\
+\
+\9http.Fetch(metaurl, function(result, size)\
+\9\9if size == 0 then\
+\9\9\9callback(\"http body size = 0\")\
+\9\9\9return\
+\9\9end\
+\
+\9\9local data = {}\
+\9\9data.id = urlData.id\
+\
+\9\9local jsontbl = util.JSONToTable(result)\
+\
+\9\9if jsontbl then\
+\9\9\9data.title = jsontbl.display_name .. \": \" .. jsontbl.status\
+\9\9else\
+\9\9\9data.title = \"ERROR\"\
+\9\9end\
+\
+\9\9callback(nil, data)\
+\9end)\
+end\
+\
+medialib.load(\"media\").RegisterService(\"twitch\", TwitchService)"
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\
@@ -406,8 +466,7 @@ end\
 \
 function YoutubeService:query(url, callback)\
 \9local urlData = self:parseUrl(url)\
-\
-\9local metaurl = Format(\"http://gdata.youtube.com/feeds/api/videos/%s?alt=json\", urlData.id)\
+\9local metaurl = string.format(\"http://gdata.youtube.com/feeds/api/videos/%s?alt=json\", urlData.id)\
 \
 \9http.Fetch(metaurl, function(result, size)\
 \9\9if size == 0 then\

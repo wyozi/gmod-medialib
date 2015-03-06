@@ -65,6 +65,9 @@ function HTMLMedia:draw(x, y, w, h)
 	surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 end
 
+function HTMLMedia:setQuality(qual)
+	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
+end
 
 function HTMLMedia:setVolume(vol)
 	self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)

@@ -17,6 +17,11 @@ end
 function Media:setVolume(vol) end
 function Media:getVolume() end
 
+-- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
+-- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
+-- Not all qualities are guaranteed to exist on all services, in which case the quality is rounded down
+function Media:setQuality(quality) end
+
 -- time must be an integer between 0 and duration
 function Media:seek(time) end
 function Media:getTime() end

@@ -21,7 +21,6 @@ function DailyMotionService:isValidUrl(url)
 end
 
 local player_url = "http://wyozi.github.io/gmod-medialib/dailymotion.html?id=%s"
-player_url = "http://localhost:8081/dailymotion.html?id=%s"
 function DailyMotionService:load(url)
 	local media = oop.class("HTMLMedia")()
 

@@ -207,6 +207,10 @@ do
 	-- vol must be a float between 0 and 1
 	function Media:setVolume(vol) end
 	function Media:getVolume() end
+	-- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
+	-- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
+	-- Not all qualities are guaranteed to exist on all services, in which case the quality is rounded down
+	function Media:setQuality(quality) end
 	-- time must be an integer between 0 and duration
 	function Media:seek(time) end
 	function Media:getTime() end
@@ -301,6 +305,9 @@ do
 		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
 		surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 	end
+	function HTMLMedia:setQuality(qual)
+		self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
+	end
 	function HTMLMedia:setVolume(vol)
 		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
 	end
@@ -365,7 +372,6 @@ function DailyMotionService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/dailymotion.html?id=%s\"\
-player_url = \"http://localhost:8081/dailymotion.html?id=%s\"\
 function DailyMotionService:load(url)\
 \9local media = oop.class(\"HTMLMedia\")()\
 \

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: calc(100% - 5px);
+	}
+	#stream {
+		width: 100%;
+		height: calc(100% + 60px); /* hide the control bar */
+	}
+	</style>
+</head>
+<body>
+	<iframe id="stream"></iframe>
+
+	<!-- http://api.ustream.tv/json/channel/iss-hdev-payload/getInfo -->
+	<script type="text/javascript" src="http://ustream.github.io/api-docs/js/ustream-embedapi.min.js"></script>
+	<script type="text/javascript" src="medialib.js"></script>
+	<script type="text/javascript">
+		var params = medialib.getParams();
+		var channel = params.id;
+
+		document.getElementById("stream").setAttribute("src", "//www.ustream.tv/embed/" + channel);
+
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.callMethod("play");
+			},
+			pause: function() {
+				this.callMethod("pause");
+			},
+			seek: function(obj) {
+				this.callMethod("seek", obj.time);
+			},
+			setVolume: function(obj) {
+				this.callMethod("volume", obj.vol * 100);
+			}
+		});
+
+		var viewer = UstreamEmbed('stream');
+		medialibDelegate.playerLoaded(viewer);
+	</script>
+	</body>
+</html>

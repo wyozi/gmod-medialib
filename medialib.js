@@ -75,7 +75,14 @@ medialib = {};
 
 	EventDelegate.prototype.run = function(id, obj) {
 		if (this.loaded) {
-			this.map[id].call(this.loadedPlayer, obj);
+			var fun = this.map[id];
+
+			// Event not implemented for this service; silently fail
+			if (!fun) {
+				return;
+			}
+
+			fun.call(this.loadedPlayer, obj);
 			//console.log("calling event "+ id + " directly")
 		}
 		else {

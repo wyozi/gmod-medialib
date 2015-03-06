@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: 100%;
+	}
+	#stream {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="stream"></div>
+
+	<script type="text/javascript" src="//api.dmcdn.net/all.js"></script>
+	<script type="text/javascript" src="medialib.js"></script>
+	<script type="text/javascript">
+		var params = medialib.getParams();
+		var id = params.id;
+
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.play();
+			},
+			pause: function() {
+				this.pause();
+			},
+			seek: function(obj) {
+				this.seek(obj.time);
+			},
+			setVolume: function(obj) {
+				this.setVolume(obj.vol);
+			}
+		});
+
+		var player = DM.player(document.getElementById("stream"), {video: id});
+
+		medialibDelegate.playerLoaded(player);
+	</script>
+	</body>
+</html>

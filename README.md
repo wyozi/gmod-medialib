@@ -2,13 +2,26 @@
 
 Media library for Garry's Mod.
 
-```lua
-local yt = medialib.load("media").Service("youtube")
+### Example
 
-local mediaclip = yt:load("https://www.youtube.com/watch?v=u24e43iW9KE")
+```lua
+local link = "https://www.youtube.com/watch?v=u24e43iW9KE"
+-- Other link examples:
+-- http://listen.sky.fm/public3/rootsreggae.pls
+
+-- Get the service that should be used for this link
+local service = medialib.load("media").GuessService(link)
+
+-- Create a mediaclip (load HTML panel, call sound.PlayURL etc happens here) using that service
+local mediaclip = service:load(link)
 
 local frame = vgui.Create("DFrame")
 frame:SetSize(800, 520)
+
+-- Query media title (eg youtube video title)
+service:query(link, function(err, data)
+	frame:SetTitle(err or data.title or "Media player")
+end)
 
 do
 	local video = frame:Add("DPanel")

@@ -46,12 +46,17 @@
 			var domel = document.getElementById("stream");
 			var player = DM.player(domel, {
 				video: id,
+				params: {
+					related: 0,
+					info: 0,
+					logo: 0
+				},
 				events: {
 					apiready: function(e) {
 						// when apiready is called api isn't actually ready.
 						// WORKAROUNDS!
 						setTimeout(function() {
-							medialibDelegate.playerLoaded(player);
+							medialibDelegate.playerLoaded(e.target);
 						}, 2500);
 					}
 				}

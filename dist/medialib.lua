@@ -327,20 +327,52 @@ do
 	local oop = medialib.load("oop")
 	local BASSService = oop.class("BASSService", "Service")
 	local BASSMedia = oop.class("BASSMedia", "Media")
-	function HTMLMedia:setVolume(vol)
-		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+	function BASSMedia:initialize()
+		self.commandQueue = {}
 	end
-	function HTMLMedia:seek(time)
-		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+	function BASSMedia:openUrl(url)
+		sound.PlayURL(url, "noplay noblock", function(chan, errId, errName)
+			self:bassCallback(chan, errId, errName)
+		end)
 	end
-	function HTMLMedia:play()
-		self:runJS("medialibDelegate.run('play')")
+	function BASSMedia:openFile(path)
+		sound.PlayFile(path, "noplay noblock", function(chan, errId, errName)
+			self:bassCallback(chan, errId, errName)
+		end)
 	end
-	function HTMLMedia:pause()
-		self:runJS("medialibDelegate.run('pause')")
+	function BASSMedia:bassCallback(chan, errId, errName)
+		if not IsValid(chan) then
+			print("BassMedia play failed: ", errName)
+			return
+		end
+		self.chan = chan
+		for _,c in pairs(self.commandQueue) do
+			c(chan)
+		end
+		-- Empty queue
+		self.commandQueue = {}
+	end
+	function BASSMedia:runCommand(fn)
+		if IsValid(self.chan) then
+			fn(self.chan)
+		else
+			self.commandQueue[#self.commandQueue+1] = fn
+		end
+	end
+	function BASSMedia:setVolume(vol)
+		self:runCommand(function(chan) chan:SetVolume(vol) end)
+	end
+	function BASSMedia:seek(time)
+		self:runCommand(function(chan) chan:SetTime(time) end)
+	end
+	function BASSMedia:play()
+		self:runCommand(function(chan) chan:Play() end)
+	end
+	function BASSMedia:pause()
+		self:runCommand(function(chan) chan:Pause() end)
 	end
 	function BASSMedia:stop()
-		self.panel:Remove()
+		self:runCommand(function(chan) chan:Stop() end)
 	end
 end
 -- Module media
@@ -603,6 +635,41 @@ function VimeoService:query(url, callback)\
 end\
 \
 medialib.load(\"media\").RegisterService(\"vimeo\", VimeoService)"
+medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\
+local WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\
+\
+local all_patterns = {\
+\9\"^https?://(.*)%.pls\"\
+}\
+\
+function WebRadioService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function WebRadioService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+function WebRadioService:load(url)\
+\9local media = oop.class(\"BASSMedia\")()\
+\
+\9media:openUrl(url)\
+\
+\9return media\
+end\
+\
+function WebRadioService:query(url, callback)\
+\9callback(nil, {\
+\9\9title = url:match(\"([^/]+)$\") -- the filename is the best we can get (unless we parse pls?)\
+\9})\
+end\
+\
+medialib.load(\"media\").RegisterService(\"webradio\", WebRadioService)"
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\

@@ -46,9 +46,6 @@ function HTMLMedia:runJS(js, ...)
 	local code = string.format(js, ...)
 	self.panel:QueueJavascript(code)
 end
-function HTMLMedia:stop()
-	self.panel:Remove()
-end
 
 function HTMLMedia:handleHTMLEvent(id, event)
 end

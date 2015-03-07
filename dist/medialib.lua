@@ -292,9 +292,6 @@ do
 		local code = string.format(js, ...)
 		self.panel:QueueJavascript(code)
 	end
-	function HTMLMedia:stop()
-		self.panel:Remove()
-	end
 	function HTMLMedia:handleHTMLEvent(id, event)
 	end
 	function HTMLMedia:draw(x, y, w, h)
@@ -328,7 +325,23 @@ end
 medialib.modulePlaceholder("service_bass")
 do
 	local oop = medialib.load("oop")
-	local HTMLService = oop.class("BASSService", "Service")
+	local BASSService = oop.class("BASSService", "Service")
+	local BASSMedia = oop.class("BASSMedia", "Media")
+	function HTMLMedia:setVolume(vol)
+		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+	end
+	function HTMLMedia:seek(time)
+		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+	end
+	function HTMLMedia:play()
+		self:runJS("medialibDelegate.run('play')")
+	end
+	function HTMLMedia:pause()
+		self:runJS("medialibDelegate.run('pause')")
+	end
+	function BASSMedia:stop()
+		self.panel:Remove()
+	end
 end
 -- Module media
 medialib.modulePlaceholder("media")

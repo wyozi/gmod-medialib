@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: 100%;
+	}
+	#player {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<iframe id="player" frameborder="0"></iframe>
+
+	<script type="text/javascript" src="medialib.js"></script>
+	<script type="text/javascript">
+		var params = medialib.getParams();
+		var id = params.id;
+
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.api("play");
+			},
+			pause: function() {
+				this.api("pause");
+			},
+			seek: function(obj) {
+				this.api("seekTo", obj.time);
+			},
+			setVolume: function(obj) {
+				this.api("setVolume", obj.vol);
+			}
+		});
+
+		document.getElementById("player").setAttribute("src", "http://player.vimeo.com/video/" + id + "?api=1&amp;player_id=player");
+
+		medialib.loadAsync("//f.vimeocdn.com/js/froogaloop2.min.js", function() {
+			var player = $f(document.getElementById("player"));
+			player.addEvent("ready", function() {
+				medialibDelegate.playerLoaded(player);
+			});
+		});
+		
+	</script>
+	</body>
+</html>

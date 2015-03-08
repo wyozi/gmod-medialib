@@ -300,7 +300,7 @@ do
 		surface.SetMaterial(mat)
 		surface.SetDrawColor(255, 255, 255)
 		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
-		surface.DrawTexturedRectUV(0, 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
+		surface.DrawTexturedRectUV(x or 0, y or 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 	end
 	function HTMLMedia:setQuality(qual)
 		self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)

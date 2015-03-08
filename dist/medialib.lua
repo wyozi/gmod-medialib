@@ -257,7 +257,7 @@ do
 	local oop = medialib.load("oop")
 	local HTMLService = oop.class("HTMLService", "Service")
 	local HTMLMedia = oop.class("HTMLMedia", "Media")
-	local panel_width, panel_height = 1920, 1080
+	local panel_width, panel_height = 1280, 720
 	function HTMLMedia:initialize()
 		self.panel = vgui.Create("DHTML")
 		local pnl = self.panel

@@ -34,7 +34,7 @@ end
 -- https://api.dailymotion.com/video/x2isgrj_if-frank-underwood-was-your-coworker_fun
 function DailyMotionService:query(url, callback)
 	local urlData = self:parseUrl(url)
-	local metaurl = string.format("http://api.dailymotion.com/video/%s", urlData.id)
+	local metaurl = string.format("https://api.dailymotion.com/video/%s?fields=duration,title", urlData.id)
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then
@@ -49,6 +49,7 @@ function DailyMotionService:query(url, callback)
 
 		if jsontbl then
 			data.title = jsontbl.title
+			data.duration = jsontbl.duration
 		else
 			data.title = "ERROR"
 		end

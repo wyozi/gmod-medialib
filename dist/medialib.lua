@@ -430,7 +430,7 @@ end\
 -- https://api.dailymotion.com/video/x2isgrj_if-frank-underwood-was-your-coworker_fun\
 function DailyMotionService:query(url, callback)\
 \9local urlData = self:parseUrl(url)\
-\9local metaurl = string.format(\"http://api.dailymotion.com/video/%s\", urlData.id)\
+\9local metaurl = string.format(\"https://api.dailymotion.com/video/%s?fields=duration,title\", urlData.id)\
 \
 \9http.Fetch(metaurl, function(result, size)\
 \9\9if size == 0 then\
@@ -445,6 +445,7 @@ function DailyMotionService:query(url, callback)\
 \
 \9\9if jsontbl then\
 \9\9\9data.title = jsontbl.title\
+\9\9\9data.duration = jsontbl.duration\
 \9\9else\
 \9\9\9data.title = \"ERROR\"\
 \9\9end\

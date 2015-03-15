@@ -636,6 +636,42 @@ function VimeoService:query(url, callback)\
 end\
 \
 medialib.load(\"media\").RegisterService(\"vimeo\", VimeoService)"
+medialib.FolderItems["services/webaudio.lua"] = "local oop = medialib.load(\"oop\")\
+local WebAudioService = oop.class(\"WebAudioService\", \"BASSService\")\
+\
+local all_patterns = {\
+\9\"^https?://(.*)%.mp3\",\
+\9\"^https?://(.*)%.ogg\",\
+}\
+\
+function WebAudioService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function WebAudioService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+function WebAudioService:load(url)\
+\9local media = oop.class(\"BASSMedia\")()\
+\
+\9media:openUrl(url)\
+\
+\9return media\
+end\
+\
+function WebAudioService:query(url, callback)\
+\9callback(nil, {\
+\9\9title = url:match(\"([^/]+)$\") -- the filename is the best we can get (unless we parse pls?)\
+\9})\
+end\
+\
+medialib.load(\"media\").RegisterService(\"webaudio\", WebAudioService)"
 medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\
 local WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\
 \

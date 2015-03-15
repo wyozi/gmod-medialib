@@ -303,9 +303,18 @@ do
 		surface.DrawTexturedRectUV(x or 0, y or 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 	end
 	function HTMLMedia:setQuality(qual)
+		if self.lastSetQuality and self.lastSetQuality == qual then
+			return
+		end
+		self.lastSetQuality = qual
+		
 		self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 	end
 	function HTMLMedia:setVolume(vol)
+		if self.lastSetVolume and self.lastSetVolume == vol then
+			return
+		end
+		self.lastSetVolume = vol
 		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
 	end
 	function HTMLMedia:seek(time)

@@ -63,10 +63,20 @@ function HTMLMedia:draw(x, y, w, h)
 end
 
 function HTMLMedia:setQuality(qual)
+	if self.lastSetQuality and self.lastSetQuality == qual then
+		return
+	end
+	self.lastSetQuality = qual
+	
 	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 end
 
 function HTMLMedia:setVolume(vol)
+	if self.lastSetVolume and self.lastSetVolume == vol then
+		return
+	end
+	self.lastSetVolume = vol
+
 	self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
 end
 

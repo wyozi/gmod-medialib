@@ -21,7 +21,7 @@ end
 
 function BASSMedia:bassCallback(chan, errId, errName)
 	if not IsValid(chan) then
-		print("BassMedia play failed: ", errName)
+		ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
 		return
 	end
 

@@ -351,7 +351,7 @@ do
 	end
 	function BASSMedia:bassCallback(chan, errId, errName)
 		if not IsValid(chan) then
-			print("BassMedia play failed: ", errName)
+			ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
 			return
 		end
 		self.chan = chan
@@ -464,6 +464,63 @@ function DailyMotionService:query(url, callback)\
 end\
 \
 medialib.load(\"media\").RegisterService(\"dailymotion\", DailyMotionService)"
+medialib.FolderItems["services/soundcloud.lua"] = "local oop = medialib.load(\"oop\")\
+\
+local SoundcloudService = oop.class(\"SoundcloudService\", \"BASSService\")\
+\
+local all_patterns = {\
+\9\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?\",\
+\9\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?\",\
+}\
+\
+function SoundcloudService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function SoundcloudService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+function SoundcloudService:load(url)\
+\9local media = oop.class(\"BASSMedia\")()\
+\
+\9local urlData = self:parseUrl(url)\
+\
+\9http.Fetch(\
+\9\9string.format(\"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\", urlData.id),\
+\9\9function(data)\
+\9\9\9local sound_id = util.JSONToTable(data).id\
+\9\9\9media:openUrl(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID\", sound_id))\
+\9\9end)\
+\
+\9return media\
+end\
+\
+function SoundcloudService:query(url, callback)\
+\9local urlData = self:parseUrl(url)\
+\9local metaurl = string.format(\"http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\", urlData.id)\
+\
+\9http.Fetch(metaurl, function(result, size)\
+\9\9if size == 0 then\
+\9\9\9callback(\"http body size = 0\")\
+\9\9\9return\
+\9\9end\
+\
+\9\9local entry = util.JSONToTable(result)\
+\
+\9\9callback(nil, {\
+\9\9\9title = entry.title,\
+\9\9\9duration = tonumber(entry.duration) / 1000\
+\9\9})\
+\9end)\
+end\
+\
+medialib.load(\"media\").RegisterService(\"soundcloud\", SoundcloudService)"
 medialib.FolderItems["services/twitch.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local TwitchService = oop.class(\"TwitchService\", \"HTMLService\")\

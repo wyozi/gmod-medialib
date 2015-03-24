@@ -27,10 +27,42 @@ function WebAudioService:load(url)
 	return media
 end
 
+local id3parser = medialib.load("id3parser")
 function WebAudioService:query(url, callback)
-	callback(nil, {
-		title = url:match("([^/]+)$") -- the filename is the best we can get (unless we parse pls?)
-	})
+	local function BareInformation()
+		callback(nil, {
+			title = url:match("([^/]+)$")
+		})
+	end
+
+	-- If it's an mp3 we can use the included ID3 parser to try and parse some data
+	if string.EndsWith(url, ".mp3") and id3parser then
+		http.Fetch(url, function(data)
+			local parsed = id3parser.readtags_data(data)
+			if parsed.title then
+				local title = parsed.title
+				if parsed.artist then title = parsed.artist .. " - " .. title end
+
+				local duration
+
+				-- Some soundfiles have duration as a string containing milliseconds
+				if parsed.length then
+					local length = tonumber(parsed.length)
+					if length then duration = length / 1000 end
+				end
+
+				callback(nil, {
+					title = title,
+					duration = duration
+				})
+			else
+				BareInformation()
+			end
+		end)
+		return
+	end
+
+	BareInformation()
 end
 
 medialib.load("media").RegisterService("webaudio", WebAudioService)

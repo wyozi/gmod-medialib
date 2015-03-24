@@ -19,7 +19,7 @@ local function Build()
 
 		-- Load module code if not provided
 		if not code then
-			code = file.Read("medialib/" .. name .. ".lua", "LUA")
+			code = file.Read("addons/gmod-medialib/lua/medialib/" .. name .. ".lua", "MOD")
 		end
 
 		-- If module code still not found, it's probably an extension

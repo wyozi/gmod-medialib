@@ -58,4 +58,4 @@ function VimeoService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("vimeo", VimeoService)
+medialib.load("media").registerService("vimeo", VimeoService)

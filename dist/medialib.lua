@@ -404,19 +404,22 @@ medialib.modulePlaceholder("media")
 do
 	local media = medialib.module("media")
 	media.Services = {}
-	function media.RegisterService(name, cls)
+	function media.registerService(name, cls)
 		media.Services[name] = cls()
 	end
-	function media.Service(name)
+	media.RegisterService = media.registerService -- alias
+	function media.service(name)
 		return media.Services[name]
 	end
-	function media.GuessService(url)
+	media.Service = media.service -- alias
+	function media.guessService(url)
 		for _,service in pairs(media.Services) do
 			if service:isValidUrl(url) then
 				return service
 			end
 		end
 	end
+	media.GuessService = media.guessService -- alias
 end
 medialib.FolderItems["services/dailymotion.lua"] = "local oop = medialib.load(\"oop\")\
 \
@@ -478,7 +481,7 @@ function DailyMotionService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"dailymotion\", DailyMotionService)"
+medialib.load(\"media\").registerService(\"dailymotion\", DailyMotionService)"
 medialib.FolderItems["services/soundcloud.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local SoundcloudService = oop.class(\"SoundcloudService\", \"BASSService\")\
@@ -535,7 +538,7 @@ function SoundcloudService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"soundcloud\", SoundcloudService)"
+medialib.load(\"media\").registerService(\"soundcloud\", SoundcloudService)"
 medialib.FolderItems["services/twitch.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local TwitchService = oop.class(\"TwitchService\", \"HTMLService\")\
@@ -595,7 +598,7 @@ function TwitchService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"twitch\", TwitchService)"
+medialib.load(\"media\").registerService(\"twitch\", TwitchService)"
 medialib.FolderItems["services/ustream.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local UstreamService = oop.class(\"UstreamService\", \"HTMLService\")\
@@ -655,7 +658,7 @@ function UstreamService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"ustream\", UstreamService)"
+medialib.load(\"media\").registerService(\"ustream\", UstreamService)"
 medialib.FolderItems["services/vimeo.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local VimeoService = oop.class(\"VimeoService\", \"HTMLService\")\
@@ -716,7 +719,7 @@ function VimeoService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"vimeo\", VimeoService)"
+medialib.load(\"media\").registerService(\"vimeo\", VimeoService)"
 medialib.FolderItems["services/webaudio.lua"] = "local oop = medialib.load(\"oop\")\
 local WebAudioService = oop.class(\"WebAudioService\", \"BASSService\")\
 \
@@ -785,7 +788,7 @@ function WebAudioService:query(url, callback)\
 \9})\
 end\
 \
-medialib.load(\"media\").RegisterService(\"webaudio\", WebAudioService)"
+medialib.load(\"media\").registerService(\"webaudio\", WebAudioService)"
 medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\
 local WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\
 \
@@ -820,7 +823,7 @@ function WebRadioService:query(url, callback)\
 \9})\
 end\
 \
-medialib.load(\"media\").RegisterService(\"webradio\", WebRadioService)"
+medialib.load(\"media\").registerService(\"webradio\", WebRadioService)"
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\
 \
 local YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\
@@ -911,7 +914,7 @@ function YoutubeService:query(url, callback)\
 \9end)\
 end\
 \
-medialib.load(\"media\").RegisterService(\"youtube\", YoutubeService)"
+medialib.load(\"media\").registerService(\"youtube\", YoutubeService)"
 -- Module serviceloader
 medialib.modulePlaceholder("serviceloader")
 do

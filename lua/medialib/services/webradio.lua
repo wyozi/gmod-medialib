@@ -32,4 +32,4 @@ function WebRadioService:query(url, callback)
 	})
 end
 
-medialib.load("media").RegisterService("webradio", WebRadioService)
+medialib.load("media").registerService("webradio", WebRadioService)

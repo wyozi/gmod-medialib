@@ -88,4 +88,4 @@ function YoutubeService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("youtube", YoutubeService)
+medialib.load("media").registerService("youtube", YoutubeService)

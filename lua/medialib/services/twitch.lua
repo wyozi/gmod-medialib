@@ -57,4 +57,4 @@ function TwitchService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("twitch", TwitchService)
+medialib.load("media").registerService("twitch", TwitchService)

@@ -11,7 +11,7 @@ Easiest way to add gmod-medialib to your project is to copy ```dist/medialib.lua
 local link = "https://www.youtube.com/watch?v=6IqKEeRS90A"
 
 -- Get the service that this link uses (eg. youtube, twitch, vimeo, webaudio)
-local service = medialib.load("media").GuessService(link)
+local service = medialib.load("media").guessService(link)
 
 -- Create a mediaclip from the link
 local mediaclip = service:load(link)

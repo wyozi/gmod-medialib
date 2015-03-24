@@ -66,4 +66,4 @@ function WebAudioService:query(url, callback)
 	})
 end
 
-medialib.load("media").RegisterService("webaudio", WebAudioService)
+medialib.load("media").registerService("webaudio", WebAudioService)

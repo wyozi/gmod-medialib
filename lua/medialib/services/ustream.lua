@@ -57,4 +57,4 @@ function UstreamService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("ustream", UstreamService)
+medialib.load("media").registerService("ustream", UstreamService)

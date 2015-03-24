@@ -1,7 +1,7 @@
 if THEMEDIA then THEMEDIA:stop() end
 
 local link = "http://puu.sh/gNA5J/57f8192725.mp3"
-local service = medialib.load("media").GuessService(link)
+local service = medialib.load("media").guessService(link)
 
 local mediaclip = service:load(link)
 mediaclip:play()

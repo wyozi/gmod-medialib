@@ -1,7 +1,7 @@
 local link = "https://www.youtube.com/watch?v=u24e43iW9KE"
 
 -- Get the service that should be used for this link
-local service = medialib.load("media").GuessService(link)
+local service = medialib.load("media").guessService(link)
 
 -- Create a mediaclip (load HTML panel, call sound.PlayURL etc happens here) using that service
 local mediaclip = service:load(link)

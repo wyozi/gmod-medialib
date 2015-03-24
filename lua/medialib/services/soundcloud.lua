@@ -54,4 +54,4 @@ function SoundcloudService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("soundcloud", SoundcloudService)
+medialib.load("media").registerService("soundcloud", SoundcloudService)

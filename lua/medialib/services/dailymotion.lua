@@ -58,4 +58,4 @@ function DailyMotionService:query(url, callback)
 	end)
 end
 
-medialib.load("media").RegisterService("dailymotion", DailyMotionService)
+medialib.load("media").registerService("dailymotion", DailyMotionService)

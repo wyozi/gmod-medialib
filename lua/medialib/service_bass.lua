@@ -8,6 +8,27 @@ function BASSMedia:initialize()
 	self.commandQueue = {}
 end
 
+function BASSMedia:draw(x, y, w, h)
+	surface.SetDrawColor(0, 0, 0)
+	surface.DrawRect(x, y, w, h)
+
+	local chan = self.chan
+	if not IsValid(chan) then return end
+
+	self.fftValues = self.fftValues or {}
+
+	local valCount = chan:FFT(self.fftValues, FFT_1024)
+	local valsPerX = (valCount == 0 and 1 or (w/valCount))
+
+	local barw = w / (valCount)
+	for i=1, valCount do
+		surface.SetDrawColor(HSVToColor(i, 0.95, 0.5))
+
+		local barh = self.fftValues[i]*h
+		surface.DrawRect(x + i*barw, y + (h-barh), barw, barh)
+	end	
+end
+
 function BASSMedia:openUrl(url)
 	sound.PlayURL(url, "noplay noblock", function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)

@@ -747,41 +747,42 @@ function WebAudioService:load(url)\
 end\
 \
 local id3parser = medialib.load(\"id3parser\")\
+local mp3duration = medialib.load(\"mp3duration\")\
 function WebAudioService:query(url, callback)\
-\9local function BareInformation()\
-\9\9callback(nil, {\
-\9\9\9title = url:match(\"([^/]+)$\")\
-\9\9})\
-\9end\
-\
-\9-- If it's an mp3 we can use the included ID3 parser to try and parse some data\
-\9if string.EndsWith(url, \".mp3\") and id3parser then\
+\9-- If it's an mp3 we can use the included ID3/MP3-duration parser to try and parse some data\
+\9if string.EndsWith(url, \".mp3\") and (id3parser or mp3duration) then\
 \9\9http.Fetch(url, function(data)\
-\9\9\9local parsed = id3parser.readtags_data(data)\
-\9\9\9if parsed.title then\
-\9\9\9\9local title = parsed.title\
-\9\9\9\9if parsed.artist then title = parsed.artist .. \" - \" .. title end\
+\9\9\9local title, duration\
 \
-\9\9\9\9local duration\
+\9\9\9if id3parser then\
+\9\9\9\9local parsed = id3parser.readtags_data(data)\
+\9\9\9\9if parsed and parsed.title then\
+\9\9\9\9\9title = parsed.title\
+\9\9\9\9\9if parsed.artist then title = parsed.artist .. \" - \" .. title end\
 \
-\9\9\9\9-- Some soundfiles have duration as a string containing milliseconds\
-\9\9\9\9if parsed.length then\
-\9\9\9\9\9local length = tonumber(parsed.length)\
-\9\9\9\9\9if length then duration = length / 1000 end\
+\9\9\9\9\9-- Some soundfiles have duration as a string containing milliseconds\
+\9\9\9\9\9if parsed.length then\
+\9\9\9\9\9\9local length = tonumber(parsed.length)\
+\9\9\9\9\9\9if length then duration = length / 1000 end\
+\9\9\9\9\9end\
 \9\9\9\9end\
-\
-\9\9\9\9callback(nil, {\
-\9\9\9\9\9title = title,\
-\9\9\9\9\9duration = duration\
-\9\9\9\9})\
-\9\9\9else\
-\9\9\9\9BareInformation()\
 \9\9\9end\
+\
+\9\9\9if mp3duration then\
+\9\9\9\9duration = mp3duration.estimate_data(data) or duration\
+\9\9\9end\
+\
+\9\9\9callback(nil, {\
+\9\9\9\9title = title or url:match(\"([^/]+)$\"),\
+\9\9\9\9duration = duration\
+\9\9\9})\
 \9\9end)\
 \9\9return\
 \9end\
 \
-\9BareInformation()\
+\9callback(nil, {\
+\9\9title = url:match(\"([^/]+)$\")\
+\9})\
 end\
 \
 medialib.load(\"media\").RegisterService(\"webaudio\", WebAudioService)"

@@ -23,7 +23,8 @@ frame:SetSize(800, 520)
 
 -- Query media title (eg youtube video title)
 service:query(link, function(err, data)
-	frame:SetTitle(err or data.title or "Media player")
+	local title = string.format("%s [%d]", data.title or "unknown", data.duration or -1)
+	frame:SetTitle(err or title)
 end)
 
 do

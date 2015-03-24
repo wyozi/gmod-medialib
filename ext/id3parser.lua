@@ -1,4 +1,11 @@
+-- Enables parsing ID3 headers of given mp3 files. This means service:query returns a lot more relevant
+-- information, such as artist and title instead of just the filename.
+--
+-- The downside is that parsing the header requires fetching the whole mp3 file, which is expensive and
+-- takes a while.
+--
 -- Orig. Source: https://gist.github.com/mkottman/1162235
+
 local id3 = medialib.module("id3parser")
 
 local function textFrame(name)

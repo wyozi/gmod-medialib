@@ -93,3 +93,7 @@ end
 function HTMLMedia:stop()
 	self.panel:Remove()
 end
+
+function HTMLMedia:isValid()
+	return IsValid(self.panel)
+end

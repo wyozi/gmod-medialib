@@ -204,6 +204,16 @@ do
 			k(...)
 		end
 	end
+	-- True returned from this function does not imply anything related to how
+	-- ready media is to play, just that it exists somewhere in memory and should
+	-- at least in some point in the future be playable, but even that is not guaranteed
+	function Media:isValid() 
+		return false
+	end
+	-- The GMod global IsValid requires the uppercase version
+	function Media:IsValid() 
+		return self:isValid()
+	end
 	-- vol must be a float between 0 and 1
 	function Media:setVolume(vol) end
 	function Media:getVolume() end
@@ -329,6 +339,9 @@ do
 	function HTMLMedia:stop()
 		self.panel:Remove()
 	end
+	function HTMLMedia:isValid()
+		return IsValid(self.panel)
+	end
 end
 -- Module service_bass
 medialib.modulePlaceholder("service_bass")
@@ -397,6 +410,9 @@ do
 	end
 	function BASSMedia:stop()
 		self:runCommand(function(chan) chan:Stop() end)
+	end
+	function BASSMedia:isValid()
+		return IsValid(self.chan)
 	end
 end
 -- Module media

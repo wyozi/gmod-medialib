@@ -81,3 +81,7 @@ end
 function BASSMedia:stop()
 	self:runCommand(function(chan) chan:Stop() end)
 end
+
+function BASSMedia:isValid()
+	return IsValid(self.chan)
+end

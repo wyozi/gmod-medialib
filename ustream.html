@@ -27,8 +27,6 @@
 		var params = medialib.getParams();
 		var channel = params.id;
 
-		document.getElementById("stream").setAttribute("src", "//www.ustream.tv/embed/" + channel);
-
 		medialibDelegate = medialib.createEventDelegate({
 			play: function() {
 				this.callMethod("play");
@@ -43,6 +41,8 @@
 				this.callMethod("volume", obj.vol * 100);
 			}
 		});
+
+		document.getElementById("stream").setAttribute("src", "//www.ustream.tv/embed/" + channel);
 
 		medialib.loadAsync("//ustream.github.io/api-docs/js/ustream-embedapi.min.js", function() {
 			var viewer = UstreamEmbed('stream');

@@ -18,6 +18,10 @@ local mediaclip = service:load(link)
 
 -- Play media
 mediaclip:play()
+
+hook.Add("HUDPaint", "DrawVideo", function()
+	mediaclip:draw(0, 0, 200, 150)
+end)
 ```
 
 See ```examples/``` for more elaborate examples.

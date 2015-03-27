@@ -51,7 +51,11 @@ function HTMLMedia:handleHTMLEvent(id, event)
 end
 
 function HTMLMedia:draw(x, y, w, h)
-	self.panel:UpdateHTMLTexture()
+	-- Only update HTMLTexture once per frame
+	if self.lastUpdatedFrame ~= FrameNumber() then
+		self.panel:UpdateHTMLTexture()
+		self.lastUpdatedFrame = FrameNumber()
+	end
 
 	local mat = self.panel:GetHTMLMaterial()
 

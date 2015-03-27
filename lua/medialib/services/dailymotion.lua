@@ -55,7 +55,7 @@ function DailyMotionService:query(url, callback)
 		end
 
 		callback(nil, data)
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("dailymotion", DailyMotionService)

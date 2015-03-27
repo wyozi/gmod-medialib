@@ -498,7 +498,7 @@ function DailyMotionService:query(url, callback)\
 \9\9end\
 \
 \9\9callback(nil, data)\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"dailymotion\", DailyMotionService)"
@@ -507,8 +507,8 @@ medialib.FolderItems["services/soundcloud.lua"] = "local oop = medialib.load(\"o
 local SoundcloudService = oop.class(\"SoundcloudService\", \"BASSService\")\
 \
 local all_patterns = {\
-\9\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?\",\
-\9\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?\",\
+\9\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\",\
+\9\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\",\
 }\
 \
 function SoundcloudService:parseUrl(url)\
@@ -551,11 +551,23 @@ function SoundcloudService:query(url, callback)\
 \
 \9\9local entry = util.JSONToTable(result)\
 \
+\9\9if entry.errors then\
+\9\9\9local msg = entry.errors[1].error_message or \"error\"\
+\9\9\9\
+\9\9\9local translated = msg\
+\9\9\9if string.StartWith(msg, \"404\") then\
+\9\9\9\9translated = \"Invalid id\"\
+\9\9\9end\
+\
+\9\9\9callback(translated)\
+\9\9\9return\
+\9\9end\
+\
 \9\9callback(nil, {\
 \9\9\9title = entry.title,\
 \9\9\9duration = tonumber(entry.duration) / 1000\
 \9\9})\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"soundcloud\", SoundcloudService)"
@@ -609,13 +621,18 @@ function TwitchService:query(url, callback)\
 \9\9local jsontbl = util.JSONToTable(result)\
 \
 \9\9if jsontbl then\
-\9\9\9data.title = jsontbl.display_name .. \": \" .. jsontbl.status\
+\9\9\9if jsontbl.error then\
+\9\9\9\9callback(jsontbl.message)\
+\9\9\9\9return\
+\9\9\9else\
+\9\9\9\9data.title = jsontbl.display_name .. \": \" .. jsontbl.status\
+\9\9\9end\
 \9\9else\
 \9\9\9data.title = \"ERROR\"\
 \9\9end\
 \
 \9\9callback(nil, data)\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"twitch\", TwitchService)"
@@ -668,6 +685,10 @@ function UstreamService:query(url, callback)\
 \9\9local jsontbl = util.JSONToTable(result)\
 \
 \9\9if jsontbl then\
+\9\9\9if jsontbl.error then\
+\9\9\9\9callback(jsontbl.msg)\
+\9\9\9\9return\
+\9\9\9end\
 \9\9\9data.embed_id = jsontbl.results.id\
 \9\9\9data.title = jsontbl.results.title\
 \9\9else\
@@ -675,7 +696,7 @@ function UstreamService:query(url, callback)\
 \9\9end\
 \
 \9\9callback(nil, data)\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"ustream\", UstreamService)"
@@ -717,9 +738,14 @@ function VimeoService:query(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local metaurl = string.format(\"http://vimeo.com/api/v2/video/%s.json\", urlData.id)\
 \
-\9http.Fetch(metaurl, function(result, size)\
+\9http.Fetch(metaurl, function(result, size, headers, httpcode)\
 \9\9if size == 0 then\
 \9\9\9callback(\"http body size = 0\")\
+\9\9\9return\
+\9\9end\
+\
+\9\9if httpcode == 404 then\
+\9\9\9callback(\"Invalid id\")\
 \9\9\9return\
 \9\9end\
 \
@@ -736,7 +762,7 @@ function VimeoService:query(url, callback)\
 \9\9end\
 \
 \9\9callback(nil, data)\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"vimeo\", VimeoService)"
@@ -926,12 +952,12 @@ function YoutubeService:query(url, callback)\
 \9\9\9data.title = entry[\"title\"][\"$t\"]\
 \9\9\9data.duration = tonumber(entry[\"media$group\"][\"yt$duration\"][\"seconds\"])\
 \9\9else\
-\9\9\9data.title = \"ERROR\"\
-\9\9\9data.duration = 60 -- this seems fine\
+\9\9\9callback(result)\
+\9\9\9return\
 \9\9end\
 \
 \9\9callback(nil, data)\
-\9end)\
+\9end, function(err) callback(\"HTTP: \" .. err) end)\
 end\
 \
 medialib.load(\"media\").registerService(\"youtube\", YoutubeService)"

@@ -80,12 +80,12 @@ function YoutubeService:query(url, callback)
 			data.title = entry["title"]["$t"]
 			data.duration = tonumber(entry["media$group"]["yt$duration"]["seconds"])
 		else
-			data.title = "ERROR"
-			data.duration = 60 -- this seems fine
+			callback(result)
+			return
 		end
 
 		callback(nil, data)
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("youtube", YoutubeService)

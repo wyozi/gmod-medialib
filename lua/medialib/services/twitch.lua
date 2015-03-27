@@ -48,13 +48,18 @@ function TwitchService:query(url, callback)
 		local jsontbl = util.JSONToTable(result)
 
 		if jsontbl then
-			data.title = jsontbl.display_name .. ": " .. jsontbl.status
+			if jsontbl.error then
+				callback(jsontbl.message)
+				return
+			else
+				data.title = jsontbl.display_name .. ": " .. jsontbl.status
+			end
 		else
 			data.title = "ERROR"
 		end
 
 		callback(nil, data)
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("twitch", TwitchService)

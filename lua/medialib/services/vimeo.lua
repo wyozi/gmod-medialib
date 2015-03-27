@@ -36,9 +36,14 @@ function VimeoService:query(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://vimeo.com/api/v2/video/%s.json", urlData.id)
 
-	http.Fetch(metaurl, function(result, size)
+	http.Fetch(metaurl, function(result, size, headers, httpcode)
 		if size == 0 then
 			callback("http body size = 0")
+			return
+		end
+
+		if httpcode == 404 then
+			callback("Invalid id")
 			return
 		end
 
@@ -55,7 +60,7 @@ function VimeoService:query(url, callback)
 		end
 
 		callback(nil, data)
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("vimeo", VimeoService)

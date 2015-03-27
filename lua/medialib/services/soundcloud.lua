@@ -47,11 +47,23 @@ function SoundcloudService:query(url, callback)
 
 		local entry = util.JSONToTable(result)
 
+		if entry.errors then
+			local msg = entry.errors[1].error_message or "error"
+			
+			local translated = msg
+			if string.StartWith(msg, "404") then
+				translated = "Invalid id"
+			end
+
+			callback(translated)
+			return
+		end
+
 		callback(nil, {
 			title = entry.title,
 			duration = tonumber(entry.duration) / 1000
 		})
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("soundcloud", SoundcloudService)

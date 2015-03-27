@@ -47,6 +47,10 @@ function UstreamService:query(url, callback)
 		local jsontbl = util.JSONToTable(result)
 
 		if jsontbl then
+			if jsontbl.error then
+				callback(jsontbl.msg)
+				return
+			end
 			data.embed_id = jsontbl.results.id
 			data.title = jsontbl.results.title
 		else
@@ -54,7 +58,7 @@ function UstreamService:query(url, callback)
 		end
 
 		callback(nil, data)
-	end)
+	end, function(err) callback("HTTP: " .. err) end)
 end
 
 medialib.load("media").registerService("ustream", UstreamService)

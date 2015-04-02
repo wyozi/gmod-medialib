@@ -81,7 +81,7 @@
 				default:
 					return;
 				}
-				medialib.emitEvent("stateChange", {state: state});
+				medialib.emitEvent("stateChange", {state: state, time: player.getCurrentTime()});
 			});
 			player.addEventListener("onError", function(event) {
 				var error;

@@ -50,8 +50,8 @@ medialib = {};
 		})();
 	};
 	exports.emitEvent = function(id, obj) {
-		//console.log("MediaLib event: " + id + obj);
 		if (!("medialiblua" in window)) {
+			console.log("MediaLib event: " + id + JSON.stringify(obj));
 			return;
 		}
 

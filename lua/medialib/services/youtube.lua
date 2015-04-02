@@ -7,17 +7,20 @@ local raw_patterns = {
 	"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/watch%?.*v=([A-Za-z0-9_%-]+)",
 	"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/v/([A-Za-z0-9_%-]+)",
 }
-
 local all_patterns = {}
 
 -- Appends time modifier patterns to each pattern
 for k,p in pairs(raw_patterns) do
-	local hash_letter = "#"
-	if k == 1 then
-		hash_letter = "?"
+	local function with_sep(sep)
+		table.insert(all_patterns, p .. sep .. "t=(%d+)m(%d+)s")
+		table.insert(all_patterns, p .. sep .. "t=(%d+)s?")
 	end
-	table.insert(all_patterns, p .. hash_letter .. "t=(%d+)m(%d+)s")
-	table.insert(all_patterns, p .. hash_letter .. "t=(%d+)s?")
+
+	-- We probably support more separators than youtube itself, but that does not matter
+	with_sep("#")
+	with_sep("&")
+	with_sep("?")
+
 	table.insert(all_patterns, p)
 end
 

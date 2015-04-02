@@ -48,6 +48,25 @@ function HTMLMedia:runJS(js, ...)
 end
 
 function HTMLMedia:handleHTMLEvent(id, event)
+	if id == "stateChange" then
+		local state = event.state
+		local setToState
+
+		if state == "playing" then
+			self.startTime = RealTime()
+		elseif state == "paused" or state == "ended" then
+			setToState = "paused"
+		elseif state == "buffering" then
+			setToState = "buffering"
+		end
+
+		if setToState then
+			self.state = setToState
+		end
+	end
+end
+function HTMLMedia:getState()
+	return self.state
 end
 
 function HTMLMedia:draw(x, y, w, h)
@@ -89,6 +108,8 @@ function HTMLMedia:seek(time)
 end
 
 function HTMLMedia:play()
+	self.startTime = RealTime()
+
 	self:runJS("medialibDelegate.run('play')")
 end
 function HTMLMedia:pause()

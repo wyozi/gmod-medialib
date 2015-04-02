@@ -31,31 +31,23 @@ function Media:getVolume() end
 
 -- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
 -- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
--- Not all qualities are guaranteed to exist on all services, in which case the quality is rounded down
+-- Services are not guaranteed to change to the exact provided quality, or even to do anything at all
 function Media:setQuality(quality) end
 
 -- time must be an integer between 0 and duration
 function Media:seek(time) end
-function Media:getTime() end
-function Media:getDuration() end
+function Media:getTime()
+	local startTime = self.startTime
+	if startTime then
+		return RealTime() - startTime
+	end
 
-function Media:getFraction()
-	local time = self:getTime()
-	local dur = self:getDuration()
-
-	if not time or not dur then return end
-
-	return time / dur
-end
-
-function Media:isStream()
-	return not self:getDuration()
+	return 0
 end
 
 -- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
+-- Can also return nil if state is unknown
 function Media:getState() end
-
-function Media:getLoadedFraction() end
 
 function Media:play() end
 function Media:pause() end

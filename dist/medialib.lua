@@ -219,24 +219,20 @@ do
 	function Media:getVolume() end
 	-- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
 	-- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
-	-- Not all qualities are guaranteed to exist on all services, in which case the quality is rounded down
+	-- Services are not guaranteed to change to the exact provided quality, or even to do anything at all
 	function Media:setQuality(quality) end
 	-- time must be an integer between 0 and duration
 	function Media:seek(time) end
-	function Media:getTime() end
-	function Media:getDuration() end
-	function Media:getFraction()
-		local time = self:getTime()
-		local dur = self:getDuration()
-		if not time or not dur then return end
-		return time / dur
-	end
-	function Media:isStream()
-		return not self:getDuration()
+	function Media:getTime()
+		local startTime = self.startTime
+		if startTime then
+			return RealTime() - startTime
+		end
+		return 0
 	end
 	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
+	-- Can also return nil if state is unknown
 	function Media:getState() end
-	function Media:getLoadedFraction() end
 	function Media:play() end
 	function Media:pause() end
 	function Media:stop() end
@@ -303,6 +299,23 @@ do
 		self.panel:QueueJavascript(code)
 	end
 	function HTMLMedia:handleHTMLEvent(id, event)
+		if id == "stateChange" then
+			local state = event.state
+			local setToState
+			if state == "playing" then
+				self.startTime = RealTime()
+			elseif state == "paused" or state == "ended" then
+				setToState = "paused"
+			elseif state == "buffering" then
+				setToState = "buffering"
+			end
+			if setToState then
+				self.state = setToState
+			end
+		end
+	end
+	function HTMLMedia:getState()
+		return self.state
 	end
 	function HTMLMedia:draw(x, y, w, h)
 		-- Only update HTMLTexture once per frame
@@ -335,6 +348,7 @@ do
 		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
 	end
 	function HTMLMedia:play()
+		self.startTime = RealTime()
 		self:runJS("medialibDelegate.run('play')")
 	end
 	function HTMLMedia:pause()
@@ -405,6 +419,12 @@ do
 	end
 	function BASSMedia:seek(time)
 		self:runCommand(function(chan) chan:SetTime(time) end)
+	end
+	function BASSMedia:getTime()
+		if self:isValid() then
+			return self.chan:GetTime()
+		end
+		return 0
 	end
 	function BASSMedia:play()
 		self:runCommand(function(chan) chan:Play() end)

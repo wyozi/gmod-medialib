@@ -71,6 +71,12 @@ end
 function BASSMedia:seek(time)
 	self:runCommand(function(chan) chan:SetTime(time) end)
 end
+function BASSMedia:getTime()
+	if self:isValid() then
+		return self.chan:GetTime()
+	end
+	return 0
+end
 
 function BASSMedia:play()
 	self:runCommand(function(chan) chan:Play() end)

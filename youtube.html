@@ -24,6 +24,12 @@
 	<script type="text/javascript" src="medialib.js"></script>
 
 	<script type="text/javascript">
+		var qualityMap = {
+			low: "small",
+			medium: "medium",
+			high: "large",
+			veryhigh: "hd720"
+		}
 		medialibDelegate = medialib.createEventDelegate({
 			play: function() {
 				this.playVideo();
@@ -36,6 +42,10 @@
 			},
 			setVolume: function(obj) {
 				this.setVolume(obj.vol * 100);
+			},
+			setQuality: function(obj) {
+				var mapped = qualityMap[obj.quality] || "default";
+				this.setPlaybackQuality(mapped);
 			}
 		});
 

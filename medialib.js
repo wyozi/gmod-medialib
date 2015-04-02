@@ -57,6 +57,29 @@ medialib = {};
 
 		medialiblua.Event(id, JSON.stringify(obj));
 	};
+	exports.checkFlash = function() {
+		if (exports.flashVersion() !== false) {
+			return true;
+		}
+
+		exports.emitEvent("noflash", {});
+
+		// Show a black no flash page
+		document.body.innerHTML = "";
+
+		document.body.style.backgroundColor = "black";
+		document.body.style.color = "white";
+
+		var el = document.createElement("div");
+		el.style.textAlign = "center";
+		el.style.width = "100%";
+		el.style.marginTop = 30;
+		el.innerHTML = "<h1>No flash found!</h1>Type 'medialib_noflash' in console to find out how to install Flash.";
+
+		document.body.appendChild(el);
+
+		return false;
+	}
 
 	exports.loadAsync = function(js, cb) {
 		var tag = document.createElement('script');

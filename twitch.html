@@ -41,34 +41,36 @@
 				}
 			});
 
-			var params = medialib.getParams();
+			if (medialib.checkFlash()) {
+				var params = medialib.getParams();
 
-			var channel = params.id || params.channel;
+				var channel = params.id || params.channel;
 
-			medialib.loadAsync("//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js", function() {
-				window.onPlayerEvent = function (data) {
-					data.forEach(function(event) {
-						if (event.event == "playerInit") {
-							var player = document.getElementById("twitch_embed_player");
-							medialibDelegate.playerLoaded(player);
-						}
-					});
-				}
-
-				swfobject.embedSWF("//www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf", "twitch_embed_player", "100%", "104%", "11", null,
-					{
-						"eventsCallback": "onPlayerEvent",
-						"embed": 1,
-						"channel": channel,
-						"auto_play": "false",
-						"scale": "exactFit"
-					},
-					{
-						"allowScriptAccess": "always",
-						"allowFullScreen": "true"
+				medialib.loadAsync("http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js", function() {
+					window.onPlayerEvent = function (data) {
+						data.forEach(function(event) {
+							if (event.event == "playerInit") {
+								var player = document.getElementById("twitch_embed_player");
+								medialibDelegate.playerLoaded(player);
+							}
+						});
 					}
-				);
-			});
+
+					swfobject.embedSWF("http://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf", "twitch_embed_player", "100%", "104%", "11", null,
+						{
+							"eventsCallback": "onPlayerEvent",
+							"embed": 1,
+							"channel": channel,
+							"auto_play": "false",
+							"scale": "exactFit"
+						},
+						{
+							"allowScriptAccess": "always",
+							"allowFullScreen": "true"
+						}
+					);
+				});
+			}
 		</script>
 	</body>
 </html>

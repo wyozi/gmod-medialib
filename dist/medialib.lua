@@ -224,10 +224,6 @@ do
 	-- time must be an integer between 0 and duration
 	function Media:seek(time) end
 	function Media:getTime()
-		local startTime = self.startTime
-		if startTime then
-			return RealTime() - startTime
-		end
 		return 0
 	end
 	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
@@ -257,14 +253,59 @@ do
 	function Service:isValidUrl(url) end
 	function Service:query(url, callback) end
 end
+-- Module timekeeper
+medialib.modulePlaceholder("timekeeper")
+do
+	-- The purpose of TimeKeeper is to keep time where it is not easily available, ie HTML based services
+	local oop = medialib.load("oop")
+	local TimeKeeper = oop.class("TimeKeeper")
+	function TimeKeeper:initialize()
+		self:reset()
+	end
+	function TimeKeeper:reset()
+		self.cachedTime = 0
+		self.running = false
+		self.runningTimeStart = 0
+	end
+	function TimeKeeper:getTime()
+		local time = self.cachedTime
+		if self.running then
+			time = time + (RealTime() - self.runningTimeStart)
+		end
+		return time
+	end
+	function TimeKeeper:isRunning()
+		return self.running
+	end
+	function TimeKeeper:play()
+		if self.running then return end
+		self.runningTimeStart = RealTime()
+		self.running = true
+	end
+	function TimeKeeper:pause()
+		if not self.running then return end
+		
+		local runningTime = RealTime() - self.runningTimeStart
+		self.cachedTime = self.cachedTime + runningTime
+		self.running = false
+	end
+	function TimeKeeper:seek(time)
+		self.cachedTime = time
+		if self.running then
+			self.runningTimeStart = RealTime()
+		end
+	end
+end
 -- Module service_html
 medialib.modulePlaceholder("service_html")
 do
 	local oop = medialib.load("oop")
+	medialib.load("timekeeper")
 	local HTMLService = oop.class("HTMLService", "Service")
 	local HTMLMedia = oop.class("HTMLMedia", "Media")
 	local panel_width, panel_height = 1280, 720
 	function HTMLMedia:initialize()
+		self.timeKeeper = oop.class("TimeKeeper")()
 		self.panel = vgui.Create("DHTML")
 		local pnl = self.panel
 		pnl:SetPos(0, 0)
@@ -302,12 +343,19 @@ do
 		if id == "stateChange" then
 			local state = event.state
 			local setToState
+			if event.time then
+				print("Timekeeper seeking to ", event.time)
+				self.timeKeeper:seek(event.time)
+			end
 			if state == "playing" then
-				self.startTime = RealTime()
+				setToState = "playing"
+				self.timeKeeper:play()
 			elseif state == "paused" or state == "ended" then
 				setToState = "paused"
+				self.timeKeeper:pause()
 			elseif state == "buffering" then
 				setToState = "buffering"
+				self.timeKeeper:pause()
 			end
 			if setToState then
 				self.state = setToState
@@ -329,6 +377,9 @@ do
 		local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
 		surface.DrawTexturedRectUV(x or 0, y or 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 	end
+	function HTMLMedia:getTime()
+		return self.timeKeeper:getTime()
+	end
 	function HTMLMedia:setQuality(qual)
 		if self.lastSetQuality and self.lastSetQuality == qual then
 			return
@@ -348,13 +399,15 @@ do
 		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
 	end
 	function HTMLMedia:play()
-		self.startTime = RealTime()
+		self.timeKeeper:play()
 		self:runJS("medialibDelegate.run('play')")
 	end
 	function HTMLMedia:pause()
+		self.timeKeeper:pause()
 		self:runJS("medialibDelegate.run('pause')")
 	end
 	function HTMLMedia:stop()
+		self.timeKeeper:pause()
 		self.panel:Remove()
 	end
 	function HTMLMedia:isValid()

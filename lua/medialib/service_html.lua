@@ -1,10 +1,14 @@
 local oop = medialib.load("oop")
+medialib.load("timekeeper")
 
 local HTMLService = oop.class("HTMLService", "Service")
 
 local HTMLMedia = oop.class("HTMLMedia", "Media")
+
 local panel_width, panel_height = 1280, 720
 function HTMLMedia:initialize()
+	self.timeKeeper = oop.class("TimeKeeper")()
+
 	self.panel = vgui.Create("DHTML")
 
 	local pnl = self.panel
@@ -52,12 +56,19 @@ function HTMLMedia:handleHTMLEvent(id, event)
 		local state = event.state
 		local setToState
 
+		if event.time then
+			print("Timekeeper seeking to ", event.time)
+			self.timeKeeper:seek(event.time)
+		end
 		if state == "playing" then
-			self.startTime = RealTime()
+			setToState = "playing"
+			self.timeKeeper:play()
 		elseif state == "paused" or state == "ended" then
 			setToState = "paused"
+			self.timeKeeper:pause()
 		elseif state == "buffering" then
 			setToState = "buffering"
+			self.timeKeeper:pause()
 		end
 
 		if setToState then
@@ -85,6 +96,10 @@ function HTMLMedia:draw(x, y, w, h)
 	surface.DrawTexturedRectUV(x or 0, y or 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
 end
 
+function HTMLMedia:getTime()
+	return self.timeKeeper:getTime()
+end
+
 function HTMLMedia:setQuality(qual)
 	if self.lastSetQuality and self.lastSetQuality == qual then
 		return
@@ -108,14 +123,18 @@ function HTMLMedia:seek(time)
 end
 
 function HTMLMedia:play()
-	self.startTime = RealTime()
+	self.timeKeeper:play()
 
 	self:runJS("medialibDelegate.run('play')")
 end
 function HTMLMedia:pause()
+	self.timeKeeper:pause()
+
 	self:runJS("medialibDelegate.run('pause')")
 end
 function HTMLMedia:stop()
+	self.timeKeeper:pause()
+
 	self.panel:Remove()
 end
 

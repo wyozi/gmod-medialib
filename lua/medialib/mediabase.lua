@@ -37,11 +37,6 @@ function Media:setQuality(quality) end
 -- time must be an integer between 0 and duration
 function Media:seek(time) end
 function Media:getTime()
-	local startTime = self.startTime
-	if startTime then
-		return RealTime() - startTime
-	end
-
 	return 0
 end
 

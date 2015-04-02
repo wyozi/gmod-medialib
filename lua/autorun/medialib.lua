@@ -86,3 +86,16 @@ function medialib.folderIterator(folder)
 
 	return pairs(files)
 end
+
+if CLIENT then
+	concommand.Add("medialib_noflash", function()
+		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
+
+		MsgN("[MediaLib no flash guide]")
+		MsgN("1. Open this website on your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
+		MsgN("   (it has been automatically added to your clipboard)")
+		MsgN("2. Download the NSAPI (for Firefox) version")
+		MsgN("3. Restart your Garry's Mod")
+		MsgN("[ ===================== ]")
+	end)
+end

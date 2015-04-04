@@ -13,6 +13,6 @@ function Service:emit(event, ...)
 	end
 end
 
-function Service:load(url) end
+function Service:load(url, opts) end
 function Service:isValidUrl(url) end
 function Service:query(url, callback) end

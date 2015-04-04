@@ -57,7 +57,6 @@ function HTMLMedia:handleHTMLEvent(id, event)
 		local setToState
 
 		if event.time then
-			print("Timekeeper seeking to ", event.time)
 			self.timeKeeper:seek(event.time)
 		end
 		if state == "playing" then

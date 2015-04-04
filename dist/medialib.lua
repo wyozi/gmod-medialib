@@ -262,7 +262,7 @@ do
 			k(...)
 		end
 	end
-	function Service:load(url) end
+	function Service:load(url, opts) end
 	function Service:isValidUrl(url) end
 	function Service:query(url, callback) end
 end
@@ -357,7 +357,6 @@ do
 			local state = event.state
 			local setToState
 			if event.time then
-				print("Timekeeper seeking to ", event.time)
 				self.timeKeeper:seek(event.time)
 			end
 			if state == "playing" then
@@ -1008,7 +1007,7 @@ end\
 local player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\
 --player_url = \"http://localhost:8080/youtube.html?rand=\" .. math.random() .. \"&id=%s\"\
 \
-function YoutubeService:load(url)\
+function YoutubeService:load(url, opts)\
 \9local media = oop.class(\"HTMLMedia\")()\
 \
 \9local urlData = self:parseUrl(url)\
@@ -1016,7 +1015,7 @@ function YoutubeService:load(url)\
 \
 \9media:openUrl(playerUrl)\
 \
-\9if urlData.start then media:seek(urlData.start) end\
+\9if urlData.start and (not opts or not opts.dontSeek) then media:seek(urlData.start) end\
 \
 \9return media\
 end\

@@ -50,7 +50,7 @@ end
 local player_url = "http://wyozi.github.io/gmod-medialib/youtube.html?id=%s"
 --player_url = "http://localhost:8080/youtube.html?rand=" .. math.random() .. "&id=%s"
 
-function YoutubeService:load(url)
+function YoutubeService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
 
 	local urlData = self:parseUrl(url)
@@ -58,7 +58,7 @@ function YoutubeService:load(url)
 
 	media:openUrl(playerUrl)
 
-	if urlData.start then media:seek(urlData.start) end
+	if urlData.start and (not opts or not opts.dontSeek) then media:seek(urlData.start) end
 
 	return media
 end

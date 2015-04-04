@@ -314,11 +314,16 @@ medialib.modulePlaceholder("service_html")
 do
 	local oop = medialib.load("oop")
 	medialib.load("timekeeper")
+	local volume3d = medialib.load("volume3d")
 	local HTMLService = oop.class("HTMLService", "Service")
 	function HTMLService:load(url, opts)
 		local media = oop.class("HTMLMedia")()
 		self:resolveUrl(url, function(resolvedUrl, resolvedData)
 			media:openUrl(resolvedUrl)
+			-- TODO move to volume3d and call as a hook
+			if opts and opts.use3D then
+				volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
+			end
 			if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
 		end)
 		return media
@@ -354,6 +359,9 @@ do
 		pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
 			self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
 		end)
+	end
+	function HTMLMedia:getBaseService()
+		return "html"
 	end
 	function HTMLMedia:openUrl(url)
 		self.panel:OpenURL(url)
@@ -411,12 +419,22 @@ do
 		
 		self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 	end
-	function HTMLMedia:setVolume(vol)
+	-- This applies the volume to the HTML panel
+	-- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
+	function HTMLMedia:applyVolume()
+		local ivol = self.internalVolume or 1
+		local rvol = self.volume or 1
+		local vol = ivol * rvol
 		if self.lastSetVolume and self.lastSetVolume == vol then
 			return
 		end
 		self.lastSetVolume = vol
 		self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+	end
+	-- This sets a volume variable
+	function HTMLMedia:setVolume(vol)
+		self.volume = vol
+		self:applyVolume()
 	end
 	function HTMLMedia:seek(time)
 		self:runJS("medialibDelegate.run('seek', {time: %d})", time)
@@ -441,10 +459,18 @@ end
 medialib.modulePlaceholder("service_bass")
 do
 	local oop = medialib.load("oop")
+	local volume3d = medialib.load("volume3d")
 	local BASSService = oop.class("BASSService", "Service")
 	function BASSService:load(url, opts)
 		local media = oop.class("BASSMedia")()
 		self:resolveUrl(url, function(resolvedUrl, resolvedData)
+			if opts and opts.use3D then
+				media.is3D = true
+				media:runCommand(function(chan)
+					-- TODO move to volume3d and call as a hook
+					volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
+				end)
+			end
 			media:openUrl(resolvedUrl)
 			if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
 		end)
@@ -456,6 +482,9 @@ do
 	local BASSMedia = oop.class("BASSMedia", "Media")
 	function BASSMedia:initialize()
 		self.commandQueue = {}
+	end
+	function BASSMedia:getBaseService()
+		return "bass"
 	end
 	function BASSMedia:draw(x, y, w, h)
 		surface.SetDrawColor(0, 0, 0)
@@ -473,12 +502,16 @@ do
 		end	
 	end
 	function BASSMedia:openUrl(url)
-		sound.PlayURL(url, "noplay noblock", function(chan, errId, errName)
+		local flags = "noplay noblock"
+		if self.is3D then flags = flags .. " 3d" end
+		sound.PlayURL(url, flags, function(chan, errId, errName)
 			self:bassCallback(chan, errId, errName)
 		end)
 	end
 	function BASSMedia:openFile(path)
-		sound.PlayFile(path, "noplay noblock", function(chan, errId, errName)
+		local flags = "noplay noblock"
+		if self.is3D then flags = flags .. " 3d" end
+		sound.PlayFile(path, flags, function(chan, errId, errName)
 			self:bassCallback(chan, errId, errName)
 		end)
 	end

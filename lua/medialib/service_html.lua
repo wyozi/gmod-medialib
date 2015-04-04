@@ -1,12 +1,19 @@
 local oop = medialib.load("oop")
 medialib.load("timekeeper")
 
+local volume3d = medialib.load("volume3d")
+
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		media:openUrl(resolvedUrl)
+
+		-- TODO move to volume3d and call as a hook
+		if opts and opts.use3D then
+			volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
+		end
 
 		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
 	end)
@@ -55,6 +62,11 @@ function HTMLMedia:initialize()
 		self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
 	end)
 end
+
+function HTMLMedia:getBaseService()
+	return "html"
+end
+
 function HTMLMedia:openUrl(url)
 	self.panel:OpenURL(url)
 
@@ -122,13 +134,26 @@ function HTMLMedia:setQuality(qual)
 	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 end
 
-function HTMLMedia:setVolume(vol)
+-- This applies the volume to the HTML panel
+-- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
+function HTMLMedia:applyVolume()
+	local ivol = self.internalVolume or 1
+	local rvol = self.volume or 1
+
+	local vol = ivol * rvol
+
 	if self.lastSetVolume and self.lastSetVolume == vol then
 		return
 	end
 	self.lastSetVolume = vol
 
 	self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+end
+
+-- This sets a volume variable
+function HTMLMedia:setVolume(vol)
+	self.volume = vol
+	self:applyVolume()
 end
 
 function HTMLMedia:seek(time)

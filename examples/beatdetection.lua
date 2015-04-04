@@ -1,3 +1,5 @@
+-- Requires 'beatdetector' extension
+
 if THEMEDIA then THEMEDIA:stop() end
 
 local link = "http://puu.sh/gNA5J/57f8192725.mp3"

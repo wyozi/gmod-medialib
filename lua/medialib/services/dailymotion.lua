@@ -21,16 +21,13 @@ function DailyMotionService:isValidUrl(url)
 end
 
 local player_url = "http://wyozi.github.io/gmod-medialib/dailymotion.html?id=%s"
-function DailyMotionService:load(url)
-	local media = oop.class("HTMLMedia")()
-
+function DailyMotionService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 	local playerUrl = string.format(player_url, urlData.id)
 
-	media:openUrl(playerUrl)
-
-	return media
+	callback(playerUrl, {start = urlData.start})
 end
+
 -- https://api.dailymotion.com/video/x2isgrj_if-frank-underwood-was-your-coworker_fun
 function DailyMotionService:query(url, callback)
 	local urlData = self:parseUrl(url)

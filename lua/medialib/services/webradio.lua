@@ -18,12 +18,8 @@ function WebRadioService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-function WebRadioService:load(url)
-	local media = oop.class("BASSMedia")()
-
-	media:openUrl(url)
-
-	return media
+function WebRadioService:resolveUrl(url, callback)
+	callback(url, {})
 end
 
 function WebRadioService:query(url, callback)

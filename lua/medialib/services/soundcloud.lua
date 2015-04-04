@@ -20,19 +20,15 @@ function SoundcloudService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-function SoundcloudService:load(url)
-	local media = oop.class("BASSMedia")()
-
+function SoundcloudService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 
 	http.Fetch(
 		string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID", urlData.id),
 		function(data)
 			local sound_id = util.JSONToTable(data).id
-			media:openUrl(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID", sound_id))
+			callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID", sound_id), {})
 		end)
-
-	return media
 end
 
 function SoundcloudService:query(url, callback)

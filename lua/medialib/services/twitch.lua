@@ -21,15 +21,11 @@ function TwitchService:isValidUrl(url)
 end
 
 local player_url = "http://wyozi.github.io/gmod-medialib/twitch.html?channel=%s"
-function TwitchService:load(url)
-	local media = oop.class("HTMLMedia")()
-
+function TwitchService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 	local playerUrl = string.format(player_url, urlData.id)
 
-	media:openUrl(playerUrl)
-
-	return media
+	callback(playerUrl, {start = urlData.start})
 end
 
 function TwitchService:query(url, callback)

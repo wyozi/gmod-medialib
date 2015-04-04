@@ -21,15 +21,11 @@ function VimeoService:isValidUrl(url)
 end
 
 local player_url = "http://wyozi.github.io/gmod-medialib/vimeo.html?id=%s"
-function VimeoService:load(url)
-	local media = oop.class("HTMLMedia")()
-
+function VimeoService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 	local playerUrl = string.format(player_url, urlData.id)
 
-	media:openUrl(playerUrl)
-
-	return media
+	callback(playerUrl, {start = urlData.start})
 end
 
 function VimeoService:query(url, callback)

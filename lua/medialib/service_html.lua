@@ -2,6 +2,20 @@ local oop = medialib.load("oop")
 medialib.load("timekeeper")
 
 local HTMLService = oop.class("HTMLService", "Service")
+function HTMLService:load(url, opts)
+	local media = oop.class("HTMLMedia")()
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		media:openUrl(resolvedUrl)
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+
+	return media
+end
+function HTMLService:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end
 
 local HTMLMedia = oop.class("HTMLMedia", "Media")
 

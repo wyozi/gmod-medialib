@@ -315,6 +315,17 @@ do
 	local oop = medialib.load("oop")
 	medialib.load("timekeeper")
 	local HTMLService = oop.class("HTMLService", "Service")
+	function HTMLService:load(url, opts)
+		local media = oop.class("HTMLMedia")()
+		self:resolveUrl(url, function(resolvedUrl, resolvedData)
+			media:openUrl(resolvedUrl)
+			if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+		end)
+		return media
+	end
+	function HTMLService:resolveUrl(url, cb)
+		cb(url, self:parseUrl(url))
+	end
 	local HTMLMedia = oop.class("HTMLMedia", "Media")
 	local panel_width, panel_height = 1280, 720
 	function HTMLMedia:initialize()
@@ -431,6 +442,17 @@ medialib.modulePlaceholder("service_bass")
 do
 	local oop = medialib.load("oop")
 	local BASSService = oop.class("BASSService", "Service")
+	function BASSService:load(url, opts)
+		local media = oop.class("BASSMedia")()
+		self:resolveUrl(url, function(resolvedUrl, resolvedData)
+			media:openUrl(resolvedUrl)
+			if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+		end)
+		return media
+	end
+	function BASSService:resolveUrl(url, cb)
+		cb(url, self:parseUrl(url))
+	end
 	local BASSMedia = oop.class("BASSMedia", "Media")
 	function BASSMedia:initialize()
 		self.commandQueue = {}
@@ -549,16 +571,13 @@ function DailyMotionService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/dailymotion.html?id=%s\"\
-function DailyMotionService:load(url)\
-\9local media = oop.class(\"HTMLMedia\")()\
-\
+function DailyMotionService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local playerUrl = string.format(player_url, urlData.id)\
 \
-\9media:openUrl(playerUrl)\
-\
-\9return media\
+\9callback(playerUrl, {start = urlData.start})\
 end\
+\
 -- https://api.dailymotion.com/video/x2isgrj_if-frank-underwood-was-your-coworker_fun\
 function DailyMotionService:query(url, callback)\
 \9local urlData = self:parseUrl(url)\
@@ -609,19 +628,15 @@ function SoundcloudService:isValidUrl(url)\
 \9return self:parseUrl(url) ~= nil\
 end\
 \
-function SoundcloudService:load(url)\
-\9local media = oop.class(\"BASSMedia\")()\
-\
+function SoundcloudService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \
 \9http.Fetch(\
 \9\9string.format(\"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\", urlData.id),\
 \9\9function(data)\
 \9\9\9local sound_id = util.JSONToTable(data).id\
-\9\9\9media:openUrl(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID\", sound_id))\
+\9\9\9callback(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID\", sound_id), {})\
 \9\9end)\
-\
-\9return media\
 end\
 \
 function SoundcloudService:query(url, callback)\
@@ -679,15 +694,11 @@ function TwitchService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/twitch.html?channel=%s\"\
-function TwitchService:load(url)\
-\9local media = oop.class(\"HTMLMedia\")()\
-\
+function TwitchService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local playerUrl = string.format(player_url, urlData.id)\
 \
-\9media:openUrl(playerUrl)\
-\
-\9return media\
+\9callback(playerUrl, {start = urlData.start})\
 end\
 \
 function TwitchService:query(url, callback)\
@@ -744,16 +755,16 @@ function UstreamService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/ustream.html?id=%s\"\
-function UstreamService:load(url)\
-\9local media = oop.class(\"HTMLMedia\")()\
+function UstreamService:resolveUrl(url, callback)\
+\9local urlData = self:parseUrl(url)\
+\9local playerUrl = string.format(player_url, urlData.id)\
 \
 \9-- For ustream we need to query metadata to get the embed id\
 \9self:query(url, function(err, data)\
-\9\9media:openUrl(string.format(player_url, data.embed_id))\
+\9\9callback(string.format(player_url, data.embed_id), {start = urlData.start})\
 \9end)\
-\
-\9return media\
 end\
+\
 function UstreamService:query(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local metaurl = string.format(\"http://api.ustream.tv/json/channel/%s/getInfo\", urlData.id)\
@@ -808,15 +819,11 @@ function VimeoService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/vimeo.html?id=%s\"\
-function VimeoService:load(url)\
-\9local media = oop.class(\"HTMLMedia\")()\
-\
+function VimeoService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local playerUrl = string.format(player_url, urlData.id)\
 \
-\9media:openUrl(playerUrl)\
-\
-\9return media\
+\9callback(playerUrl, {start = urlData.start})\
 end\
 \
 function VimeoService:query(url, callback)\
@@ -872,12 +879,8 @@ function WebAudioService:isValidUrl(url)\
 \9return self:parseUrl(url) ~= nil\
 end\
 \
-function WebAudioService:load(url)\
-\9local media = oop.class(\"BASSMedia\")()\
-\
-\9media:openUrl(url)\
-\
-\9return media\
+function WebAudioService:resolveUrl(url, callback)\
+\9callback(url, {})\
 end\
 \
 local id3parser = medialib.load(\"id3parser\")\
@@ -940,12 +943,8 @@ function WebRadioService:isValidUrl(url)\
 \9return self:parseUrl(url) ~= nil\
 end\
 \
-function WebRadioService:load(url)\
-\9local media = oop.class(\"BASSMedia\")()\
-\
-\9media:openUrl(url)\
-\
-\9return media\
+function WebRadioService:resolveUrl(url, callback)\
+\9callback(url, {})\
 end\
 \
 function WebRadioService:query(url, callback)\
@@ -1005,19 +1004,11 @@ function YoutubeService:isValidUrl(url)\
 end\
 \
 local player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\
---player_url = \"http://localhost:8080/youtube.html?rand=\" .. math.random() .. \"&id=%s\"\
-\
-function YoutubeService:load(url, opts)\
-\9local media = oop.class(\"HTMLMedia\")()\
-\
+function YoutubeService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local playerUrl = string.format(player_url, urlData.id)\
 \
-\9media:openUrl(playerUrl)\
-\
-\9if urlData.start and (not opts or not opts.dontSeek) then media:seek(urlData.start) end\
-\
-\9return media\
+\9callback(playerUrl, {start = urlData.start})\
 end\
 \
 function YoutubeService:query(url, callback)\

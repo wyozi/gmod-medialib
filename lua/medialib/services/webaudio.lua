@@ -19,12 +19,8 @@ function WebAudioService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-function WebAudioService:load(url)
-	local media = oop.class("BASSMedia")()
-
-	media:openUrl(url)
-
-	return media
+function WebAudioService:resolveUrl(url, callback)
+	callback(url, {})
 end
 
 local id3parser = medialib.load("id3parser")

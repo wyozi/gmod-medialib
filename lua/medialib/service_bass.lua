@@ -1,6 +1,20 @@
 local oop = medialib.load("oop")
 
 local BASSService = oop.class("BASSService", "Service")
+function BASSService:load(url, opts)
+	local media = oop.class("BASSMedia")()
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		media:openUrl(resolvedUrl)
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+
+	return media
+end
+function BASSService:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end
 
 local BASSMedia = oop.class("BASSMedia", "Media")
 

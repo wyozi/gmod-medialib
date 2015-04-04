@@ -21,16 +21,16 @@ function UstreamService:isValidUrl(url)
 end
 
 local player_url = "http://wyozi.github.io/gmod-medialib/ustream.html?id=%s"
-function UstreamService:load(url)
-	local media = oop.class("HTMLMedia")()
+function UstreamService:resolveUrl(url, callback)
+	local urlData = self:parseUrl(url)
+	local playerUrl = string.format(player_url, urlData.id)
 
 	-- For ustream we need to query metadata to get the embed id
 	self:query(url, function(err, data)
-		media:openUrl(string.format(player_url, data.embed_id))
+		callback(string.format(player_url, data.embed_id), {start = urlData.start})
 	end)
-
-	return media
 end
+
 function UstreamService:query(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://api.ustream.tv/json/channel/%s/getInfo", urlData.id)

@@ -2,7 +2,8 @@ local oop = medialib.load("oop")
 local WebRadioService = oop.class("WebRadioService", "BASSService")
 
 local all_patterns = {
-	"^https?://(.*)%.pls"
+	"^https?://(.*)%.pls",
+	"^https?://(.*)%.m3u"
 }
 
 function WebRadioService:parseUrl(url)

@@ -960,7 +960,8 @@ medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop
 local WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\
 \
 local all_patterns = {\
-\9\"^https?://(.*)%.pls\"\
+\9\"^https?://(.*)%.pls\",\
+\9\"^https?://(.*)%.m3u\"\
 }\
 \
 function WebRadioService:parseUrl(url)\

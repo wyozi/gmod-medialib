@@ -217,6 +217,12 @@ do
 			k(...)
 		end
 	end
+	function Media:getServiceBase()
+		error("Media:getServiceBase() not implemented!")
+	end
+	function Media:getUrl()
+		return self.unresolvedUrl
+	end
 	-- True returned from this function does not imply anything related to how
 	-- ready media is to play, just that it exists somewhere in memory and should
 	-- at least in some point in the future be playable, but even that is not guaranteed
@@ -318,6 +324,7 @@ do
 	local HTMLService = oop.class("HTMLService", "Service")
 	function HTMLService:load(url, opts)
 		local media = oop.class("HTMLMedia")()
+		media.unresolvedUrl = url
 		self:resolveUrl(url, function(resolvedUrl, resolvedData)
 			media:openUrl(resolvedUrl)
 			-- TODO move to volume3d and call as a hook
@@ -463,6 +470,7 @@ do
 	local BASSService = oop.class("BASSService", "Service")
 	function BASSService:load(url, opts)
 		local media = oop.class("BASSMedia")()
+		media.unresolvedUrl = url
 		self:resolveUrl(url, function(resolvedUrl, resolvedData)
 			if opts and opts.use3D then
 				media.is3D = true

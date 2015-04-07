@@ -13,6 +13,13 @@ function Media:emit(event, ...)
 	end
 end
 
+function Media:getServiceBase()
+	error("Media:getServiceBase() not implemented!")
+end
+function Media:getUrl()
+	return self.unresolvedUrl
+end
+
 -- True returned from this function does not imply anything related to how
 -- ready media is to play, just that it exists somewhere in memory and should
 -- at least in some point in the future be playable, but even that is not guaranteed

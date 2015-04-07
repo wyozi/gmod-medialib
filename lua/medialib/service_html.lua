@@ -6,6 +6,7 @@ local volume3d = medialib.load("volume3d")
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
+	media.unresolvedUrl = url
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		media:openUrl(resolvedUrl)

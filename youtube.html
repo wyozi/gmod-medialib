@@ -61,6 +61,9 @@
 				height: '100%',
 				width: '100%',
 				videoId: id,
+				playerVars: {
+					"iv_load_policy": 3
+				},
 				events: {
 					onReady: function(event) {
 						event.target.pauseVideo();

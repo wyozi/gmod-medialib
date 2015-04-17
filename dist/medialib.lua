@@ -246,8 +246,13 @@ do
 		return 0
 	end
 	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
-	-- Can also return nil if state is unknown
+	-- Can also return nil if state is unknown or cannot be represented properly
+	-- If getState does not return nil, it should be assumed to be the correct current state
 	function Media:getState() end
+	-- Simplified function of above; simply returns boolean indicating playing state
+	function Media:isPlaying()
+		return self:getState() == "playing"
+	end
 	function Media:play() end
 	function Media:pause() end
 	function Media:stop() end
@@ -403,6 +408,9 @@ do
 	function HTMLMedia:getState()
 		return self.state
 	end
+	function HTMLMedia:updateTexture()
+		
+	end
 	function HTMLMedia:draw(x, y, w, h)
 		-- Only update HTMLTexture once per frame
 		if self.lastUpdatedFrame ~= FrameNumber() then
@@ -553,6 +561,15 @@ do
 			return self.chan:GetTime()
 		end
 		return 0
+	end
+	function BASSMedia:getState()
+		if not self:isValid() then return "error" end
+		local bassState = self.chan:GetState()
+		if bassState == GMOD_CHANNEL_PLAYING then return "playing" end
+		if bassState == GMOD_CHANNEL_PAUSED then return "paused" end
+		if bassState == GMOD_CHANNEL_STALLED then return "buffering" end
+		if bassState == GMOD_CHANNEL_STOPPED then return "paused" end -- umm??
+		return
 	end
 	function BASSMedia:play()
 		self:runCommand(function(chan) chan:Play() end)

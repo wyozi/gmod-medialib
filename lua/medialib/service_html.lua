@@ -106,6 +106,10 @@ function HTMLMedia:getState()
 	return self.state
 end
 
+function HTMLMedia:updateTexture()
+	
+end
+
 function HTMLMedia:draw(x, y, w, h)
 	-- Only update HTMLTexture once per frame
 	if self.lastUpdatedFrame ~= FrameNumber() then

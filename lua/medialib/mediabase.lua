@@ -48,8 +48,14 @@ function Media:getTime()
 end
 
 -- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
--- Can also return nil if state is unknown
+-- Can also return nil if state is unknown or cannot be represented properly
+-- If getState does not return nil, it should be assumed to be the correct current state
 function Media:getState() end
+
+-- Simplified function of above; simply returns boolean indicating playing state
+function Media:isPlaying()
+	return self:getState() == "playing"
+end
 
 function Media:play() end
 function Media:pause() end

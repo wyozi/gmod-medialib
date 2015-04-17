@@ -114,6 +114,16 @@ function BASSMedia:getTime()
 	return 0
 end
 
+function BASSMedia:getState()
+	if not self:isValid() then return "error" end
+	local bassState = self.chan:GetState()
+	if bassState == GMOD_CHANNEL_PLAYING then return "playing" end
+	if bassState == GMOD_CHANNEL_PAUSED then return "paused" end
+	if bassState == GMOD_CHANNEL_STALLED then return "buffering" end
+	if bassState == GMOD_CHANNEL_STOPPED then return "paused" end -- umm??
+	return
+end
+
 function BASSMedia:play()
 	self:runCommand(function(chan) chan:Play() end)
 end

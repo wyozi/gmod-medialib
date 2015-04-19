@@ -13,7 +13,7 @@ local WSHandlers = {
 	},
 	comment_s = {
 		_start = function(code, pointer) return string.find(code, "--", pointer, true) end,
-		_end = function(code, pointer) return select(2, string.find(code, "[\10\13]", pointer)) or #code end,
+		_end = function(code, pointer) return string.find(code, "[\10\13]", pointer) or #code end,
 		skip = true
 	},
 	comment_multi = {
@@ -34,9 +34,9 @@ local function StripWhitespace(code)
 		local _code = string.sub(code, pointer, endp)
 		_code = string.gsub(_code, "\t", "") -- remove tabs
 		_code = string.gsub(_code, "[\10\13]", " ") -- replace newlines with spaces
-		_code = string.gsub(_code, "([{%[%(]) ", "%1")
-		_code = string.gsub(_code, " ([}%]%)])", "%1")
 		_code = string.gsub(_code, " ?%.%. ?", "..")
+		_code = string.gsub(_code, " ?([=~><%-+]) ?", "%1")
+		_code = string.gsub(_code, " ?([{}%[%]%(%)]) ?", "%1")
 		_code = string.gsub(_code, "  +", " ") -- replace space seq with single space
 		table.insert(stripped, _code)
 		
@@ -78,7 +78,7 @@ local function StripWhitespace(code)
 			end
 			return true
 		end
-		
+
 		return false
 	end
 	
@@ -154,7 +154,16 @@ local function Build()
 	end
 	ParseModule("__loader", file.Read("autorun/medialib_loader.lua", "LUA"))
 
-	file.Write("medialib.txt", table.concat(fragments, "\n"))
+	local concated = table.concat(fragments, "\n")
+
+	local compr = util.Compress(concated)
+	local bytez = {}
+	for i=1,#compr do bytez[i] = string.format("\\%i", string.byte(compr[i])) end
+
+	local final = "local data = [=====[" .. table.concat(bytez, "") .. "]=====] RunString(util.Decompress(data))"
+
+	--file.Write("medialib.txt", final)
+	file.Write("medialib.txt", concated)
 end
 
 if SERVER then

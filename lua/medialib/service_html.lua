@@ -89,16 +89,14 @@ function HTMLMedia:handleHTMLEvent(id, event)
 		if state == "playing" then
 			setToState = "playing"
 			self.timeKeeper:play()
-		elseif state == "paused" or state == "ended" then
-			setToState = "paused"
-			self.timeKeeper:pause()
-		elseif state == "buffering" then
-			setToState = "buffering"
+		elseif state == "ended" or state == "paused" or state == "buffering" then
+			setToState = state
 			self.timeKeeper:pause()
 		end
 
 		if setToState then
 			self.state = setToState
+			self:emit(setToState)
 		end
 	end
 end
@@ -107,15 +105,15 @@ function HTMLMedia:getState()
 end
 
 function HTMLMedia:updateTexture()
-	
-end
-
-function HTMLMedia:draw(x, y, w, h)
 	-- Only update HTMLTexture once per frame
 	if self.lastUpdatedFrame ~= FrameNumber() then
 		self.panel:UpdateHTMLTexture()
 		self.lastUpdatedFrame = FrameNumber()
 	end
+end
+
+function HTMLMedia:draw(x, y, w, h)
+	self:updateTexture()
 
 	local mat = self.panel:GetHTMLMaterial()
 
@@ -177,8 +175,9 @@ function HTMLMedia:pause()
 end
 function HTMLMedia:stop()
 	self.timeKeeper:pause()
-
 	self.panel:Remove()
+
+	self:emit("stopped")
 end
 
 function HTMLMedia:isValid()

@@ -208,12 +208,15 @@ do
 	local oop = medialib.load("oop")
 	local Media = oop.class("Media")
 	function Media:on(event, callback)
-		self._events = {}
+		self._events = self._events or {}
 		self._events[event] = self._events[event] or {}
 		self._events[event][callback] = true
 	end
 	function Media:emit(event, ...)
-		for k,_ in pairs(self._events[event] or {}) do
+		if not self._events then return end
+		local callbacks = self._events[event]
+		if not callbacks then return end
+		for k,_ in pairs(callbacks) do
 			k(...)
 		end
 	end
@@ -245,7 +248,7 @@ do
 	function Media:getTime()
 		return 0
 	end
-	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
+	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused", "ended"
 	-- Can also return nil if state is unknown or cannot be represented properly
 	-- If getState does not return nil, it should be assumed to be the correct current state
 	function Media:getState() end
@@ -393,15 +396,13 @@ do
 			if state == "playing" then
 				setToState = "playing"
 				self.timeKeeper:play()
-			elseif state == "paused" or state == "ended" then
-				setToState = "paused"
-				self.timeKeeper:pause()
-			elseif state == "buffering" then
-				setToState = "buffering"
+			elseif state == "ended" or state == "paused" or state == "buffering" then
+				setToState = state
 				self.timeKeeper:pause()
 			end
 			if setToState then
 				self.state = setToState
+				self:emit(setToState)
 			end
 		end
 	end
@@ -409,14 +410,14 @@ do
 		return self.state
 	end
 	function HTMLMedia:updateTexture()
-		
-	end
-	function HTMLMedia:draw(x, y, w, h)
 		-- Only update HTMLTexture once per frame
 		if self.lastUpdatedFrame ~= FrameNumber() then
 			self.panel:UpdateHTMLTexture()
 			self.lastUpdatedFrame = FrameNumber()
 		end
+	end
+	function HTMLMedia:draw(x, y, w, h)
+		self:updateTexture()
 		local mat = self.panel:GetHTMLMaterial()
 		surface.SetMaterial(mat)
 		surface.SetDrawColor(255, 255, 255)
@@ -465,6 +466,7 @@ do
 	function HTMLMedia:stop()
 		self.timeKeeper:pause()
 		self.panel:Remove()
+		self:emit("stopped")
 	end
 	function HTMLMedia:isValid()
 		return IsValid(self.panel)
@@ -572,13 +574,13 @@ do
 		return
 	end
 	function BASSMedia:play()
-		self:runCommand(function(chan) chan:Play() end)
+		self:runCommand(function(chan) chan:Play() self:emit("playing") end)
 	end
 	function BASSMedia:pause()
-		self:runCommand(function(chan) chan:Pause() end)
+		self:runCommand(function(chan) chan:Pause() self:emit("paused") end)
 	end
 	function BASSMedia:stop()
-		self:runCommand(function(chan) chan:Stop() end)
+		self:runCommand(function(chan) chan:Stop() self:emit("stopped") end)
 	end
 	function BASSMedia:isValid()
 		return IsValid(self.chan)

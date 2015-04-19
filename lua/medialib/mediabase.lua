@@ -3,12 +3,17 @@ local oop = medialib.load("oop")
 local Media = oop.class("Media")
 
 function Media:on(event, callback)
-	self._events = {}
+	self._events = self._events or {}
 	self._events[event] = self._events[event] or {}
 	self._events[event][callback] = true
 end
 function Media:emit(event, ...)
-	for k,_ in pairs(self._events[event] or {}) do
+	if not self._events then return end
+
+	local callbacks = self._events[event]
+	if not callbacks then return end
+
+	for k,_ in pairs(callbacks) do
 		k(...)
 	end
 end
@@ -47,7 +52,7 @@ function Media:getTime()
 	return 0
 end
 
--- Must return one of following strings: "error", "loading", "buffering", "playing", "paused"
+-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused", "ended"
 -- Can also return nil if state is unknown or cannot be represented properly
 -- If getState does not return nil, it should be assumed to be the correct current state
 function Media:getState() end

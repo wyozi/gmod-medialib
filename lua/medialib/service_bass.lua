@@ -125,13 +125,13 @@ function BASSMedia:getState()
 end
 
 function BASSMedia:play()
-	self:runCommand(function(chan) chan:Play() end)
+	self:runCommand(function(chan) chan:Play() self:emit("playing") end)
 end
 function BASSMedia:pause()
-	self:runCommand(function(chan) chan:Pause() end)
+	self:runCommand(function(chan) chan:Pause() self:emit("paused") end)
 end
 function BASSMedia:stop()
-	self:runCommand(function(chan) chan:Stop() end)
+	self:runCommand(function(chan) chan:Stop() self:emit("stopped") end)
 end
 
 function BASSMedia:isValid()

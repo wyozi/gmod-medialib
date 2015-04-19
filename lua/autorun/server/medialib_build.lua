@@ -5,7 +5,12 @@ local pat_ws = "%s*"
 local WSHandlers = {
 	quotation = {
 		_start = function(code, pointer) return string.find(code, "\"", pointer, true) end,
-		_end = function(code, pointer) return select(2, string.find(code, "[^\\]\"", pointer)) end
+		_end = function(code, pointer)
+			if string.sub(code, pointer, pointer) == "\"" then return pointer end
+
+			local _, t = string.find(code, "[^\\]\"", pointer)
+			if t then return t end
+		end
 	},
 	multiline = {
 		_start = function(code, pointer) return string.find(code, "[[", pointer, true) end,
@@ -28,6 +33,27 @@ local function StripWhitespace(code)
 
 	local stripped = {}
 	local pointer = 1
+
+	local function coltoline(col)
+		local line, linecol = 1, 1
+
+		local linestr = ""
+		for i=1,#code do
+			if i >= col then break end
+
+			local c = code[i]
+			if c == "\n" then
+				line = line+1
+				linecol = 1
+				linestr = ""
+			else
+				linecol = linecol + 1
+				linestr = linestr .. c
+			end
+		end
+
+		return line, linecol, linestr
+	end
 	
 	-- Adds code (aka you can get rid of ws here)
 	local function AddCode(endp)
@@ -66,7 +92,7 @@ local function StripWhitespace(code)
 			if skip then pointer = pointer + 1 end
 
 			local f = handler._end(code, pointer)
-			if not f then error("could not find matching end for " .. found[1].k .. ", which started from " .. idx) end
+			if not f then error("could not find matching end for " .. found[1].k .. ", which started from " .. string.format("%i:%i [%s]", coltoline(idx))) end
 			if skip then
 				pointer = f + 1
 			else
@@ -74,7 +100,7 @@ local function StripWhitespace(code)
 			end
 
 			if verbose then
-				print("Handling wstag ", found[1].k, " which spans from ", idx, " to ", f, " >" .. string.sub(code, f, f) .. "<")
+				print("Handling wstag ", found[1].k, " which spans from ", string.format("%i:%i [%s]", coltoline(idx)), " to ", string.format("%i:%i [%s]", coltoline(f)), " >" .. string.sub(code, f, f) .. "<")
 			end
 			return true
 		end

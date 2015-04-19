@@ -25,13 +25,39 @@ function HTMLService:resolveUrl(url, cb)
 	cb(url, self:parseUrl(url))
 end
 
+local AwesomiumPool = {instances = {}}
+concommand.Add("medialib_awepoolinfo", function()
+	print("AwesomiumPool> Free instance count: " .. #AwesomiumPool.instances)
+end)
+-- If there's bunch of awesomium instances in pool, we clean one up every 30 seconds
+timer.Create("MediaLib.AwesomiumPoolCleaner", 30, 0, function()
+	if #AwesomiumPool.instances < 3 then return end
+
+	local inst = table.remove(AwesomiumPool.instances, 1)
+	if IsValid(inst) then inst:Remove() end
+end)
+function AwesomiumPool.get()
+	local inst = table.remove(AwesomiumPool.instances, 1)
+	if not IsValid(inst) then
+		local pnl = vgui.Create("DHTML")
+		return pnl
+	end
+	return inst
+end
+function AwesomiumPool.free(inst)
+	if not IsValid(inst) then return end
+	inst:SetHTML("")
+
+	table.insert(AwesomiumPool.instances, inst)
+end
+
 local HTMLMedia = oop.class("HTMLMedia", "Media")
 
 local panel_width, panel_height = 1280, 720
 function HTMLMedia:initialize()
 	self.timeKeeper = oop.class("TimeKeeper")()
 
-	self.panel = vgui.Create("DHTML")
+	self.panel = AwesomiumPool.get()
 
 	local pnl = self.panel
 	pnl:SetPos(0, 0)
@@ -39,15 +65,16 @@ function HTMLMedia:initialize()
 
 	local hookid = "MediaLib.HTMLMedia.FakeThink-" .. self:hashCode()
 	hook.Add("Think", hookid, function()
-		if not IsValid(pnl) then
+		if not IsValid(self.panel) then
 			hook.Remove("Think", hookid)
 			return
 		end
 
-		pnl:Think()
+		self.panel:Think()
 	end)
 
-	local oldcm = pnl.ConsoleMessage
+	local oldcm = pnl._OldCM or pnl.ConsoleMessage
+	pnl._OldCM = oldcm
 	pnl.ConsoleMessage = function(pself, msg)
 		-- Filter some things out
 		if string.find(msg, "XMLHttpRequest") then return end
@@ -175,7 +202,9 @@ function HTMLMedia:pause()
 end
 function HTMLMedia:stop()
 	self.timeKeeper:pause()
-	self.panel:Remove()
+
+	AwesomiumPool.free(self.panel)
+	self.panel = nil
 
 	self:emit("stopped")
 end

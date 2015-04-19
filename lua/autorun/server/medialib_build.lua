@@ -2,10 +2,97 @@ local pat_quote = "[\"\']"
 local pat_negate_quote = "[^\"\']"
 local pat_ws = "%s*"
 
-local function Build()
-	local base = file.Read("autorun/medialib.lua", "LUA")
+local WSHandlers = {
+	quotation = {
+		_start = function(code, pointer) return string.find(code, "\"", pointer, true) end,
+		_end = function(code, pointer) return select(2, string.find(code, "[^\\]\"", pointer)) end
+	},
+	multiline = {
+		_start = function(code, pointer) return string.find(code, "[[", pointer, true) end,
+		_end = function(code, pointer) return select(2, string.find(code, "]]", pointer, true)) end
+	},
+	comment_s = {
+		_start = function(code, pointer) return string.find(code, "--", pointer, true) end,
+		_end = function(code, pointer) return select(2, string.find(code, "[\10\13]", pointer)) or #code end,
+		skip = true
+	},
+	comment_multi = {
+		_start = function(code, pointer) return string.find(code, "--[[", pointer, true) end,
+		_end = function(code, pointer) return select(2, string.find(code, "]]", pointer, true)) end,
+		skip = true
+	},
+}
 
-	local fragments = {base}
+local function StripWhitespace(code)
+	local verbose = false
+
+	local stripped = {}
+	local pointer = 1
+	
+	-- Adds code (aka you can get rid of ws here)
+	local function AddCode(endp)
+		local _code = string.sub(code, pointer, endp)
+		_code = string.gsub(_code, "\t", "") -- remove tabs
+		_code = string.gsub(_code, "[\10\13]", " ") -- replace newlines with spaces
+		_code = string.gsub(_code, "([{%[%(]) ", "%1")
+		_code = string.gsub(_code, " ([}%]%)])", "%1")
+		_code = string.gsub(_code, " ?%.%. ?", "..")
+		_code = string.gsub(_code, "  +", " ") -- replace space seq with single space
+		table.insert(stripped, _code)
+		
+		pointer = endp+1
+	end
+	local function AddRaw(endp)
+		table.insert(stripped, string.sub(code, pointer, endp))
+		pointer = endp+1
+	end
+	
+	local function nextstr()
+		local found = {}
+		for k,v in pairs(WSHandlers) do
+			local f = v._start(code, pointer)
+			if f then table.insert(found, {k = k, idx = f}) end
+		end
+
+		table.SortByMember(found, "idx", true)
+
+		if found[1] then
+			local idx = found[1].idx
+			local handler = WSHandlers[found[1].k]
+			local skip = WSHandlers[found[1].k].skip
+
+			if skip then idx = idx - 1 end
+			AddCode(idx)
+			if skip then pointer = pointer + 1 end
+
+			local f = handler._end(code, pointer)
+			if not f then error("could not find matching end for " .. found[1].k .. ", which started from " .. idx) end
+			if skip then
+				pointer = f + 1
+			else
+				AddRaw(f)
+			end
+
+			if verbose then
+				print("Handling wstag ", found[1].k, " which spans from ", idx, " to ", f, " >" .. string.sub(code, f, f) .. "<")
+			end
+			return true
+		end
+		
+		return false
+	end
+	
+	while nextstr() do end
+	
+	if pointer <= #code then
+		AddCode(#code)	
+	end
+	
+	return table.concat(stripped, "")
+end
+
+local function Build()
+	local fragments = {StripWhitespace(file.Read("autorun/medialib.lua", "LUA"))}
 	local loaded_modules = {}
 
 	local function indent(code, cb)
@@ -47,7 +134,7 @@ local function Build()
 				local source = file:read():Replace("\r", "")
 				CheckModuleDeps(source)
 
-				local package = string.format("medialib.FolderItems[%q] = %q", folder .. "/" .. file.name, source)
+				local package = string.format("medialib.FolderItems[%q] = %q", folder .. "/" .. file.name, StripWhitespace(source))
 				table.insert(fragments, package)
 			end
 		end
@@ -59,7 +146,8 @@ local function Build()
 		table.insert(fragments, string.format("medialib.modulePlaceholder(%q)", name))
 		
 		table.insert(fragments, "do")
-		indent(code, function(line) table.insert(fragments, line) end)
+		table.insert(fragments, StripWhitespace(code))
+		--indent(code, function(line) table.insert(fragments, line) end)
 		table.insert(fragments, "end")
 
 		loaded_modules[name] = true

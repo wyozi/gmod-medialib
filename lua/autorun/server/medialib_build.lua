@@ -35,7 +35,7 @@ local function StripWhitespace(code)
 		_code = string.gsub(_code, "\t", "") -- remove tabs
 		_code = string.gsub(_code, "[\10\13]", " ") -- replace newlines with spaces
 		_code = string.gsub(_code, " ?%.%. ?", "..")
-		_code = string.gsub(_code, " ?([=~><%-+]) ?", "%1")
+		_code = string.gsub(_code, " ?([=~><%-+,]) ?", "%1")
 		_code = string.gsub(_code, " ?([{}%[%]%(%)]) ?", "%1")
 		_code = string.gsub(_code, "  +", " ") -- replace space seq with single space
 		table.insert(stripped, _code)

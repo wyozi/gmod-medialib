@@ -248,6 +248,30 @@ do
 	function Media:getTime()
 		return 0
 	end
+	-- This method can be called repeatedly to keep the media somewhat in sync
+	-- with given time, which makes it a great function to keep eg. synchronized
+	-- televisions in sync.
+	function Media:sync(time, margin)
+		-- Only sync at most once per five seconds
+		if self._lastSync and self._lastSync > CurTime() - 5 then
+			return	
+		end
+		
+		local shouldSync = self:shouldSync()
+		if not shouldSync then return end
+		self:seek(time + 0.1) -- Assume 0.1 sec loading time
+		self._lastSync = CurTime()
+	end
+	function Media:shouldSync(time, margin)
+		-- Check for invalid syncing state
+		if not self:isValid() or not self:isPlaying() then
+			return false
+		end
+		margin = margin or 2
+		local curTime = self:getTime()
+		local diff = math.abs(curTime - time)
+		return diff > margin
+	end
 	-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused", "ended"
 	-- Can also return nil if state is unknown or cannot be represented properly
 	-- If getState does not return nil, it should be assumed to be the correct current state

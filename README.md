@@ -76,6 +76,7 @@ Method | Description | Notes
 ```Media:setQuality(qual)``` | Sets quality. ```qual``` must be one of the following: "low", "medium", "high", "veryhigh" | [Note](# "Not guaranteed to use equivalent quality on all services. Not supported by all services.")
 ```Media:getTime()``` | Returns the elapsed time
 ```Media:seek(time)``` | Seeks to specified time. | [Note](# "Not guaranteed to hop to the exact time. Not supported by all services.")
+```Media:sync(time, errorMargin)``` | Seeks to given time, if the elapsed time differs from it too much (more than errorMargin) | [Note](# "Sync does not work on invalid or not playing media. Media can be synchronized at most once per five seconds.")
 
 ### Events
 

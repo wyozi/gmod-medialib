@@ -82,6 +82,12 @@ function BASSMedia:bassCallback(chan, errId, errName)
 		return
 	end
 
+	-- Check if media stopped before loading properly
+	if self._stopped then
+		chan:Stop()
+		return
+	end
+
 	self.chan = chan
 
 	for _,c in pairs(self.commandQueue) do
@@ -131,6 +137,7 @@ function BASSMedia:pause()
 	self:runCommand(function(chan) chan:Pause() self:emit("paused") end)
 end
 function BASSMedia:stop()
+	self._stopped = true
 	self:runCommand(function(chan) chan:Stop() self:emit("stopped") end)
 end
 

@@ -48,6 +48,9 @@ local real_file_meta = {
 	load = function(self)
 		include(self.lua_path)
 	end,
+	addcs = function(self)
+		AddCSLuaFile(self.lua_path)
+	end,
 }
 real_file_meta.__index = real_file_meta
 
@@ -58,6 +61,7 @@ local virt_file_meta = {
 	load = function(self)
 		RunString(self.source)
 	end,
+	addcs = function() end
 }
 virt_file_meta.__index = virt_file_meta
 

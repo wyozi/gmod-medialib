@@ -28,6 +28,30 @@ function Media:getUrl()
 	return self._unresolvedUrl
 end
 
+-- If metadata is cached: return it
+-- Otherwise either start a new metadata query, or if one is already going on
+-- do nothing
+function Media:lookupMetadata()
+	local md = self._metadata
+
+	-- Already fetched
+	if type(md) == "table" then return md end
+
+	-- Fetching or there was an error (TODO make error available to user)
+	if md == true or type(md) == "string" then return nil end
+
+	self._metadata = true
+	self:getService():query(self:getUrl(), function(err, data)
+		if err then
+			self._metadata = err
+		else
+			self._metadata = data
+		end
+	end)
+	
+	return nil
+end
+
 -- True returned from this function does not imply anything related to how
 -- ready media is to play, just that it exists somewhere in memory and should
 -- at least in some point in the future be playable, but even that is not guaranteed

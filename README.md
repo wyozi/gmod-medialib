@@ -25,14 +25,6 @@ CLIP = mediaclip
 -- Play media
 mediaclip:play()
 
--- Query metadata. Instead of 'mediaclip' we use 'service' here.
-local meta
-service:query(link, function(err, data)
-	-- 'err' is non-nil if there's an error. It should be checked here, but
-	-- because this is an example we're lazy.
-	if data then meta = data end
-end)
-
 -- Draw video
 hook.Add("HUDPaint", "DrawVideo", function()
 	local w = 500 
@@ -42,8 +34,10 @@ hook.Add("HUDPaint", "DrawVideo", function()
 	
 	surface.SetDrawColor(255, 255, 255)
 	surface.DrawRect(0, h, w, 25)
+
+	-- Request metadata. 'meta' will be nil if metadata is still being fetched.
+	local meta = mediaclip:lookupMetadata()
 	
-	-- 'meta' is fetched asynchronously, so we need to check if it exists
 	local title, duration = tostring(meta and meta.title), 
 							(meta and meta.duration) or 0
 	
@@ -68,6 +62,7 @@ Method | Description | Notes
 ```Media:getServiceBase()``` | Returns the media service type, which is one of the following: "html", "bass"
 ```Media:getService()``` | Returns the service from which this media was loaded
 ```Media:getUrl()``` | Returns the original url passed to ```Service:load```, from which this media was loaded
+```Media:lookupMetadata()``` | Returns metadata if it's cached. Otherwise queries service for metadata and returns nil. | [Note](# "Can be called repeatedly; a query is only sent once. Is usually identical to metadata returned from Service:query, but Media is allowed to replace/add values derived from the Media itself")
 ```Media:play()``` | Plays media. A ```playing``` event is emitted when media starts playing.
 ```Media:pause()``` | Pause media. A ```paused``` event is emitted when media pauses.
 ```Media:stop()``` | Pause media. A ```stopped``` event is emitted when media stops.

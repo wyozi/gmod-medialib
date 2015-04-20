@@ -48,7 +48,7 @@ function Media:lookupMetadata()
 			self._metadata = data
 		end
 	end)
-	
+
 	return nil
 end
 
@@ -88,7 +88,7 @@ function Media:sync(time, margin)
 		return	
 	end
 	
-	local shouldSync = self:shouldSync()
+	local shouldSync = self:shouldSync(time, margin)
 	if not shouldSync then return end
 
 	self:seek(time + 0.1) -- Assume 0.1 sec loading time

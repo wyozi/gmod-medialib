@@ -223,7 +223,7 @@ function HTMLMedia:stop()
 	self.panel = nil
 
 	self.timeKeeper:pause()
-	self:emit("ended")
+	self:emit("destroyed")
 end
 
 function HTMLMedia:isValid()

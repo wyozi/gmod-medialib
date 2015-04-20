@@ -84,3 +84,4 @@ Event name | Parameters | Description
 ```paused``` | | Called when media is paused
 ```buffering``` | | Called when media is buffering. A ```playing``` event is emitted when buffering stops.
 ```ended``` | | Called when media ends
+```destroyed``` | | Called when media is destroyed/invalidated. ```isValid()``` will return false after this

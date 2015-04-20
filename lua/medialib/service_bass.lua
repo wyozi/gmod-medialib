@@ -139,7 +139,7 @@ function BASSMedia:pause()
 end
 function BASSMedia:stop()
 	self._stopped = true
-	self:runCommand(function(chan) chan:Stop() self:emit("stopped") end)
+	self:runCommand(function(chan) chan:Stop() self:emit("destroyed") end)
 end
 
 function BASSMedia:isValid()

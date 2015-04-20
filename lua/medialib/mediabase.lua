@@ -21,8 +21,11 @@ end
 function Media:getServiceBase()
 	error("Media:getServiceBase() not implemented!")
 end
+function Media:getService()
+	return self._service
+end
 function Media:getUrl()
-	return self.unresolvedUrl
+	return self._unresolvedUrl
 end
 
 -- True returned from this function does not imply anything related to how

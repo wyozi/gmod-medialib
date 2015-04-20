@@ -5,7 +5,8 @@ local volume3d = medialib.load("volume3d")
 local BASSService = oop.class("BASSService", "Service")
 function BASSService:load(url, opts)
 	local media = oop.class("BASSMedia")()
-	media.unresolvedUrl = url
+	media._unresolvedUrl = url
+	media._service = self
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		if opts and opts.use3D then

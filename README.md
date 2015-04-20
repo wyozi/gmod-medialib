@@ -66,6 +66,7 @@ Method | Description | Notes
 ```Media:on(name, listener)``` | Adds an event listener. See below for a list of events
 ```Media:isValid()``` | Returns a boolean indicating whether media is valid | [Note](# "Invalid media does not mean that media has stopped. For example media is usually invalid during loading phase.")
 ```Media:getServiceBase()``` | Returns the media service type, which is one of the following: "html", "bass"
+```Media:getService()``` | Returns the service from which this media was loaded
 ```Media:getUrl()``` | Returns the original url passed to ```Service:load```, from which this media was loaded
 ```Media:play()``` | Plays media. A ```playing``` event is emitted when media starts playing.
 ```Media:pause()``` | Pause media. A ```paused``` event is emitted when media pauses.

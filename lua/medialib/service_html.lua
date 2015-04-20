@@ -26,6 +26,13 @@ function HTMLService:resolveUrl(url, cb)
 	cb(url, self:parseUrl(url))
 end
 
+-- Whether or not we can trust that the HTML panel will send 'playing', 'paused'
+-- and other playback related events. If this returns true, 'timekeeper' will
+-- not be updated in playback related methods (except stop).
+function HTMLService:hasReliablePlaybackEvents(media)
+	return false
+end
+
 local AwesomiumPool = {instances = {}}
 concommand.Add("medialib_awepoolinfo", function()
 	print("AwesomiumPool> Free instance count: " .. #AwesomiumPool.instances)
@@ -191,23 +198,32 @@ function HTMLMedia:seek(time)
 	self:runJS("medialibDelegate.run('seek', {time: %d})", time)
 end
 
+-- See HTMLService:hasReliablePlaybackEvents()
+function HTMLMedia:hasReliablePlaybackEvents()
+	local service = self:getService()
+	return service and service:hasReliablePlaybackEvents(self)
+end
+
 function HTMLMedia:play()
-	self.timeKeeper:play()
+	if not self:hasReliablePlaybackEvents() then
+		self.timeKeeper:play()
+	end
 
 	self:runJS("medialibDelegate.run('play')")
 end
 function HTMLMedia:pause()
-	self.timeKeeper:pause()
+	if not self:hasReliablePlaybackEvents() then
+		self.timeKeeper:pause()
+	end
 
 	self:runJS("medialibDelegate.run('pause')")
 end
 function HTMLMedia:stop()
-	self.timeKeeper:pause()
-
 	AwesomiumPool.free(self.panel)
 	self.panel = nil
 
-	self:emit("stopped")
+	self.timeKeeper:pause()
+	self:emit("ended")
 end
 
 function HTMLMedia:isValid()

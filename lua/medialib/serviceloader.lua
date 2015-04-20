@@ -5,9 +5,11 @@ medialib.load("service_bass")
 
 -- Load the actual service files
 for _,file in medialib.folderIterator("services") do
-	if medialib.DEBUG then
-		print("[MediaLib] Registering service " .. file.name)
+	if string.EndsWith(file.name, ".lua") then
+		if medialib.DEBUG then
+			print("[MediaLib] Registering service " .. file.name)
+		end
+		if SERVER then file:addcs() end
+		file:load()
 	end
-	if SERVER then file:addcs() end
-	file:load()
 end

@@ -83,4 +83,8 @@ function YoutubeService:query(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
+function YoutubeService:hasReliablePlaybackEvents(media)
+	return true
+end
+
 medialib.load("media").registerService("youtube", YoutubeService)

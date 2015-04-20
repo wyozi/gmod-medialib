@@ -59,4 +59,8 @@ function VimeoService:query(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
+function VimeoService:hasReliablePlaybackEvents(media)
+	return true
+end
+
 medialib.load("media").registerService("vimeo", VimeoService)

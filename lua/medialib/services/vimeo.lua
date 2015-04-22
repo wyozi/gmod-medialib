@@ -4,7 +4,9 @@ local VimeoService = oop.class("VimeoService", "HTMLService")
 
 local all_patterns = {
 	"https?://www.vimeo.com/([0-9]+)",
-	"https?://vimeo.com/([0-9]+)"
+	"https?://vimeo.com/([0-9]+)",
+	"https?://www.vimeo.com/channels/staffpicks/([0-9]+)",
+	"https?://vimeo.com/channels/staffpicks/([0-9]+)",
 }
 
 function VimeoService:parseUrl(url)

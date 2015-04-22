@@ -55,9 +55,19 @@ function YoutubeService:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
+-- http://en.wikipedia.org/wiki/ISO_8601#Durations
+-- Cheers wiox :))
+local function PTToSeconds(str)
+	local h = str:match("(%d+)H") or 0
+	local m = str:match("(%d+)M") or 0
+	local s = str:match("(%d+)S") or 0
+	return h*(60*60) + m*60 + s
+end
+
+local API_KEY = "AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ"
 function YoutubeService:query(url, callback)
 	local urlData = self:parseUrl(url)
-	local metaurl = string.format("http://gdata.youtube.com/feeds/api/videos/%s?alt=json", urlData.id)
+	local metaurl = string.format("https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s", urlData.id, API_KEY)
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then
@@ -70,10 +80,15 @@ function YoutubeService:query(url, callback)
 
 		local jsontbl = util.JSONToTable(result)
 
-		if jsontbl and jsontbl.entry then
-			local entry = jsontbl.entry
-			data.title = entry["title"]["$t"]
-			data.duration = tonumber(entry["media$group"]["yt$duration"]["seconds"])
+		if jsontbl and jsontbl.items then
+			local item = jsontbl.items[1]
+			if not item then
+				callback("No video id found")
+				return
+			end
+
+			data.title = item.snippet.title
+			data.duration = tonumber(PTToSeconds(item.contentDetails.duration))
 		else
 			callback(result)
 			return

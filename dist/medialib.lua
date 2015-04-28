@@ -1264,6 +1264,40 @@ function WebAudioService:query(url, callback)\
 end\
 \
 medialib.load(\"media\").registerService(\"webaudio\", WebAudioService)"
+medialib.FolderItems["services/webm.lua"] = "local oop = medialib.load(\"oop\")\
+\
+local WebmService = oop.class(\"WebmService\", \"HTMLService\")\
+\
+local all_patterns = {\"^https?://(.*)%.webm\"}\
+\
+function WebmService:parseUrl(url)\
+\9for _,pattern in pairs(all_patterns) do\
+\9\9local id = string.match(url, pattern)\
+\9\9if id then\
+\9\9\9return {id = id}\
+\9\9end\
+\9end\
+end\
+\
+function WebmService:isValidUrl(url)\
+\9return self:parseUrl(url) ~= nil\
+end\
+\
+local player_url = \"http://localhost:8081/webm.html?id=%s\"\
+function WebmService:resolveUrl(url, callback)\
+\9local urlData = self:parseUrl(url)\
+\9local playerUrl = string.format(player_url, urlData.id)\
+\
+\9callback(playerUrl, {start = urlData.start})\
+end\
+\
+function WebmService:query(url, callback)\
+\9callback(nil, {\
+\9\9title = url:match(\"([^/]+)$\")\
+\9})\
+end\
+\
+medialib.load(\"media\").registerService(\"webm\", WebmService)"
 medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\
 local WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\
 \

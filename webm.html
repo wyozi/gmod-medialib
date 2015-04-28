@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: calc(100% - 5px);
+	}
+	#vid {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<video id="vid">
+		<source type="video/webm" id="sourcewebm">
+	</video>
+
+	<script type="text/javascript" src="medialib.js"></script>
+
+	<script type="text/javascript">
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.play();
+			},
+			pause: function() {
+				this.pause();
+			},
+			seek: function(obj) {
+				this.currentTime = obj.time;
+			},
+			setVolume: function(obj) {
+				this.volume = obj.vol;
+			}
+		});
+
+		var params = medialib.getParams();
+		var id = params.id || params.vid;
+
+		var el = document.getElementById("vid");
+		document.getElementById("sourcewebm").setAttribute("src", id);
+		el.load();
+
+		el.addEventListener("playing", function() {
+			medialib.emitEvent("stateChange", {state: "playing", time: el.currentTime});
+		});
+		el.addEventListener("pause", function() {
+			medialib.emitEvent("stateChange", {state: "paused", time: el.currentTime});
+		});
+		el.addEventListener("canplay", function() {
+			medialibDelegate.playerLoaded(el);
+		});
+	</script>
+</body>
+</html>

@@ -1283,7 +1283,7 @@ function WebmService:isValidUrl(url)\
 \9return self:parseUrl(url) ~= nil\
 end\
 \
-local player_url = \"http://localhost:8081/webm.html?id=%s\"\
+local player_url = \"http://wyozi.github.io/gmod-medialib/webm.html?id=%s\"\
 function WebmService:resolveUrl(url, callback)\
 \9local urlData = self:parseUrl(url)\
 \9local playerUrl = string.format(player_url, urlData.id)\

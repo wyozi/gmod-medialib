@@ -38,24 +38,38 @@ function BASSMedia:getBaseService()
 	return "bass"
 end
 
-
-function BASSMedia:draw(x, y, w, h)
-	surface.SetDrawColor(0, 0, 0)
-	surface.DrawRect(x, y, w, h)
+function BASSMedia:updateFFT()
+	local curFrame = FrameNumber()
+	if self._lastFFTUpdate and self._lastFFTUpdate == curFrame then return end
+	self._lastFFTUpdate = curFrame
 
 	local chan = self.chan
 	if not IsValid(chan) then return end
 
 	self.fftValues = self.fftValues or {}
+	chan:FFT(self.fftValues, FFT_512)
+end
 
-	local valCount = chan:FFT(self.fftValues, FFT_1024)
+function BASSMedia:getFFT()
+	return self.fftValues
+end
+
+function BASSMedia:draw(x, y, w, h)
+	surface.SetDrawColor(0, 0, 0)
+	surface.DrawRect(x, y, w, h)
+
+	self:updateFFT()
+	local fftValues = self:getFFT()
+	if not fftValues then return end
+
+	local valCount = #fftValues
 	local valsPerX = (valCount == 0 and 1 or (w/valCount))
 
 	local barw = w / (valCount)
 	for i=1, valCount do
-		surface.SetDrawColor(HSVToColor(i, 0.95, 0.5))
+		surface.SetDrawColor(HSVToColor(i, 0.9, 0.5))
 
-		local barh = self.fftValues[i]*h
+		local barh = fftValues[i]*h
 		surface.DrawRect(x + i*barw, y + (h-barh), barw, barh)
 	end	
 end

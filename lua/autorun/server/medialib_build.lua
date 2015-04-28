@@ -28,7 +28,7 @@ local WSHandlers = {
 	},
 }
 
-local WS_STRIP_DISABLED = true
+local WS_STRIP_DISABLED = false
 
 local function StripWhitespace(code)
 	if WS_STRIP_DISABLED then return code end

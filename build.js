@@ -2,7 +2,6 @@
 // Because medialib uses a hacky module system, this file is quite hacky as well
 //
 // NPM Requirements to run: luamin, q
-// Optional requirements: nodegit (or use --no-git)
 
 // You can use following Git pre-commit hook to auto-build before commit
 /*
@@ -154,8 +153,7 @@ function build() {
 		}
 
 		return Q(codePromise).fail(function(e) {
-			console.log("Warning: " + mod + " not found. Setting as empty module.");
-			return "";
+			throw new Error("Failed to load code");
 		}).then(function(code) {
 			// Check code for dependencies (declared as module.load statement)
 			var deps = [];
@@ -164,6 +162,8 @@ function build() {
 				var re = /medialib\.load\s*\(\s*"([^"]*)"\s*\)/g;
 				var match;
 				while (match = re.exec(code)) {
+					if (deps.indexOf(match[1]) != -1) continue;
+
 					deps.push(match[1]);
 				}
 			}
@@ -222,6 +222,12 @@ function build() {
 
 				return fragments;
 			});
+		}).fail(function(e) {
+			if (e.message == "Failed to load code") {
+				console.log("Warning: " + mod + " code not found. This message can be ignored if said module is an extension.");
+				return [];
+			}
+			throw e;
 		});
 	}
 

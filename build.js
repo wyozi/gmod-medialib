@@ -3,7 +3,19 @@
 //
 // NPM Requirements to run: luamin, q
 // Optional requirements: nodegit (or use --no-git)
-//
+
+// You can use following Git pre-commit hook to auto-build before commit
+/*
+#!/bin/sh
+
+iojs build.js build
+
+OUT=$?
+if [ $OUT -ne 0 ];then
+	exit 1
+fi
+git add dist/medialib.lua
+*/
 
 var Q = require("q");
 
@@ -24,9 +36,10 @@ function showHelp() {
 	console.log("--no-git	builds from workdir instead of HEAD");
 }
 
-var HEADTree;
 // Initializes git repo and fetches HEAD Tree
 function initGit() {
+	/* TODO nodegit doesn't work, uhm
+
 	var NodeGit;
 	try {
 		NodeGit = require("nodegit");
@@ -44,30 +57,54 @@ function initGit() {
 	}).then(function(tree) {
 		HEADTree = tree;
 		console.log("HEADTree retrivied");
-	});
+	});*/
 }
 
 var fs = require("fs");
+var exec = require("child_process").exec;
 function getBlob(path) {
-	// TODO Git
 	var deferred = Q.defer();
 
-	fs.readFile(path, {encoding: "utf8"}, function(err, data) {
-		if (err) deferred.reject(err);
-		else     deferred.resolve(data);
-	});
+	if (!buildNoGit) {
+		exec("git show :" + path, function(err, stdout, stderr) {
+			if (err) deferred.reject(err);
+			else     deferred.resolve(stdout);
+		});
+	}
+	else {
+		fs.readFile(path, {encoding: "utf8"}, function(err, data) {
+			if (err) deferred.reject(err);
+			else     deferred.resolve(data);
+		});
+	}
 
 	return deferred.promise;
 }
 
 function readPathFiles(path) {
-	// TODO Git
 	var deferred = Q.defer();
 
-	fs.readdir(path, function(err, data) {
-		if (err) deferred.reject(err);
-		else     deferred.resolve(data);
-	});
+	if (!buildNoGit) {
+		exec("git ls-files -- " + path, function(err, stdout, stderr) {
+			if (err) deferred.reject(err);
+			else {
+				var sedPath = path == "" ? "" : (path + "/");
+				var files = stdout.split("\n").filter(function(rawFile) {
+					return rawFile.indexOf(sedPath) != -1;
+				}).map(function(rawFile) {
+					return rawFile.replace(sedPath, "");
+				});
+
+				deferred.resolve(files);
+			}
+		});
+	}
+	else {
+		fs.readdir(path, function(err, data) {
+			if (err) deferred.reject(err);
+			else     deferred.resolve(data);
+		});
+	}
 
 	return deferred.promise;
 }

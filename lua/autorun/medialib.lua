@@ -104,7 +104,7 @@ if CLIENT then
 		MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
 		MsgN("   (it has been automatically copied to your clipboard)")
 		MsgN("2. Download and install the NSAPI (for Firefox) version")
-		MsgN("3. Restart your Garry's Mod")
+		MsgN("3. Restart your Garry's Mod and rejoin this server")
 		MsgN("[ ======================= ]")
 	end)
 end

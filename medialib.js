@@ -70,10 +70,25 @@ medialib = {};
 		document.body.style.backgroundColor = "black";
 		document.body.style.color = "white";
 
+		// Add Roboto font
+		WebFontConfig = {
+			google: { families: [ 'Roboto::latin' ] }
+		};
+		(function() {
+			var wf = document.createElement('script');
+			wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+				'://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+			wf.type = 'text/javascript';
+			wf.async = 'true';
+
+			document.body.appendChild(wf);
+		})();
+
 		var el = document.createElement("div");
 		el.style.textAlign = "center";
 		el.style.width = "100%";
 		el.style.marginTop = 30;
+		el.style.fontFamily = "'Roboto'";
 		el.innerHTML = "<h1>No flash found!</h1>Type 'medialib_noflash' in console to find out how to install Flash.";
 
 		document.body.appendChild(el);

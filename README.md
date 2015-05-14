@@ -53,17 +53,23 @@ See ```examples/``` for more elaborate examples.
 
 ### Resource usage
 - __Server ⇋ Client__  
-> Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.  
+
+>Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.  
 > 
-> For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.
+> For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.  
+
 - __Client__  
+
 > On clientside medialib uses either HTML Awesomium panels or BASS sound objects for playback.  
 > 
 > HTML panels are relatively expensive way to playback videos, but having one or two of them should work fine.  
 > BASS sound objects (which are used for webaudio and webradio) are pretty cheap. There should be no problem having many of them playing at the same time if needed.  
 > 
-> In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like player controlled radios HTML media works fine (you might want to add some limitations so there cannot be eg. more than two HTML- based mediaclips playing at the same time).
-- __Shared (server and client)__
+> In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like media players that must accept Youtube links HTML media works fine.  
+> If there can be arbitrary amount of player controlled jukeboxes on the map, you might want to add some limitations so eg. more than two cannot play simultaneously.
+
+- __Shared (server and client)__  
+
 > Both server and client have the ability to query for video metadata.  
 > 
 > This is not instant, as HTTP queries used for majority of services take their time, but querying for metadata is pretty cheap as long as you don't do it in a Think hook or similar.  

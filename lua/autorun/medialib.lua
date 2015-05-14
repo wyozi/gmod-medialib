@@ -76,7 +76,7 @@ medialib.FolderItems = {}
 -- Returns an iterator for files in folder
 function medialib.folderIterator(folder)
 	local files = {}
-	for _,fname in pairs(file.Find("medialib/" .. folder .. "/*", "LUA")) do
+	for _,fname in pairs(file.Find("medialib/" .. folder .. "/*.lua", "LUA")) do
 		table.insert(files, setmetatable({
 			name = fname,
 			lua_path = "medialib/" .. folder .. "/" .. fname

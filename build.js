@@ -215,7 +215,11 @@ function build() {
 				})
 			}).then(function() {
 				var minified = minify(code);
-				fragments.push("// '" + mod + "'; CodeLen/MinifiedLen " + code.length + "/" + minified.length + "; Dependencies [" + deps + "]");
+				fragments.push("-- '" + mod + "'; CodeLen/MinifiedLen " + code.length + "/" + minified.length + "; Dependencies [" + deps + "]");
+				
+				// Add module placeholder, this is required for bundled modules that don't create the module themselves
+				fragments.push("medialib.modulePlaceholder(" + JSON.stringify(mod) + ")");
+
 				fragments.push("do");
 				fragments.push(minified);
 				fragments.push("end");

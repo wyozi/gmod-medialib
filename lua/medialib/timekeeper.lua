@@ -1,4 +1,4 @@
--- The purpose of TimeKeeper is to keep time where it is not easily available, ie HTML based services
+-- The purpose of TimeKeeper is to keep time where it is not easily available synchronously (ie. HTML based services)
 local oop = medialib.load("oop")
 
 local TimeKeeper = oop.class("TimeKeeper")

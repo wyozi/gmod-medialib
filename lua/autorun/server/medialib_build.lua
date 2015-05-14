@@ -122,7 +122,11 @@ local function StripWhitespace(code)
 end
 
 local function Build()
-	local fragments = {StripWhitespace(file.Read("autorun/medialib.lua", "LUA"))}
+	local mlib_autorun = file.Read("autorun/medialib.lua", "LUA")
+	mlib_autorun = string.gsub(mlib_autorun, "DISTRIBUTABLE = false", "DISTRIBUTABLE = true")
+	mlib_autorun = StripWhitespace(mlib_autorun)
+
+	local fragments = {mlib_autorun}
 	local loaded_modules = {}
 
 	local function indent(code, cb)
@@ -185,12 +189,6 @@ local function Build()
 	ParseModule("__loader", file.Read("autorun/medialib_loader.lua", "LUA"))
 
 	local concated = table.concat(fragments, "\n")
-
-	local compr = util.Compress(concated)
-	local bytez = {}
-	for i=1,#compr do bytez[i] = string.format("\\%i", string.byte(compr[i])) end
-
-	local final = "local data = [=====[" .. table.concat(bytez, "") .. "]=====] RunString(util.Decompress(data))"
 
 	--file.Write("medialib.txt", final)
 	file.Write("medialib.txt", concated)

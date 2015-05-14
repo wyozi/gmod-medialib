@@ -1,4 +1,9 @@
 medialib = {}
+
+-- Note: build file replaces this exact string with version that's 'true', so please do not
+-- change it if you want buildscript to still work
+medialib.DISTRIBUTABLE = false
+
 medialib.Modules = {}
 medialib.DEBUG = false
 
@@ -95,9 +100,9 @@ if CLIENT then
 	concommand.Add("medialib_noflash", function()
 		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
 
-		MsgN("[ MediaLib no flash guide ]")
+		MsgN("[ MediaLib: How to get Flash Player ]")
 		MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
-		MsgN("   (it has been automatically added to your clipboard)")
+		MsgN("   (it has been automatically copied to your clipboard)")
 		MsgN("2. Download and install the NSAPI (for Firefox) version")
 		MsgN("3. Restart your Garry's Mod")
 		MsgN("[ ======================= ]")

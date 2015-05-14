@@ -42,34 +42,36 @@
 			}
 		});
 
-		document.getElementById("player").setAttribute("src", "http://player.vimeo.com/video/" + id + "?api=1&amp;player_id=player");
+		if (medialib.checkFlash()) {
+			document.getElementById("player").setAttribute("src", "http://player.vimeo.com/video/" + id + "?api=1&amp;player_id=player");
+			
+			medialib.loadAsync("//f.vimeocdn.com/js/froogaloop2.min.js", function() {
+				var player = $f(document.getElementById("player"));
+				player.addEvent("ready", function() {
+					medialibDelegate.playerLoaded(player);
 
-		medialib.loadAsync("//f.vimeocdn.com/js/froogaloop2.min.js", function() {
-			var player = $f(document.getElementById("player"));
-			player.addEvent("ready", function() {
-				medialibDelegate.playerLoaded(player);
-
-				// Add listeners
-				player.addEvent("pause", function() {
-					player.api("getCurrentTime", function(value) {
-						medialib.emitEvent("stateChange", {state: "paused", time: value});
-					})
+					// Add listeners
+					player.addEvent("pause", function() {
+						player.api("getCurrentTime", function(value) {
+							medialib.emitEvent("stateChange", {state: "paused", time: value});
+						})
+					});
+					player.addEvent("finish", function() {
+						player.api("getCurrentTime", function(value) {
+							medialib.emitEvent("stateChange", {state: "ended", time: value});
+						})
+					});
+					player.addEvent("play", function(data) {
+						player.api("getCurrentTime", function(value) {
+							medialib.emitEvent("stateChange", {state: "playing", time: value});
+						})
+					});
+					//player.addEvent("playProgress", function(data) {
+					//	medialib.emitEvent("stateChange", {state: "playing", time: data.seconds});
+					//});
 				});
-				player.addEvent("finish", function() {
-					player.api("getCurrentTime", function(value) {
-						medialib.emitEvent("stateChange", {state: "ended", time: value});
-					})
-				});
-				player.addEvent("play", function(data) {
-					player.api("getCurrentTime", function(value) {
-						medialib.emitEvent("stateChange", {state: "playing", time: value});
-					})
-				});
-				//player.addEvent("playProgress", function(data) {
-				//	medialib.emitEvent("stateChange", {state: "playing", time: data.seconds});
-				//});
 			});
-		});
+		}
 		
 	</script>
 	</body>

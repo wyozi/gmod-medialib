@@ -97,14 +97,44 @@ function medialib.folderIterator(folder)
 end
 
 if CLIENT then
-	concommand.Add("medialib_noflash", function()
+	local function Rainbow()
+		for i=1, 30 do
+			MsgC(HSVToColor(30*i, 0.5, 0.9), " " .. string.rep("SEE BELOW FOR INSTRUCTIONS  ", 3) .. "\n")
+		end
+	end
+	concommand.Add("medialib_noflash", function(_, _, args)
+		if args[1] == "rainbow" then Rainbow() end
+		
 		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
 
 		MsgN("[ MediaLib: How to get Flash Player ]")
 		MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
-		MsgN("   (it has been automatically copied to your clipboard)")
+		MsgN("   (the link has been automatically copied to your clipboard)")
 		MsgN("2. Download and install the NSAPI (for Firefox) version")
 		MsgN("3. Restart your Garry's Mod and rejoin this server")
 		MsgN("[ ======================= ]")
+	end)
+
+	concommand.Add("medialib_lowaudio", function(_, _, args)
+		if args[1] == "rainbow" then Rainbow() end
+		
+		SetClipboardText("http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
+
+		MsgN("[ MediaLib: How to fix muted sound ]")
+		MsgN("1. Follow instructions here: http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
+		MsgN("   (the link has been automatically copied to your clipboard, you can open it in the steam ingame browser)")
+		MsgN("2. Increase the volume of a process called 'Awesomium Core'")
+		MsgN("3. You should immediately start hearing sound if a mediaclip is playing")
+		MsgN("[ ======================= ]")
+	end)
+
+	hook.Add("OnPlayerChat", "MediaLib.ShowInstructions", function(ply, text)
+		if text:match("!ml_noflash") then
+			RunConsoleCommand("medialib_noflash", "rainbow")
+			RunConsoleCommand("showconsole")
+		elseif text:match("!ml_lowvolume") then
+			RunConsoleCommand("medialib_lowaudio", "rainbow")
+			RunConsoleCommand("showconsole")
+		end
 	end)
 end

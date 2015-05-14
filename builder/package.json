@@ -1,0 +1,15 @@
+{
+  "name": "medialib-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+  	"luaparse": "0.1.15",
+  	"q": "1.4.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

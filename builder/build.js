@@ -7,7 +7,9 @@
 /*
 #!/bin/sh
 
+cd builder
 iojs build.js build
+cd ..
 
 OUT=$?
 if [ $OUT -ne 0 ];then
@@ -15,6 +17,8 @@ if [ $OUT -ne 0 ];then
 fi
 git add dist/medialib.lua
 */
+
+process.chdir(".."); // We want to be at the addon root
 
 var Q = require("q");
 
@@ -121,10 +125,9 @@ function getGmodBlob(path) {
 	return deferred.promise;
 }
 
-var luamin = require("luamin");
+var luamin = require("./luamin.js");
 function minify(str) {
-	return str;
-	//return luamin.minify(str);
+	return luamin.minify(str);
 }
 
 function build() {

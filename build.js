@@ -123,11 +123,13 @@ function getGmodBlob(path) {
 
 var luamin = require("luamin");
 function minify(str) {
-	return luamin.minify(str);
+	return str;
+	//return luamin.minify(str);
 }
 
 function build() {
 	console.log("MediaLib build process started.");
+	console.log("Using luamin v." + luamin.version);
 
 	if (!buildNoGit) {
 		console.log("Loading Git repository.");
@@ -210,7 +212,8 @@ function build() {
 			}).then(function(folderIterators) {
 				folderIterators.forEach(function(arr) {
 					arr.forEach(function(fitEl) {
-						fragments.push("medialib.FolderItems[" + JSON.stringify(fitEl[0]) + "] = " + JSON.stringify(minify(fitEl[1])) + "");
+						var minified = minify(fitEl[1]);
+						fragments.push("medialib.FolderItems[" + JSON.stringify(fitEl[0]) + "] = " + JSON.stringify(minified) + "");
 					});
 				})
 			}).then(function() {

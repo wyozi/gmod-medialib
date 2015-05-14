@@ -1,53 +1,945 @@
-medialib={}medialib.DISTRIBUTABLE=true;medialib.Modules={}medialib.DEBUG=false;function medialib.modulePlaceholder(a)medialib.Modules[a]={}end;function medialib.module(a,b)if medialib.DEBUG then print("[MediaLib] Creating module "..a)end;local c=medialib.Modules[a]or{name=a,options=b}medialib.Modules[a]=c;return c end;if SERVER then for d,e in pairs(file.Find("medialib/*","LUA"))do AddCSLuaFile("medialib/"..e)end end;function medialib.load(a)local c=medialib.Modules[a]if c then return c end;if medialib.DEBUG then print("[MediaLib] Loading unreferenced module "..a)end;local file="medialib/"..a..".lua"include(file)return medialib.Modules[a]end;local f={read=function(g)return file.Read(g.lua_path,"LUA")end,load=function(g)include(g.lua_path)end,addcs=function(g)AddCSLuaFile(g.lua_path)end}f.__index=f;local h={read=function(g)return g.source end,load=function(g)RunString(g.source)end,addcs=function()end}h.__index=h;medialib.FolderItems={}function medialib.folderIterator(i)local j={}for d,e in pairs(file.Find("medialib/"..i.."/*.lua","LUA"))do table.insert(j,setmetatable({name=e,lua_path="medialib/"..i.."/"..e},f))end;for k,l in pairs(medialib.FolderItems)do local m=k:match("^([^/]*).+")if m==i then table.insert(j,setmetatable({name=k:match("^[^/]*/(.+)"),source=l},h))end end;return pairs(j)end;if CLIENT then local function n()for o=1,30 do MsgC(HSVToColor(30*o,0.5,0.9)," "..string.rep("SEE BELOW FOR INSTRUCTIONS  ",3).."\n")end end;concommand.Add("medialib_noflash",function(d,d,p)if p[1]=="rainbow"then n()end;SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")MsgN("[ MediaLib: How to get Flash Player ]")MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")MsgN("   (the link has been automatically copied to your clipboard)")MsgN("2. Download and install the NSAPI (for Firefox) version")MsgN("3. Restart your Garry's Mod and rejoin this server")MsgN("[ ======================= ]")end)concommand.Add("medialib_lowaudio",function(d,d,p)if p[1]=="rainbow"then n()end;SetClipboardText("http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")MsgN("[ MediaLib: How to fix muted sound ]")MsgN("1. Follow instructions here: http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")MsgN("   (the link has been automatically copied to your clipboard, you can open it in the steam ingame browser)")MsgN("2. Increase the volume of a process called 'Awesomium Core'")MsgN("3. You should immediately start hearing sound if a mediaclip is playing")MsgN("[ ======================= ]")end)hook.Add("OnPlayerChat","MediaLib.ShowInstructions",function(q,r)if r:match("!ml_noflash")then RunConsoleCommand("medialib_noflash","rainbow")RunConsoleCommand("showconsole")elseif r:match("!ml_lowvolume")then RunConsoleCommand("medialib_lowaudio","rainbow")RunConsoleCommand("showconsole")end end)end
--- 'oop'; CodeLen/MinifiedLen 2927/1542; Dependencies []
+medialib = {}
+
+-- Note: build file replaces this exact string with version that's 'true', so please do not
+-- change it if you want buildscript to still work
+medialib.DISTRIBUTABLE = true
+
+medialib.Modules = {}
+medialib.DEBUG = false
+
+function medialib.modulePlaceholder(name)
+	medialib.Modules[name] = {}
+end
+function medialib.module(name, opts)
+	if medialib.DEBUG then
+		print("[MediaLib] Creating module " .. name)
+	end
+
+	local mod = medialib.Modules[name] or {
+		name = name,
+		options = opts,
+	}
+
+	medialib.Modules[name] = mod
+
+	return mod
+end
+
+-- AddCSLuaFile all medialib modules
+if SERVER then
+	for _,fname in pairs(file.Find("medialib/*", "LUA")) do
+		AddCSLuaFile("medialib/" .. fname)
+	end
+end
+
+function medialib.load(name)
+	local mod = medialib.Modules[name]
+	if mod then return mod end
+
+	if medialib.DEBUG then
+		print("[MediaLib] Loading unreferenced module " .. name)
+	end
+
+	local file = "medialib/" .. name .. ".lua"
+	include(file)
+
+	return medialib.Modules[name]
+end
+
+local real_file_meta = {
+	read = function(self)
+		return file.Read(self.lua_path, "LUA")
+	end,
+	load = function(self)
+		include(self.lua_path)
+	end,
+	addcs = function(self)
+		AddCSLuaFile(self.lua_path)
+	end,
+}
+real_file_meta.__index = real_file_meta
+
+local virt_file_meta = {
+	read = function(self)
+		return self.source
+	end,
+	load = function(self)
+		RunString(self.source)
+	end,
+	addcs = function() end
+}
+virt_file_meta.__index = virt_file_meta
+
+-- Used for medialib packed into a single file
+medialib.FolderItems = {}
+
+-- Returns an iterator for files in folder
+function medialib.folderIterator(folder)
+	local files = {}
+	for _,fname in pairs(file.Find("medialib/" .. folder .. "/*.lua", "LUA")) do
+		table.insert(files, setmetatable({
+			name = fname,
+			lua_path = "medialib/" .. folder .. "/" .. fname
+		}, real_file_meta))
+	end
+
+	for k,item in pairs(medialib.FolderItems) do
+		local mfolder = k:match("^([^/]*).+")
+		if mfolder == folder then
+			table.insert(files, setmetatable({
+				name = k:match("^[^/]*/(.+)"),
+				source = item
+			}, virt_file_meta))
+		end
+	end
+
+	return pairs(files)
+end
+
+if CLIENT then
+	local function Rainbow()
+		for i=1, 30 do
+			MsgC(HSVToColor(30*i, 0.5, 0.9), " " .. string.rep("SEE BELOW FOR INSTRUCTIONS  ", 3) .. "\n")
+		end
+	end
+	concommand.Add("medialib_noflash", function(_, _, args)
+		if args[1] == "rainbow" then Rainbow() end
+		
+		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
+
+		MsgN("[ MediaLib: How to get Flash Player ]")
+		MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
+		MsgN("   (the link has been automatically copied to your clipboard)")
+		MsgN("2. Download and install the NSAPI (for Firefox) version")
+		MsgN("3. Restart your Garry's Mod and rejoin this server")
+		MsgN("[ ======================= ]")
+	end)
+
+	concommand.Add("medialib_lowaudio", function(_, _, args)
+		if args[1] == "rainbow" then Rainbow() end
+		
+		SetClipboardText("http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
+
+		MsgN("[ MediaLib: How to fix muted sound ]")
+		MsgN("1. Follow instructions here: http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
+		MsgN("   (the link has been automatically copied to your clipboard, you can open it in the steam ingame browser)")
+		MsgN("2. Increase the volume of a process called 'Awesomium Core'")
+		MsgN("3. You should immediately start hearing sound if a mediaclip is playing")
+		MsgN("[ ======================= ]")
+	end)
+
+	hook.Add("OnPlayerChat", "MediaLib.ShowInstructions", function(ply, text)
+		if text:match("!ml_noflash") then
+			RunConsoleCommand("medialib_noflash", "rainbow")
+			RunConsoleCommand("showconsole")
+		elseif text:match("!ml_lowvolume") then
+			RunConsoleCommand("medialib_lowaudio", "rainbow")
+			RunConsoleCommand("showconsole")
+		end
+	end)
+end
+-- 'oop'; CodeLen/MinifiedLen 2927/2927; Dependencies []
 medialib.modulePlaceholder("oop")
 do
-local a=medialib.module("oop")a.Classes=a.Classes or{}function a.class(b,c)local d=a.Classes[b]if not d then d=a.createClass(b,c)a.Classes[b]=d;if medialib.DEBUG then print("[MediaLib] Registering oopclass "..b)end end;return d end;function a.resolveClass(e)if e==nil then return a.Object end;local f=type(e)if f=="string"then local g=a.Classes[e]if g then return g end;error("Resolving class from inexistent class string '"..tostring(e).."'")end;if f=="table"then return e end;error("Resolving class from invalid object '"..tostring(e).."'")end;local h={}local i={'__add','__call','__concat','__div','__ipairs','__le','__len','__lt','__mod','__mul','__pairs','__pow','__sub','__tostring','__unm'}function a.createClass(b,c)local d={}local j;if c~=h then j=a.resolveClass(c)end;d.name=b;d.super=j;d.members=setmetatable({},{__index=d.super})d.members.class=d;d.members.super=d.super;local k={}do k.__index=d.members;for l,b in pairs(i)do k[b]=function(...)local m=d.members[b]if m then return m(...)end end end end;local n={}do n.__index=d.members;n.__newindex=d.members;n.__tostring=function(o)return"class "..o.name end;function n:__call(...)local p={}setmetatable(p,k)local q=p.initialize;if q then q(p,...)end;return p end end;setmetatable(d,n)return d end;a.Object=a.createClass("Object",h)function a.Object:hashCode()local r=getmetatable(o)local s=r.__tostring;r.__tostring=nil;local t=tostring(o):match("table: 0x(.*)")r.__tostring=s;return t end;function a.Object:__tostring()return string.format("%s@%s",o.class.name,o:hashCode())end
+local oop = medialib.module("oop")
+oop.Classes = oop.Classes or {}
+
+function oop.class(name, parent)
+	local cls = oop.Classes[name]
+	if not cls then
+		cls = oop.createClass(name, parent)
+		oop.Classes[name] = cls
+
+		if medialib.DEBUG then
+			print("[MediaLib] Registering oopclass " .. name)
+		end
+	end
+
+	return cls
 end
--- 'mediabase'; CodeLen/MinifiedLen 3470/1422; Dependencies [oop]
+
+function oop.resolveClass(obj)
+	if obj == nil then
+		return oop.Object
+	end
+
+	local t = type(obj)
+	if t == "string" then
+		local clsobj = oop.Classes[obj]
+		if clsobj then return clsobj end
+
+		error("Resolving class from inexistent class string '" .. tostring(obj) .. "'")
+	end
+	if t == "table" then
+		return obj
+	end
+
+	error("Resolving class from invalid object '" .. tostring(obj) .. "'")
+end
+
+-- This is a special parent used to prevent oop.Object being parent of itself
+local NIL_PARENT = {}
+
+-- Credits to Middleclass
+local metamethods = {'__add', '__call', '__concat', '__div', '__ipairs', '__le',
+					 '__len', '__lt', '__mod', '__mul', '__pairs', '__pow', '__sub',
+					 '__tostring', '__unm'}
+
+function oop.createClass(name, parent)
+	local cls = {}
+
+	-- Get parent class
+	local par_cls
+	if parent ~= NIL_PARENT then
+		par_cls = oop.resolveClass(parent)
+	end
+
+	-- Add metadata
+	cls.name = name
+	cls.super = par_cls
+
+	-- Add a subtable for class members ie methods and class/super handles
+	cls.members = setmetatable({}, {__index = cls.super})
+
+	-- Add built-in "keywords" that Instances can access
+	cls.members.class = cls
+	cls.members.super = cls.super
+
+	-- Instance metatable
+	local cls_instance_meta = {}
+	do
+		cls_instance_meta.__index = cls.members
+
+		-- Add metamethods. The class does not have members yet, so we need to use runtime lookup
+		for _,name in pairs(metamethods) do
+			cls_instance_meta[name] = function(...)
+				local method = cls.members[name]
+				if method then
+					return method(...)
+				end
+			end
+		end
+	end
+
+	-- Class metatable
+	local class_meta = {}
+	do
+		class_meta.__index = cls.members
+		class_meta.__newindex = cls.members
+
+		class_meta.__tostring = function(self)
+			return "class " .. self.name
+		end
+
+		-- Make the Class object a constructor.
+		-- ie calling Class() creates a new instance
+		function class_meta:__call(...)
+			local instance = {}
+			setmetatable(instance, cls_instance_meta)
+
+			-- Call constructor if exists
+			local ctor = instance.initialize
+			if ctor then ctor(instance, ...) end
+
+			return instance
+		end
+	end
+
+	-- Set meta functions
+	setmetatable(cls, class_meta)
+
+	return cls
+end
+
+oop.Object = oop.createClass("Object", NIL_PARENT)
+
+-- Get the hash code ie the value Lua prints when you call __tostring()
+function oop.Object:hashCode()
+	local meta = getmetatable(self)
+
+	local old_tostring = meta.__tostring
+	meta.__tostring = nil
+
+	local hash = tostring(self):match("table: 0x(.*)")
+
+	meta.__tostring = old_tostring
+
+	return hash
+end
+
+function oop.Object:__tostring()
+	return string.format("%s@%s", self.class.name, self:hashCode())
+end
+end
+-- 'mediabase'; CodeLen/MinifiedLen 3470/3470; Dependencies [oop]
 medialib.modulePlaceholder("mediabase")
 do
-local a=medialib.load("oop")local b=a.class("Media")function b:on(c,d)e._events=e._events or{}e._events[c]=e._events[c]or{}e._events[c][d]=true end;function b:emit(c,...)if not e._events then return end;local f=e._events[c]if not f then return end;for g,h in pairs(f)do g(...)end end;function b:getServiceBase()error("Media:getServiceBase() not implemented!")end;function b:getService()return e._service end;function b:getUrl()return e._unresolvedUrl end;function b:lookupMetadata()local i=e._metadata;if type(i)=="table"then return i end;if i==true or type(i)=="string"then return nil end;e._metadata=true;e:getService():query(e:getUrl(),function(j,k)if j then e._metadata=j else e._metadata=k end end)return nil end;function b:isValid()return false end;function b:IsValid()return e:isValid()end;function b:setVolume(l)end;function b:getVolume()end;function b:setQuality(m)end;function b:seek(n)end;function b:getTime()return 0 end;function b:sync(n,o)if e._lastSync and e._lastSync>CurTime()-5 then return end;local p=e:shouldSync(n,o)if not p then return end;e:seek(n+0.1)e._lastSync=CurTime()end;function b:shouldSync(n,o)if not e:isValid()or not e:isPlaying()then return false end;o=o or 2;local q=e:getTime()local r=math.abs(q-n)return r>o end;function b:getState()end;function b:isPlaying()return e:getState()=="playing"end;function b:play()end;function b:pause()end;function b:stop()end;function b:draw(s,t,u,v)end
+local oop = medialib.load("oop")
+
+local Media = oop.class("Media")
+
+function Media:on(event, callback)
+	self._events = self._events or {}
+	self._events[event] = self._events[event] or {}
+	self._events[event][callback] = true
 end
--- 'servicebase'; CodeLen/MinifiedLen 435/287; Dependencies [oop]
+function Media:emit(event, ...)
+	if not self._events then return end
+
+	local callbacks = self._events[event]
+	if not callbacks then return end
+
+	for k,_ in pairs(callbacks) do
+		k(...)
+	end
+end
+
+function Media:getServiceBase()
+	error("Media:getServiceBase() not implemented!")
+end
+function Media:getService()
+	return self._service
+end
+function Media:getUrl()
+	return self._unresolvedUrl
+end
+
+-- If metadata is cached: return it
+-- Otherwise either start a new metadata query, or if one is already going on
+-- do nothing
+function Media:lookupMetadata()
+	local md = self._metadata
+
+	-- Already fetched
+	if type(md) == "table" then return md end
+
+	-- Fetching or there was an error (TODO make error available to user)
+	if md == true or type(md) == "string" then return nil end
+
+	self._metadata = true
+	self:getService():query(self:getUrl(), function(err, data)
+		if err then
+			self._metadata = err
+		else
+			self._metadata = data
+		end
+	end)
+
+	return nil
+end
+
+-- True returned from this function does not imply anything related to how
+-- ready media is to play, just that it exists somewhere in memory and should
+-- at least in some point in the future be playable, but even that is not guaranteed
+function Media:isValid() 
+	return false
+end
+
+-- The GMod global IsValid requires the uppercase version
+function Media:IsValid() 
+	return self:isValid()
+end
+
+-- vol must be a float between 0 and 1
+function Media:setVolume(vol) end
+function Media:getVolume() end
+
+-- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
+-- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
+-- Services are not guaranteed to change to the exact provided quality, or even to do anything at all
+function Media:setQuality(quality) end
+
+-- time must be an integer between 0 and duration
+function Media:seek(time) end
+function Media:getTime()
+	return 0
+end
+
+-- This method can be called repeatedly to keep the media somewhat in sync
+-- with given time, which makes it a great function to keep eg. synchronized
+-- televisions in sync.
+function Media:sync(time, margin)
+	-- Only sync at most once per five seconds
+	if self._lastSync and self._lastSync > CurTime() - 5 then
+		return	
+	end
+	
+	local shouldSync = self:shouldSync(time, margin)
+	if not shouldSync then return end
+
+	self:seek(time + 0.1) -- Assume 0.1 sec loading time
+	self._lastSync = CurTime()
+end
+
+function Media:shouldSync(time, margin)
+	-- Check for invalid syncing state
+	if not self:isValid() or not self:isPlaying() then
+		return false
+	end
+
+	margin = margin or 2
+
+	local curTime = self:getTime()
+	local diff = math.abs(curTime - time)
+
+	return diff > margin
+end
+
+-- Must return one of following strings: "error", "loading", "buffering", "playing", "paused", "ended"
+-- Can also return nil if state is unknown or cannot be represented properly
+-- If getState does not return nil, it should be assumed to be the correct current state
+function Media:getState() end
+
+-- Simplified function of above; simply returns boolean indicating playing state
+function Media:isPlaying()
+	return self:getState() == "playing"
+end
+
+function Media:play() end
+function Media:pause() end
+function Media:stop() end
+
+function Media:draw(x, y, w, h) end
+end
+-- 'servicebase'; CodeLen/MinifiedLen 435/435; Dependencies [oop]
 medialib.modulePlaceholder("servicebase")
 do
-local a=medialib.load("oop")local b=a.class("Service")function b:on(c,d)e._events={}e._events[c]=e._events[c]or{}e._events[c][d]=true end;function b:emit(c,...)for f,g in pairs(e._events[c]or{})do f(...)end end;function b:load(h,i)end;function b:isValidUrl(h)end;function b:query(h,d)end
+local oop = medialib.load("oop")
+
+local Service = oop.class("Service")
+
+function Service:on(event, callback)
+	self._events = {}
+	self._events[event] = self._events[event] or {}
+	self._events[event][callback] = true
 end
--- 'timekeeper'; CodeLen/MinifiedLen 1016/638; Dependencies [oop]
+function Service:emit(event, ...)
+	for k,_ in pairs(self._events[event] or {}) do
+		k(...)
+	end
+end
+
+function Service:load(url, opts) end
+function Service:isValidUrl(url) end
+function Service:query(url, callback) end
+end
+-- 'timekeeper'; CodeLen/MinifiedLen 1016/1016; Dependencies [oop]
 medialib.modulePlaceholder("timekeeper")
 do
-local a=medialib.load("oop")local b=a.class("TimeKeeper")function b:initialize()c:reset()end;function b:reset()c.cachedTime=0;c.running=false;c.runningTimeStart=0 end;function b:getTime()local d=c.cachedTime;if c.running then d=d+RealTime()-c.runningTimeStart end;return d end;function b:isRunning()return c.running end;function b:play()if c.running then return end;c.runningTimeStart=RealTime()c.running=true end;function b:pause()if not c.running then return end;local e=RealTime()-c.runningTimeStart;c.cachedTime=c.cachedTime+e;c.running=false end;function b:seek(d)c.cachedTime=d;if c.running then c.runningTimeStart=RealTime()end end
+-- The purpose of TimeKeeper is to keep time where it is not easily available synchronously (ie. HTML based services)
+local oop = medialib.load("oop")
+
+local TimeKeeper = oop.class("TimeKeeper")
+
+function TimeKeeper:initialize()
+	self:reset()
 end
--- 'service_html'; CodeLen/MinifiedLen 5822/3692; Dependencies [oop,timekeeper,volume3d]
+
+function TimeKeeper:reset()
+	self.cachedTime = 0
+
+	self.running = false
+	self.runningTimeStart = 0
+end
+
+function TimeKeeper:getTime()
+	local time = self.cachedTime
+
+	if self.running then
+		time = time + (RealTime() - self.runningTimeStart)
+	end
+
+	return time
+end
+
+function TimeKeeper:isRunning()
+	return self.running
+end
+
+function TimeKeeper:play()
+	if self.running then return end
+
+	self.runningTimeStart = RealTime()
+	self.running = true
+end
+
+function TimeKeeper:pause()
+	if not self.running then return end
+	
+	local runningTime = RealTime() - self.runningTimeStart
+	self.cachedTime = self.cachedTime + runningTime
+
+	self.running = false
+end
+
+function TimeKeeper:seek(time)
+	self.cachedTime = time
+
+	if self.running then
+		self.runningTimeStart = RealTime()
+	end
+end
+end
+-- 'service_html'; CodeLen/MinifiedLen 5822/5822; Dependencies [oop,timekeeper,volume3d]
 medialib.modulePlaceholder("service_html")
 do
-local a=medialib.load("oop")medialib.load("timekeeper")local b=medialib.load("volume3d")local c=a.class("HTMLService","Service")function c:load(d,e)local f=a.class("HTMLMedia")()f._unresolvedUrl=d;f._service=g;g:resolveUrl(d,function(h,i)f:openUrl(h)if e and e.use3D then b.startThink(f,{pos=e.pos3D,ent=e.ent3D,fadeMax=e.fadeMax3D})end;if i and i.start and not e or not e.dontSeek then f:seek(i.start)end end)return f end;function c:resolveUrl(d,j)j(d,g:parseUrl(d))end;function c:hasReliablePlaybackEvents(f)return false end;local k={instances={}}concommand.Add("medialib_awepoolinfo",function()print("AwesomiumPool> Free instance count: "..#k.instances)end)timer.Create("MediaLib.AwesomiumPoolCleaner",30,0,function()if#k.instances<3 then return end;local l=table.remove(k.instances,1)if IsValid(l)then l:Remove()end end)function k.get()local l=table.remove(k.instances,1)if not IsValid(l)then local m=vgui.Create("DHTML")return m end;return l end;function k.free(l)if not IsValid(l)then return end;l:SetHTML("")table.insert(k.instances,l)end;local n=a.class("HTMLMedia","Media")local o,p=1280,720;function n:initialize()g.timeKeeper=a.class("TimeKeeper")()g.panel=k.get()local m=g.panel;m:SetPos(0,0)m:SetSize(o,p)local q="MediaLib.HTMLMedia.FakeThink-"..g:hashCode()hook.Add("Think",q,function()if not IsValid(g.panel)then hook.Remove("Think",q)return end;g.panel:Think()end)local r=m._OldCM or m.ConsoleMessage;m._OldCM=r;m.ConsoleMessage=function(s,t)if string.find(t,"XMLHttpRequest")then return end;if string.find(t,"Unsafe JavaScript attempt to access")then return end;return r(s,t)end;m:SetPaintedManually(true)m:SetVisible(false)m:AddFunction("medialiblua","Event",function(u,v)g:handleHTMLEvent(u,util.JSONToTable(v))end)end;function n:getBaseService()return"html"end;function n:openUrl(d)g.panel:OpenURL(d)g.URLChanged=CurTime()end;function n:runJS(w,...)local x=string.format(w,...)g.panel:QueueJavascript(x)end;function n:handleHTMLEvent(u,y)if u=="stateChange"then local z=y.state;local A;if y.time then g.timeKeeper:seek(y.time)end;if z=="playing"then A="playing"g.timeKeeper:play()elseif z=="ended"or z=="paused"or z=="buffering"then A=z;g.timeKeeper:pause()end;if A then g.state=A;g:emit(A)end end end;function n:getState()return g.state end;function n:updateTexture()if g.lastUpdatedFrame~=FrameNumber()then g.panel:UpdateHTMLTexture()g.lastUpdatedFrame=FrameNumber()end end;function n:draw(B,C,D,E)g:updateTexture()local F=g.panel:GetHTMLMaterial()surface.SetMaterial(F)surface.SetDrawColor(255,255,255)local G,H=o/F:Width(),p/F:Height()surface.DrawTexturedRectUV(B or 0,C or 0,D or o,E or p,0,0,G,H)end;function n:getTime()return g.timeKeeper:getTime()end;function n:setQuality(I)if g.lastSetQuality and g.lastSetQuality==I then return end;g.lastSetQuality=I;g:runJS("medialibDelegate.run('setQuality', {quality: %q})",I)end;function n:applyVolume()local J=g.internalVolume or 1;local K=g.volume or 1;local L=J*K;if g.lastSetVolume and g.lastSetVolume==L then return end;g.lastSetVolume=L;g:runJS("medialibDelegate.run('setVolume', {vol: %f})",L)end;function n:setVolume(L)g.volume=L;g:applyVolume()end;function n:seek(M)g:runJS("medialibDelegate.run('seek', {time: %d})",M)end;function n:hasReliablePlaybackEvents()local N=g:getService()return N and N:hasReliablePlaybackEvents(g)end;function n:play()if not g:hasReliablePlaybackEvents()then g.timeKeeper:play()end;g:runJS("medialibDelegate.run('play')")end;function n:pause()if not g:hasReliablePlaybackEvents()then g.timeKeeper:pause()end;g:runJS("medialibDelegate.run('pause')")end;function n:stop()k.free(g.panel)g.panel=nil;g.timeKeeper:pause()g:emit("destroyed")end;function n:isValid()return IsValid(g.panel)end
+local oop = medialib.load("oop")
+medialib.load("timekeeper")
+
+local volume3d = medialib.load("volume3d")
+
+local HTMLService = oop.class("HTMLService", "Service")
+function HTMLService:load(url, opts)
+	local media = oop.class("HTMLMedia")()
+	media._unresolvedUrl = url
+	media._service = self
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		media:openUrl(resolvedUrl)
+
+		-- TODO move to volume3d and call as a hook
+		if opts and opts.use3D then
+			volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
+		end
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+
+	return media
 end
--- 'service_bass'; CodeLen/MinifiedLen 3854/2570; Dependencies [oop,volume3d]
+function HTMLService:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end
+
+-- Whether or not we can trust that the HTML panel will send 'playing', 'paused'
+-- and other playback related events. If this returns true, 'timekeeper' will
+-- not be updated in playback related methods (except stop).
+function HTMLService:hasReliablePlaybackEvents(media)
+	return false
+end
+
+local AwesomiumPool = {instances = {}}
+concommand.Add("medialib_awepoolinfo", function()
+	print("AwesomiumPool> Free instance count: " .. #AwesomiumPool.instances)
+end)
+-- If there's bunch of awesomium instances in pool, we clean one up every 30 seconds
+timer.Create("MediaLib.AwesomiumPoolCleaner", 30, 0, function()
+	if #AwesomiumPool.instances < 3 then return end
+
+	local inst = table.remove(AwesomiumPool.instances, 1)
+	if IsValid(inst) then inst:Remove() end
+end)
+function AwesomiumPool.get()
+	local inst = table.remove(AwesomiumPool.instances, 1)
+	if not IsValid(inst) then
+		local pnl = vgui.Create("DHTML")
+		return pnl
+	end
+	return inst
+end
+function AwesomiumPool.free(inst)
+	if not IsValid(inst) then return end
+	inst:SetHTML("")
+
+	table.insert(AwesomiumPool.instances, inst)
+end
+
+local HTMLMedia = oop.class("HTMLMedia", "Media")
+
+local panel_width, panel_height = 1280, 720
+function HTMLMedia:initialize()
+	self.timeKeeper = oop.class("TimeKeeper")()
+
+	self.panel = AwesomiumPool.get()
+
+	local pnl = self.panel
+	pnl:SetPos(0, 0)
+	pnl:SetSize(panel_width, panel_height)
+
+	local hookid = "MediaLib.HTMLMedia.FakeThink-" .. self:hashCode()
+	hook.Add("Think", hookid, function()
+		if not IsValid(self.panel) then
+			hook.Remove("Think", hookid)
+			return
+		end
+
+		self.panel:Think()
+	end)
+
+	local oldcm = pnl._OldCM or pnl.ConsoleMessage
+	pnl._OldCM = oldcm
+	pnl.ConsoleMessage = function(pself, msg)
+		-- Filter some things out
+		if string.find(msg, "XMLHttpRequest") then return end
+		if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+
+		return oldcm(pself, msg)
+	end
+
+	pnl:SetPaintedManually(true)
+	pnl:SetVisible(false)
+
+	pnl:AddFunction("medialiblua", "Event", function(id, jsonstr)
+		self:handleHTMLEvent(id, util.JSONToTable(jsonstr))
+	end)
+end
+
+function HTMLMedia:getBaseService()
+	return "html"
+end
+
+function HTMLMedia:openUrl(url)
+	self.panel:OpenURL(url)
+
+	self.URLChanged = CurTime()
+end
+function HTMLMedia:runJS(js, ...)
+	local code = string.format(js, ...)
+	self.panel:QueueJavascript(code)
+end
+
+function HTMLMedia:handleHTMLEvent(id, event)
+	if id == "stateChange" then
+		local state = event.state
+		local setToState
+
+		if event.time then
+			self.timeKeeper:seek(event.time)
+		end
+		if state == "playing" then
+			setToState = "playing"
+			self.timeKeeper:play()
+		elseif state == "ended" or state == "paused" or state == "buffering" then
+			setToState = state
+			self.timeKeeper:pause()
+		end
+
+		if setToState then
+			self.state = setToState
+			self:emit(setToState)
+		end
+	end
+end
+function HTMLMedia:getState()
+	return self.state
+end
+
+function HTMLMedia:updateTexture()
+	-- Only update HTMLTexture once per frame
+	if self.lastUpdatedFrame ~= FrameNumber() then
+		self.panel:UpdateHTMLTexture()
+		self.lastUpdatedFrame = FrameNumber()
+	end
+end
+
+function HTMLMedia:draw(x, y, w, h)
+	self:updateTexture()
+
+	local mat = self.panel:GetHTMLMaterial()
+
+	surface.SetMaterial(mat)
+	surface.SetDrawColor(255, 255, 255)
+
+	local w_frac, h_frac = panel_width / mat:Width(), panel_height / mat:Height()
+	surface.DrawTexturedRectUV(x or 0, y or 0, w or panel_width, h or panel_height, 0, 0, w_frac, h_frac)
+end
+
+function HTMLMedia:getTime()
+	return self.timeKeeper:getTime()
+end
+
+function HTMLMedia:setQuality(qual)
+	if self.lastSetQuality and self.lastSetQuality == qual then
+		return
+	end
+	self.lastSetQuality = qual
+	
+	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
+end
+
+-- This applies the volume to the HTML panel
+-- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
+function HTMLMedia:applyVolume()
+	local ivol = self.internalVolume or 1
+	local rvol = self.volume or 1
+
+	local vol = ivol * rvol
+
+	if self.lastSetVolume and self.lastSetVolume == vol then
+		return
+	end
+	self.lastSetVolume = vol
+
+	self:runJS("medialibDelegate.run('setVolume', {vol: %f})", vol)
+end
+
+-- This sets a volume variable
+function HTMLMedia:setVolume(vol)
+	self.volume = vol
+	self:applyVolume()
+end
+
+function HTMLMedia:seek(time)
+	self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+end
+
+-- See HTMLService:hasReliablePlaybackEvents()
+function HTMLMedia:hasReliablePlaybackEvents()
+	local service = self:getService()
+	return service and service:hasReliablePlaybackEvents(self)
+end
+
+function HTMLMedia:play()
+	if not self:hasReliablePlaybackEvents() then
+		self.timeKeeper:play()
+	end
+
+	self:runJS("medialibDelegate.run('play')")
+end
+function HTMLMedia:pause()
+	if not self:hasReliablePlaybackEvents() then
+		self.timeKeeper:pause()
+	end
+
+	self:runJS("medialibDelegate.run('pause')")
+end
+function HTMLMedia:stop()
+	AwesomiumPool.free(self.panel)
+	self.panel = nil
+
+	self.timeKeeper:pause()
+	self:emit("destroyed")
+end
+
+function HTMLMedia:isValid()
+	return IsValid(self.panel)
+end
+
+end
+-- 'service_bass'; CodeLen/MinifiedLen 3854/3854; Dependencies [oop,volume3d]
 medialib.modulePlaceholder("service_bass")
 do
-local a=medialib.load("oop")local b=medialib.load("volume3d")local c=a.class("BASSService","Service")function c:load(d,e)local f=a.class("BASSMedia")()f._unresolvedUrl=d;f._service=g;g:resolveUrl(d,function(h,i)if e and e.use3D then f.is3D=true;f:runCommand(function(j)b.startThink(f,{pos=e.pos3D,ent=e.ent3D,fadeMax=e.fadeMax3D})end)end;f:openUrl(h)if i and i.start and not e or not e.dontSeek then f:seek(i.start)end end)return f end;function c:resolveUrl(d,k)k(d,g:parseUrl(d))end;local l=a.class("BASSMedia","Media")function l:initialize()g.commandQueue={}end;function l:getBaseService()return"bass"end;function l:updateFFT()local m=FrameNumber()if g._lastFFTUpdate and g._lastFFTUpdate==m then return end;g._lastFFTUpdate=m;local j=g.chan;if not IsValid(j)then return end;g.fftValues=g.fftValues or{}j:FFT(g.fftValues,FFT_512)end;function l:getFFT()return g.fftValues end;function l:draw(n,o,p,q)surface.SetDrawColor(0,0,0)surface.DrawRect(n,o,p,q)g:updateFFT()local r=g:getFFT()if not r then return end;local s=#r;local t=s==0 and 1 or p/s;local u=p/s;for v=1,s do surface.SetDrawColor(HSVToColor(v,0.9,0.5))local w=r[v]*q;surface.DrawRect(n+v*u,o+q-w,u,w)end end;function l:openUrl(d)local x="noplay noblock"if g.is3D then x=x.." 3d"end;sound.PlayURL(d,x,function(j,y,z)g:bassCallback(j,y,z)end)end;function l:openFile(A)local x="noplay noblock"if g.is3D then x=x.." 3d"end;sound.PlayFile(A,x,function(j,y,z)g:bassCallback(j,y,z)end)end;function l:bassCallback(j,y,z)if not IsValid(j)then ErrorNoHalt("[MediaLib] BassMedia play failed: ",z)return end;if g._stopped then j:Stop()return end;g.chan=j;for B,C in pairs(g.commandQueue)do C(j)end;g.commandQueue={}end;function l:runCommand(D)if IsValid(g.chan)then D(g.chan)else g.commandQueue[#g.commandQueue+1]=D end end;function l:setVolume(E)g:runCommand(function(j)j:SetVolume(E)end)end;function l:seek(F)g:runCommand(function(j)j:SetTime(F)end)end;function l:getTime()if g:isValid()then return g.chan:GetTime()end;return 0 end;function l:getState()if not g:isValid()then return"error"end;local G=g.chan:GetState()if G==GMOD_CHANNEL_PLAYING then return"playing"end;if G==GMOD_CHANNEL_PAUSED then return"paused"end;if G==GMOD_CHANNEL_STALLED then return"buffering"end;if G==GMOD_CHANNEL_STOPPED then return"paused"end;return end;function l:play()g:runCommand(function(j)j:Play()g:emit("playing")end)end;function l:pause()g:runCommand(function(j)j:Pause()g:emit("paused")end)end;function l:stop()g._stopped=true;g:runCommand(function(j)j:Stop()g:emit("destroyed")end)end;function l:isValid()return IsValid(g.chan)end
+local oop = medialib.load("oop")
+
+local volume3d = medialib.load("volume3d")
+
+local BASSService = oop.class("BASSService", "Service")
+function BASSService:load(url, opts)
+	local media = oop.class("BASSMedia")()
+	media._unresolvedUrl = url
+	media._service = self
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		if opts and opts.use3D then
+			media.is3D = true
+			media:runCommand(function(chan)
+				-- TODO move to volume3d and call as a hook
+				volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
+			end)
+		end
+
+		media:openUrl(resolvedUrl)
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+
+	return media
 end
--- 'media'; CodeLen/MinifiedLen 485/328; Dependencies []
+function BASSService:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end
+
+local BASSMedia = oop.class("BASSMedia", "Media")
+
+function BASSMedia:initialize()
+	self.commandQueue = {}
+end
+
+function BASSMedia:getBaseService()
+	return "bass"
+end
+
+function BASSMedia:updateFFT()
+	local curFrame = FrameNumber()
+	if self._lastFFTUpdate and self._lastFFTUpdate == curFrame then return end
+	self._lastFFTUpdate = curFrame
+
+	local chan = self.chan
+	if not IsValid(chan) then return end
+
+	self.fftValues = self.fftValues or {}
+	chan:FFT(self.fftValues, FFT_512)
+end
+
+function BASSMedia:getFFT()
+	return self.fftValues
+end
+
+function BASSMedia:draw(x, y, w, h)
+	surface.SetDrawColor(0, 0, 0)
+	surface.DrawRect(x, y, w, h)
+
+	self:updateFFT()
+	local fftValues = self:getFFT()
+	if not fftValues then return end
+
+	local valCount = #fftValues
+	local valsPerX = (valCount == 0 and 1 or (w/valCount))
+
+	local barw = w / (valCount)
+	for i=1, valCount do
+		surface.SetDrawColor(HSVToColor(i, 0.9, 0.5))
+
+		local barh = fftValues[i]*h
+		surface.DrawRect(x + i*barw, y + (h-barh), barw, barh)
+	end	
+end
+
+function BASSMedia:openUrl(url)
+	local flags = "noplay noblock"
+	if self.is3D then flags = flags .. " 3d" end
+
+	sound.PlayURL(url, flags, function(chan, errId, errName)
+		self:bassCallback(chan, errId, errName)
+	end)
+end
+function BASSMedia:openFile(path)
+	local flags = "noplay noblock"
+	if self.is3D then flags = flags .. " 3d" end
+
+	sound.PlayFile(path, flags, function(chan, errId, errName)
+		self:bassCallback(chan, errId, errName)
+	end)
+end
+
+function BASSMedia:bassCallback(chan, errId, errName)
+	if not IsValid(chan) then
+		ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
+		return
+	end
+
+	-- Check if media stopped before loading properly
+	if self._stopped then
+		chan:Stop()
+		return
+	end
+
+	self.chan = chan
+
+	for _,c in pairs(self.commandQueue) do
+		c(chan)
+	end
+
+	-- Empty queue
+	self.commandQueue = {}
+end
+
+function BASSMedia:runCommand(fn)
+	if IsValid(self.chan) then
+		fn(self.chan)
+	else
+		self.commandQueue[#self.commandQueue+1] = fn
+	end
+end
+
+function BASSMedia:setVolume(vol)
+	self:runCommand(function(chan) chan:SetVolume(vol) end)
+end
+
+function BASSMedia:seek(time)
+	self:runCommand(function(chan) chan:SetTime(time) end)
+end
+function BASSMedia:getTime()
+	if self:isValid() then
+		return self.chan:GetTime()
+	end
+	return 0
+end
+
+function BASSMedia:getState()
+	if not self:isValid() then return "error" end
+	local bassState = self.chan:GetState()
+	if bassState == GMOD_CHANNEL_PLAYING then return "playing" end
+	if bassState == GMOD_CHANNEL_PAUSED then return "paused" end
+	if bassState == GMOD_CHANNEL_STALLED then return "buffering" end
+	if bassState == GMOD_CHANNEL_STOPPED then return "paused" end -- umm??
+	return
+end
+
+function BASSMedia:play()
+	self:runCommand(function(chan) chan:Play() self:emit("playing") end)
+end
+function BASSMedia:pause()
+	self:runCommand(function(chan) chan:Pause() self:emit("paused") end)
+end
+function BASSMedia:stop()
+	self._stopped = true
+	self:runCommand(function(chan) chan:Stop() self:emit("destroyed") end)
+end
+
+function BASSMedia:isValid()
+	return IsValid(self.chan)
+end
+
+end
+-- 'media'; CodeLen/MinifiedLen 485/485; Dependencies []
 medialib.modulePlaceholder("media")
 do
-local a=medialib.module("media")a.Services={}function a.registerService(b,c)a.Services[b]=c()end;a.RegisterService=a.registerService;function a.service(b)return a.Services[b]end;a.Service=a.service;function a.guessService(d)for e,f in pairs(a.Services)do if f:isValidUrl(d)then return f end end end;a.GuessService=a.guessService
+local media = medialib.module("media")
+media.Services = {}
+
+function media.registerService(name, cls)
+	media.Services[name] = cls()
 end
-medialib.FolderItems["services/soundcloud.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"SoundcloudService\",\"BASSService\")local c={\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\",\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;function b:resolveUrl(d,i)local j=h:parseUrl(d)http.Fetch(string.format(\"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\",j.id),function(k)local l=util.JSONToTable(k).id;i(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID\",l),{})end)end;function b:query(d,i)local j=h:parseUrl(d)local m=string.format(\"http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\",j.id)http.Fetch(m,function(n,o)if o==0 then i(\"http body size = 0\")return end;local p=util.JSONToTable(n)if p.errors then local q=p.errors[1].error_message or\"error\"local r=q;if string.StartWith(q,\"404\")then r=\"Invalid id\"end;i(r)return end;i(nil,{title=p.title,duration=tonumber(p.duration)/1000})end,function(s)i(\"HTTP: \"..s)end)end;medialib.load(\"media\").registerService(\"soundcloud\",b)"
-medialib.FolderItems["services/twitch.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"TwitchService\",\"HTMLService\")local c={\"https?://www.twitch.tv/([A-Za-z0-9_%-]+)\",\"https?://twitch.tv/([A-Za-z0-9_%-]+)\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;local i=\"http://wyozi.github.io/gmod-medialib/twitch.html?channel=%s\"function b:resolveUrl(d,j)local k=h:parseUrl(d)local l=string.format(i,k.id)j(l,{start=k.start})end;function b:query(d,j)local k=h:parseUrl(d)local m=string.format(\"https://api.twitch.tv/kraken/channels/%s\",k.id)http.Fetch(m,function(n,o)if o==0 then j(\"http body size = 0\")return end;local p={}p.id=k.id;local q=util.JSONToTable(n)if q then if q.error then j(q.message)return else p.title=q.display_name..\": \"..q.status end else p.title=\"ERROR\"end;j(nil,p)end,function(r)j(\"HTTP: \"..r)end)end;medialib.load(\"media\").registerService(\"twitch\",b)"
-medialib.FolderItems["services/vimeo.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"VimeoService\",\"HTMLService\")local c={\"https?://www.vimeo.com/([0-9]+)\",\"https?://vimeo.com/([0-9]+)\",\"https?://www.vimeo.com/channels/staffpicks/([0-9]+)\",\"https?://vimeo.com/channels/staffpicks/([0-9]+)\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;local i=\"http://wyozi.github.io/gmod-medialib/vimeo.html?id=%s\"function b:resolveUrl(d,j)local k=h:parseUrl(d)local l=string.format(i,k.id)j(l,{start=k.start})end;function b:query(d,j)local k=h:parseUrl(d)local m=string.format(\"http://vimeo.com/api/v2/video/%s.json\",k.id)http.Fetch(m,function(n,o,p,q)if o==0 then j(\"http body size = 0\")return end;if q==404 then j(\"Invalid id\")return end;local r={}r.id=k.id;local s=util.JSONToTable(n)if s then r.title=s[1].title;r.duration=s[1].duration else r.title=\"ERROR\"end;j(nil,r)end,function(t)j(\"HTTP: \"..t)end)end;function b:hasReliablePlaybackEvents(u)return true end;medialib.load(\"media\").registerService(\"vimeo\",b)"
-medialib.FolderItems["services/webaudio.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"WebAudioService\",\"BASSService\")local c={\"^https?://(.*)%.mp3\",\"^https?://(.*)%.ogg\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;function b:resolveUrl(d,i)i(d,{})end;local j=medialib.load(\"id3parser\")local k=medialib.load(\"mp3duration\")function b:query(d,i)if string.EndsWith(d,\".mp3\")and j or k then http.Fetch(d,function(l)local m,n;if j then local o=j.readtags_data(l)if o and o.title then m=o.title;if o.artist then m=o.artist..\" - \"..m end;if o.length then local p=tonumber(o.length)if p then n=p/1000 end end end end;if k then n=k.estimate_data(l)or n end;i(nil,{title=m or d:match(\"([^/]+)$\"),duration=n})end)return end;i(nil,{title=d:match(\"([^/]+)$\")})end;medialib.load(\"media\").registerService(\"webaudio\",b)"
-medialib.FolderItems["services/webm.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"WebmService\",\"HTMLService\")local c={\"^https?://(.*)%.webm\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;local i=\"http://wyozi.github.io/gmod-medialib/webm.html?id=%s\"function b:resolveUrl(d,j)local k=h:parseUrl(d)local l=string.format(i,k.id)j(l,{start=k.start})end;function b:query(d,j)j(nil,{title=d:match(\"([^/]+)$\")})end;medialib.load(\"media\").registerService(\"webm\",b)"
-medialib.FolderItems["services/webradio.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"WebRadioService\",\"BASSService\")local c={\"^https?://(.*)%.pls\",\"^https?://(.*)%.m3u\"}function b:parseUrl(d)for e,f in pairs(c)do local g=string.match(d,f)if g then return{id=g}end end end;function b:isValidUrl(d)return h:parseUrl(d)~=nil end;function b:resolveUrl(d,i)i(d,{})end;local j=medialib.load(\"shoutcastmeta\")function b:query(d,i)local function k()i(nil,{title=d:match(\"([^/]+)$\")})end;if j then j.fetch(d,function(l,m)if l then k()return end;i(nil,m)end)return end;k()end;medialib.load(\"media\").registerService(\"webradio\",b)"
-medialib.FolderItems["services/youtube.lua"] = "local a=medialib.load(\"oop\")local b=a.class(\"YoutubeService\",\"HTMLService\")local c={\"^https?://[A-Za-z0-9%.%-]*%.?youtu%.be/([A-Za-z0-9_%-]+)\",\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/watch%?.*v=([A-Za-z0-9_%-]+)\",\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/v/([A-Za-z0-9_%-]+)\"}local d={}for e,f in pairs(c)do local function g(h)table.insert(d,f..h..\"t=(%d+)m(%d+)s\")table.insert(d,f..h..\"t=(%d+)s?\")end;g(\"#\")g(\"&\")g(\"?\")table.insert(d,f)end;function b:parseUrl(i)for j,k in pairs(d)do local l,m,n=string.match(i,k)if l then local o=0;if m and n then o=tonumber(m)*60+tonumber(n)else o=tonumber(m)end;return{id=l,start=o}end end end;function b:isValidUrl(i)return p:parseUrl(i)~=nil end;local q=\"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"function b:resolveUrl(i,r)local s=p:parseUrl(i)local t=string.format(q,s.id)r(t,{start=s.start})end;local function u(v)local w=v:match(\"(%d+)H\")or 0;local x=v:match(\"(%d+)M\")or 0;local y=v:match(\"(%d+)S\")or 0;return w*60*60+x*60+y end;local z=\"AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ\"function b:query(i,r)local s=p:parseUrl(i)local A=string.format(\"https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s\",s.id,z)http.Fetch(A,function(B,C)if C==0 then r(\"http body size = 0\")return end;local D={}D.id=s.id;local E=util.JSONToTable(B)if E and E.items then local F=E.items[1]if not F then r(\"No video id found\")return end;D.title=F.snippet.title;D.duration=tonumber(u(F.contentDetails.duration))else r(B)return end;r(nil,D)end,function(G)r(\"HTTP: \"..G)end)end;function b:hasReliablePlaybackEvents(H)return true end;medialib.load(\"media\").registerService(\"youtube\",b)"
--- 'serviceloader'; CodeLen/MinifiedLen 311/249; Dependencies [servicebase,service_html,service_bass,oop,shoutcastmeta,media,id3parser,mp3duration]
+media.RegisterService = media.registerService -- alias
+
+function media.service(name)
+	return media.Services[name]
+end
+media.Service = media.service -- alias
+
+function media.guessService(url)
+	for _,service in pairs(media.Services) do
+		if service:isValidUrl(url) then
+			return service
+		end
+	end
+end
+media.GuessService = media.guessService -- alias
+end
+medialib.FolderItems["services/soundcloud.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal SoundcloudService = oop.class(\"SoundcloudService\", \"BASSService\")\n\nlocal all_patterns = {\n\t\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\",\n\t\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$\",\n}\n\nfunction SoundcloudService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction SoundcloudService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nfunction SoundcloudService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\n\thttp.Fetch(\n\t\tstring.format(\"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\", urlData.id),\n\t\tfunction(data)\n\t\t\tlocal sound_id = util.JSONToTable(data).id\n\t\t\tcallback(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID\", sound_id), {})\n\t\tend)\nend\n\nfunction SoundcloudService:query(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID\", urlData.id)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal entry = util.JSONToTable(result)\n\n\t\tif entry.errors then\n\t\t\tlocal msg = entry.errors[1].error_message or \"error\"\n\t\t\t\n\t\t\tlocal translated = msg\n\t\t\tif string.StartWith(msg, \"404\") then\n\t\t\t\ttranslated = \"Invalid id\"\n\t\t\tend\n\n\t\t\tcallback(translated)\n\t\t\treturn\n\t\tend\n\n\t\tcallback(nil, {\n\t\t\ttitle = entry.title,\n\t\t\tduration = tonumber(entry.duration) / 1000\n\t\t})\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nmedialib.load(\"media\").registerService(\"soundcloud\", SoundcloudService)"
+medialib.FolderItems["services/twitch.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal TwitchService = oop.class(\"TwitchService\", \"HTMLService\")\n\nlocal all_patterns = {\n\t\"https?://www.twitch.tv/([A-Za-z0-9_%-]+)\",\n\t\"https?://twitch.tv/([A-Za-z0-9_%-]+)\"\n}\n\nfunction TwitchService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction TwitchService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/twitch.html?channel=%s\"\nfunction TwitchService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction TwitchService:query(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"https://api.twitch.tv/kraken/channels/%s\", urlData.id)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal data = {}\n\t\tdata.id = urlData.id\n\n\t\tlocal jsontbl = util.JSONToTable(result)\n\n\t\tif jsontbl then\n\t\t\tif jsontbl.error then\n\t\t\t\tcallback(jsontbl.message)\n\t\t\t\treturn\n\t\t\telse\n\t\t\t\tdata.title = jsontbl.display_name .. \": \" .. jsontbl.status\n\t\t\tend\n\t\telse\n\t\t\tdata.title = \"ERROR\"\n\t\tend\n\n\t\tcallback(nil, data)\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nmedialib.load(\"media\").registerService(\"twitch\", TwitchService)"
+medialib.FolderItems["services/vimeo.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal VimeoService = oop.class(\"VimeoService\", \"HTMLService\")\n\nlocal all_patterns = {\n\t\"https?://www.vimeo.com/([0-9]+)\",\n\t\"https?://vimeo.com/([0-9]+)\",\n\t\"https?://www.vimeo.com/channels/staffpicks/([0-9]+)\",\n\t\"https?://vimeo.com/channels/staffpicks/([0-9]+)\",\n}\n\nfunction VimeoService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction VimeoService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/vimeo.html?id=%s\"\nfunction VimeoService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction VimeoService:query(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"http://vimeo.com/api/v2/video/%s.json\", urlData.id)\n\n\thttp.Fetch(metaurl, function(result, size, headers, httpcode)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tif httpcode == 404 then\n\t\t\tcallback(\"Invalid id\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal data = {}\n\t\tdata.id = urlData.id\n\n\t\tlocal jsontbl = util.JSONToTable(result)\n\n\t\tif jsontbl then\n\t\t\tdata.title = jsontbl[1].title\n\t\t\tdata.duration = jsontbl[1].duration\n\t\telse\n\t\t\tdata.title = \"ERROR\"\n\t\tend\n\n\t\tcallback(nil, data)\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nfunction VimeoService:hasReliablePlaybackEvents(media)\n\treturn true\nend\n\nmedialib.load(\"media\").registerService(\"vimeo\", VimeoService)"
+medialib.FolderItems["services/webaudio.lua"] = "local oop = medialib.load(\"oop\")\nlocal WebAudioService = oop.class(\"WebAudioService\", \"BASSService\")\n\nlocal all_patterns = {\n\t\"^https?://(.*)%.mp3\",\n\t\"^https?://(.*)%.ogg\",\n}\n\nfunction WebAudioService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction WebAudioService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nfunction WebAudioService:resolveUrl(url, callback)\n\tcallback(url, {})\nend\n\nlocal id3parser = medialib.load(\"id3parser\")\nlocal mp3duration = medialib.load(\"mp3duration\")\nfunction WebAudioService:query(url, callback)\n\t-- If it's an mp3 we can use the included ID3/MP3-duration parser to try and parse some data\n\tif string.EndsWith(url, \".mp3\") and (id3parser or mp3duration) then\n\t\thttp.Fetch(url, function(data)\n\t\t\tlocal title, duration\n\n\t\t\tif id3parser then\n\t\t\t\tlocal parsed = id3parser.readtags_data(data)\n\t\t\t\tif parsed and parsed.title then\n\t\t\t\t\ttitle = parsed.title\n\t\t\t\t\tif parsed.artist then title = parsed.artist .. \" - \" .. title end\n\n\t\t\t\t\t-- Some soundfiles have duration as a string containing milliseconds\n\t\t\t\t\tif parsed.length then\n\t\t\t\t\t\tlocal length = tonumber(parsed.length)\n\t\t\t\t\t\tif length then duration = length / 1000 end\n\t\t\t\t\tend\n\t\t\t\tend\n\t\t\tend\n\n\t\t\tif mp3duration then\n\t\t\t\tduration = mp3duration.estimate_data(data) or duration\n\t\t\tend\n\n\t\t\tcallback(nil, {\n\t\t\t\ttitle = title or url:match(\"([^/]+)$\"),\n\t\t\t\tduration = duration\n\t\t\t})\n\t\tend)\n\t\treturn\n\tend\n\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nmedialib.load(\"media\").registerService(\"webaudio\", WebAudioService)"
+medialib.FolderItems["services/webm.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal WebmService = oop.class(\"WebmService\", \"HTMLService\")\n\nlocal all_patterns = {\"^https?://(.*)%.webm\"}\n\nfunction WebmService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction WebmService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/webm.html?id=%s\"\nfunction WebmService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction WebmService:query(url, callback)\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nmedialib.load(\"media\").registerService(\"webm\", WebmService)"
+medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\nlocal WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\n\nlocal all_patterns = {\n\t\"^https?://(.*)%.pls\",\n\t\"^https?://(.*)%.m3u\"\n}\n\nfunction WebRadioService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction WebRadioService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nfunction WebRadioService:resolveUrl(url, callback)\n\tcallback(url, {})\nend\n\nlocal shoutcastmeta = medialib.load(\"shoutcastmeta\")\nfunction WebRadioService:query(url, callback)\n\tlocal function EmitBasicMeta()\n\t\tcallback(nil, {\n\t\t\ttitle = url:match(\"([^/]+)$\") -- the filename is the best we can get (unless we parse pls?)\n\t\t})\n\tend\n\n\t-- Use shoutcastmeta extension if available\n\tif shoutcastmeta then\n\t\tshoutcastmeta.fetch(url, function(err, data)\n\t\t\tif err then\n\t\t\t\tEmitBasicMeta()\n\t\t\t\treturn\n\t\t\tend\n\n\t\t\tcallback(nil, data)\n\t\tend)\n\t\treturn\n\tend\n\n\tEmitBasicMeta()\t\nend\n\nmedialib.load(\"media\").registerService(\"webradio\", WebRadioService)"
+medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\n\nlocal raw_patterns = {\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtu%.be/([A-Za-z0-9_%-]+)\",\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/watch%?.*v=([A-Za-z0-9_%-]+)\",\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/v/([A-Za-z0-9_%-]+)\",\n}\nlocal all_patterns = {}\n\n-- Appends time modifier patterns to each pattern\nfor k,p in pairs(raw_patterns) do\n\tlocal function with_sep(sep)\n\t\ttable.insert(all_patterns, p .. sep .. \"t=(%d+)m(%d+)s\")\n\t\ttable.insert(all_patterns, p .. sep .. \"t=(%d+)s?\")\n\tend\n\n\t-- We probably support more separators than youtube itself, but that does not matter\n\twith_sep(\"#\")\n\twith_sep(\"&\")\n\twith_sep(\"?\")\n\n\ttable.insert(all_patterns, p)\nend\n\nfunction YoutubeService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id, time1, time2 = string.match(url, pattern)\n\t\tif id then\n\t\t\tlocal time_sec = 0\n\t\t\tif time1 and time2 then\n\t\t\t\ttime_sec = tonumber(time1)*60 + tonumber(time2)\n\t\t\telse\n\t\t\t\ttime_sec = tonumber(time1)\n\t\t\tend\n\n\t\t\treturn {\n\t\t\t\tid = id,\n\t\t\t\tstart = time_sec\n\t\t\t}\n\t\tend\n\tend\nend\n\nfunction YoutubeService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\nfunction YoutubeService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\n-- http://en.wikipedia.org/wiki/ISO_8601#Durations\n-- Cheers wiox :))\nlocal function PTToSeconds(str)\n\tlocal h = str:match(\"(%d+)H\") or 0\n\tlocal m = str:match(\"(%d+)M\") or 0\n\tlocal s = str:match(\"(%d+)S\") or 0\n\treturn h*(60*60) + m*60 + s\nend\n\nlocal API_KEY = \"AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ\"\nfunction YoutubeService:query(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s\", urlData.id, API_KEY)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal data = {}\n\t\tdata.id = urlData.id\n\n\t\tlocal jsontbl = util.JSONToTable(result)\n\n\t\tif jsontbl and jsontbl.items then\n\t\t\tlocal item = jsontbl.items[1]\n\t\t\tif not item then\n\t\t\t\tcallback(\"No video id found\")\n\t\t\t\treturn\n\t\t\tend\n\n\t\t\tdata.title = item.snippet.title\n\t\t\tdata.duration = tonumber(PTToSeconds(item.contentDetails.duration))\n\t\telse\n\t\t\tcallback(result)\n\t\t\treturn\n\t\tend\n\n\t\tcallback(nil, data)\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nfunction YoutubeService:hasReliablePlaybackEvents(media)\n\treturn true\nend\n\nmedialib.load(\"media\").registerService(\"youtube\", YoutubeService)"
+-- 'serviceloader'; CodeLen/MinifiedLen 311/311; Dependencies [servicebase,service_html,service_bass,oop,media,shoutcastmeta,id3parser,mp3duration]
 medialib.modulePlaceholder("serviceloader")
 do
-medialib.load("servicebase")medialib.load("service_html")medialib.load("service_bass")for a,b in medialib.folderIterator("services")do if medialib.DEBUG then print("[MediaLib] Registering service "..b.name)end;if SERVER then b:addcs()end;b:load()end
+medialib.load("servicebase")
+
+medialib.load("service_html")
+medialib.load("service_bass")
+
+-- Load the actual service files
+for _,file in medialib.folderIterator("services") do
+	if medialib.DEBUG then
+		print("[MediaLib] Registering service " .. file.name)
+	end
+	if SERVER then file:addcs() end
+	file:load()
 end
--- '__loader'; CodeLen/MinifiedLen 326/78; Dependencies [mediabase,serviceloader,media]
+end
+-- '__loader'; CodeLen/MinifiedLen 326/326; Dependencies [mediabase,serviceloader,media]
 medialib.modulePlaceholder("__loader")
 do
-medialib.load("mediabase")medialib.load("serviceloader")medialib.load("media")
+-- This file loads required modules in the correct order.
+-- For development version: this file is automatically called after autorun/medialib.lua
+-- For distributable:       this file is loaded after packed modules have been added to medialib
+
+medialib.load("mediabase")
+medialib.load("serviceloader")
+
+medialib.load("media")
 end

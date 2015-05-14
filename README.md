@@ -36,6 +36,7 @@ hook.Add("HUDPaint", "DrawVideo", function()
 	surface.DrawRect(0, h, w, 25)
 
 	-- Request metadata. 'meta' will be nil if metadata is still being fetched.
+	-- Note: this is a clientside shortcut to Service#query. You should use Service#query on serverside.
 	local meta = mediaclip:lookupMetadata()
 	
 	local title, duration = tostring(meta and meta.title), 
@@ -50,6 +51,25 @@ end)
 
 See ```examples/``` for more elaborate examples.
 
+### Resource usage
+- __Server ⇋ Client__  
+> Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.  
+> 
+> For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.
+- __Client__  
+> On clientside medialib uses either HTML Awesomium panels or BASS sound objects for playback.  
+> 
+> HTML panels are relatively expensive way to playback videos, but having one or two of them should work fine.  
+> BASS sound objects (which are used for webaudio and webradio) are pretty cheap. There should be no problem having many of them playing at the same time if needed.  
+> 
+> In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like player controlled radios HTML media works fine (you might want to add some limitations so there cannot be eg. more than two HTML- based mediaclips playing at the same time).
+- __Shared (server and client)__
+> Both server and client have the ability to query for video metadata.  
+> 
+> This is not instant, as HTTP queries used for majority of services take their time, but querying for metadata is pretty cheap as long as you don't do it in a Think hook or similar.  
+
+
+
 ### API
 
 Method | Description | Notes
@@ -62,7 +82,7 @@ Method | Description | Notes
 ```Media:getServiceBase()``` | Returns the media service type, which is one of the following: "html", "bass"
 ```Media:getService()``` | Returns the service from which this media was loaded
 ```Media:getUrl()``` | Returns the original url passed to ```Service:load```, from which this media was loaded
-```Media:lookupMetadata()``` | Returns metadata if it's cached. Otherwise queries service for metadata and returns nil. | [Note](# "Can be called repeatedly; a query is only sent once. Is usually identical to metadata returned from Service:query, but Media is allowed to replace/add values derived from the Media itself")
+```Media:lookupMetadata()``` | Returns metadata if it's cached. Otherwise queries service for metadata and returns nil. | [Note](# "Should be called repeatedly; this will return nil until metadata *is* available. Return value is usually identical to metadata returned from Service:query, but Media is allowed to replace/add values derived from the Mediaclip itself (eg. more accurate duration or more up-to-date title)")
 ```Media:play()``` | Plays media. A ```playing``` event is emitted when media starts playing.
 ```Media:pause()``` | Pause media. A ```paused``` event is emitted when media pauses.
 ```Media:stop()``` | Pause media. A ```stopped``` event is emitted when media stops.

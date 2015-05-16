@@ -2,7 +2,7 @@ local oop = medialib.load("oop")
 
 local WebmService = oop.class("WebmService", "HTMLService")
 
-local all_patterns = {"^https?://(.*)%.webm"}
+local all_patterns = {"^https?://.*%.webm"}
 
 function WebmService:parseUrl(url)
 	for _,pattern in pairs(all_patterns) do

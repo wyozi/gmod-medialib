@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		margin-bottom: 0;
+
+		overflow: hidden;
+		background-color: black;
+		height: 100%;
+	}
+	#player {
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="player"></div>
+
+	<script type="text/javascript" src="medialib.js"></script>
+	<script src="http://releases.flowplayer.org/js/flowplayer-3.2.12.min.js"></script>
+	<script type="text/javascript">
+		medialibDelegate = medialib.createEventDelegate({
+			play: function() {
+				this.play();
+			},
+			pause: function() {
+				this.pause();
+			},
+			seek: function(obj) {
+				this.seek(obj.time);
+			},
+			setVolume: function(obj) {
+				this.setVolume(obj.vol * 100);
+			}
+		});
+
+		var params = medialib.getParams();
+		var id = params.id || params.vid;
+
+		var el = document.getElementById("vid");
+
+		flowplayer("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf", {
+			clip: {
+				url: id,
+				autoPlay: false,
+				autoBuffering: true,
+
+				onResume: function() {
+					medialib.emitEvent("stateChange", {state: "playing", time: this.getTime()});
+				},
+				onPause: function() {
+					medialib.emitEvent("stateChange", {state: "paused", time: this.getTime()});
+				}
+			},
+			plugins: {
+				controls: null,
+				play: null
+			},
+			onLoad: function() {
+				medialibDelegate.playerLoaded(this);
+				this.getPlay().hide();
+			}
+		});
+	</script>
+</body>
+</html>

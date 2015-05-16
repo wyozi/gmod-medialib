@@ -55,6 +55,9 @@
 				},
 				onPause: function() {
 					medialib.emitEvent("stateChange", {state: "paused", time: this.getTime()});
+				},
+				onFinish: function() {
+					medialib.emitEvent("stateChange", {state: "ended", time: this.getTime()});
 				}
 			},
 			plugins: {

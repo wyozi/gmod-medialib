@@ -130,20 +130,17 @@ function minify(str) {
 	return luamin.minify(str);
 }
 
-function build() {
-	console.log("MediaLib build process started.");
-	console.log("Using luamin v." + luamin.version);
+function build(shouldMinify, targetFile) {
+	console.log("MediaLib build process started [shouldMinify = " + shouldMinify + "; Luamin v" + luamin.version + "; Git = " + !buildNoGit + "]");
 
 	if (!buildNoGit) {
-		console.log("Loading Git repository.");
 		initGit();
 	}
 
 	function finished(fragments) {
 		console.log("MediaLib build process finished (fragment #" + fragments.length + ")");
 
-		fs.writeFileSync("dist/medialib.lua", fragments.join("\n"));
-		process.exit(0);
+		fs.writeFileSync(targetFile, fragments.join("\n"));
 	}
 
 	var loadedModules = {};
@@ -215,12 +212,12 @@ function build() {
 			}).then(function(folderIterators) {
 				folderIterators.forEach(function(arr) {
 					arr.forEach(function(fitEl) {
-						var minified = minify(fitEl[1]);
+						var minified = shouldMinify ? minify(fitEl[1]) : fitEl[1];
 						fragments.push("medialib.FolderItems[" + JSON.stringify(fitEl[0]) + "] = " + JSON.stringify(minified) + "");
 					});
 				})
 			}).then(function() {
-				var minified = minify(code);
+				var minified = shouldMinify ? minify(code) : code;
 				fragments.push("-- '" + mod + "'; CodeLen/MinifiedLen " + code.length + "/" + minified.length + "; Dependencies [" + deps + "]");
 				
 				// Add module placeholder, this is required for bundled modules that don't create the module themselves
@@ -243,7 +240,7 @@ function build() {
 
 	getBlob("lua/autorun/medialib.lua").then(function(data) {
 		data = data.replace("DISTRIBUTABLE = false", "DISTRIBUTABLE = true");
-		data = minify(data);
+		data = shouldMinify ? minify(data) : data;
 
 		var fragments = [data];
 
@@ -255,4 +252,5 @@ function build() {
 	});
 }
 
-build();
+build(false, "dist/medialib.lua");
+build(true, "dist/medialib.min.lua");

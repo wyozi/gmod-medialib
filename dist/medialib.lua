@@ -1,11 +1,14 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@33b80cf2"
+local VERSION = "git@ddcf1681"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
 if medialib and medialib.VERSION ~= VERSION then
 	print("[MediaLib] Warning: overwriting existing medialib. (local: " .. VERSION .. ", defined: " .. (medialib.VERSION or "-") .. ")")
+	
+	-- Overwriting should continue only if we're using dev version
+	if VERSION ~= "local" then return end
 end
 
 medialib = {}

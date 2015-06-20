@@ -125,7 +125,7 @@ function getGmodBlob(path) {
 	return deferred.promise;
 }
 
-var luamin = require("./luamin.js");
+var luamin = require("luamin");
 function minify(str) {
 	return luamin.minify(str);
 }

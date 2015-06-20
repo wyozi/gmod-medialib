@@ -65,6 +65,17 @@ function initGit() {
 
 var fs = require("fs");
 var exec = require("child_process").exec;
+function getVersion() {
+	var deferred = Q.defer();
+
+	exec("git rev-parse HEAD", function(err, stdout, stderr) {
+		if (err) deferred.reject(err);
+		else     deferred.resolve("git@" + stdout.trim().substring(0, 8));
+	});
+
+	return deferred.promise;
+}
+
 function getBlob(path) {
 	var deferred = Q.defer();
 
@@ -238,7 +249,8 @@ function build(shouldMinify, targetFile) {
 		});
 	}
 
-	getBlob("lua/autorun/medialib.lua").then(function(data) {
+	Q.spread([getBlob("lua/autorun/medialib.lua"), getVersion()], function(data, version) {
+		data = data.replace("VERSION = \"local\"", "VERSION = \"" + version + "\"");
 		data = data.replace("DISTRIBUTABLE = false", "DISTRIBUTABLE = true");
 		data = shouldMinify ? minify(data) : data;
 

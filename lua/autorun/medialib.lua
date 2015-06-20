@@ -1,7 +1,7 @@
 medialib = {}
 
--- Note: build file replaces this exact string with version that's 'true', so please do not
--- change it if you want buildscript to still work
+-- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
+medialib.VERSION = "local"
 medialib.DISTRIBUTABLE = false
 
 medialib.Modules = {}

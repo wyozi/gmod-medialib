@@ -15,7 +15,8 @@ OUT=$?
 if [ $OUT -ne 0 ];then
 	exit 1
 fi
-git add dist/medialib.lua
+
+git add dist/*.lua
 */
 
 process.chdir(".."); // We want to be at the addon root
@@ -253,6 +254,8 @@ function build(shouldMinify, targetFile) {
 		data = data.replace("VERSION = \"local\"", "VERSION = \"" + version + "\"");
 		data = data.replace("DISTRIBUTABLE = false", "DISTRIBUTABLE = true");
 		data = shouldMinify ? minify(data) : data;
+
+		data = "do\n" + data + "\nend\n";
 
 		var fragments = [data];
 

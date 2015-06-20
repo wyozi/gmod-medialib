@@ -1,5 +1,6 @@
+do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@2c80d93e"
+local VERSION = "git@33b80cf2"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -146,6 +147,8 @@ if CLIENT then
 		end
 	end)
 end
+end
+
 -- 'oop'; CodeLen/MinifiedLen 2927/2927; Dependencies []
 medialib.modulePlaceholder("oop")
 do

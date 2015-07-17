@@ -168,7 +168,7 @@ function HTMLMedia:setQuality(qual)
 		return
 	end
 	self.lastSetQuality = qual
-	
+
 	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 end
 

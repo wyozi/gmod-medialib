@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@c6333fd2"
+local VERSION = "git@fb36ee1f"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -497,7 +497,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 5822/5822; Dependencies [oop,timekeeper,volume3d]
+-- 'service_html'; CodeLen/MinifiedLen 5821/5821; Dependencies [oop,timekeeper,volume3d]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -670,7 +670,7 @@ function HTMLMedia:setQuality(qual)
 		return
 	end
 	self.lastSetQuality = qual
-	
+
 	self:runJS("medialibDelegate.run('setQuality', {quality: %q})", qual)
 end
 
@@ -733,7 +733,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 3896/3896; Dependencies [oop,volume3d]
+-- 'service_bass'; CodeLen/MinifiedLen 3990/3990; Dependencies [oop,volume3d]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -809,7 +809,7 @@ function BASSMedia:draw(x, y, w, h)
 
 		local barh = fftValues[i]*h
 		surface.DrawRect(x + i*barw, y + (h-barh), barw, barh)
-	end	
+	end
 end
 
 function BASSMedia:openUrl(url)
@@ -832,10 +832,11 @@ end
 function BASSMedia:bassCallback(chan, errId, errName)
 	if not IsValid(chan) then
 		ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
+		self._stopped = true
 		return
 	end
 
-	-- Check if media stopped before loading properly
+	-- Check if media was stopped before loading
 	if self._stopped then
 		chan:Stop()
 		return
@@ -867,7 +868,7 @@ function BASSMedia:seek(time)
 	self:runCommand(function(chan) if chan:IsBlockStreamed() then return end chan:SetTime(time) end)
 end
 function BASSMedia:getTime()
-	if self:isValid() then
+	if self:isValid() and IsValid(self.chan) then
 		return self.chan:GetTime()
 	end
 	return 0
@@ -875,6 +876,9 @@ end
 
 function BASSMedia:getState()
 	if not self:isValid() then return "error" end
+
+	if not IsValid(self.chan) then return "loading" end
+
 	local bassState = self.chan:GetState()
 	if bassState == GMOD_CHANNEL_PLAYING then return "playing" end
 	if bassState == GMOD_CHANNEL_PAUSED then return "paused" end
@@ -895,7 +899,7 @@ function BASSMedia:stop()
 end
 
 function BASSMedia:isValid()
-	return IsValid(self.chan)
+	return not self._stopped
 end
 
 end

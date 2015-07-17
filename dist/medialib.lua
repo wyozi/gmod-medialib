@@ -1,14 +1,16 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@ddcf1681"
+local VERSION = "git@c6333fd2"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
 if medialib and medialib.VERSION ~= VERSION then
-	print("[MediaLib] Warning: overwriting existing medialib. (local: " .. VERSION .. ", defined: " .. (medialib.VERSION or "-") .. ")")
-	
-	-- Overwriting should continue only if we're using dev version
-	if VERSION ~= "local" then return end
+	-- Overwrite only if we're using dev version
+	local shouldOverwrite = VERSION == "local"
+
+	print("[MediaLib] Warning: " .. (shouldOverwrite and "overwriting" or "found") .. " existing medialib. (local: " .. VERSION .. ", defined: " .. (medialib.VERSION or "-") .. ")")
+
+	if not shouldOverwrite then return end
 end
 
 medialib = {}
@@ -116,7 +118,7 @@ if CLIENT then
 	end
 	concommand.Add("medialib_noflash", function(_, _, args)
 		if args[1] == "rainbow" then Rainbow() end
-		
+
 		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
 
 		MsgN("[ MediaLib: How to get Flash Player ]")
@@ -129,7 +131,7 @@ if CLIENT then
 
 	concommand.Add("medialib_lowaudio", function(_, _, args)
 		if args[1] == "rainbow" then Rainbow() end
-		
+
 		SetClipboardText("http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
 
 		MsgN("[ MediaLib: How to fix muted sound ]")
@@ -150,6 +152,7 @@ if CLIENT then
 		end
 	end)
 end
+
 end
 
 -- 'oop'; CodeLen/MinifiedLen 2927/2927; Dependencies []

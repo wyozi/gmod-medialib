@@ -53,6 +53,8 @@ function WebAudioService:query(url, callback)
 				title = title or url:match("([^/]+)$"),
 				duration = duration
 			})
+		end, function(err)
+			callback("Metadata fetch error: " .. tostring(err))
 		end)
 		return
 	end

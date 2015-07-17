@@ -11,6 +11,10 @@ function Service:emit(event, ...)
 	for k,_ in pairs(self._events[event] or {}) do
 		k(...)
 	end
+
+	if event == "error" then
+		MsgN("[MediaLib] Video error: " .. table.ToString{...})
+	end
 end
 
 function Service:load(url, opts) end

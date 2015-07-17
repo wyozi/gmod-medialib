@@ -95,6 +95,8 @@ function BASSMedia:bassCallback(chan, errId, errName)
 	if not IsValid(chan) then
 		ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
 		self._stopped = true
+
+		self:emit("error", "loading_failed", string.format("BASS error id: %s; name: %s", errId, errName))
 		return
 	end
 

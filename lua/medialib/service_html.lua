@@ -133,6 +133,10 @@ function HTMLMedia:handleHTMLEvent(id, event)
 			self.state = setToState
 			self:emit(setToState)
 		end
+	elseif id == "error" then
+		self:emit("error", {errorId = "service_error", errorName = "Error from service: " .. tostring(event.message)})
+	else
+		MsgN("[MediaLib] Unhandled HTML event " .. tostring(id))
 	end
 end
 function HTMLMedia:getState()

@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@e5f3eb21"
+local VERSION = "git@d7c85b4f"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -418,7 +418,7 @@ function Media:stop() end
 
 function Media:draw(x, y, w, h) end
 end
--- 'servicebase'; CodeLen/MinifiedLen 435/435; Dependencies [oop]
+-- 'servicebase'; CodeLen/MinifiedLen 526/526; Dependencies [oop]
 medialib.modulePlaceholder("servicebase")
 do
 local oop = medialib.load("oop")
@@ -434,11 +434,16 @@ function Service:emit(event, ...)
 	for k,_ in pairs(self._events[event] or {}) do
 		k(...)
 	end
+
+	if event == "error" then
+		MsgN("[MediaLib] Video error: " .. table.ToString{...})
+	end
 end
 
 function Service:load(url, opts) end
 function Service:isValidUrl(url) end
 function Service:query(url, callback) end
+
 end
 -- 'timekeeper'; CodeLen/MinifiedLen 1016/1016; Dependencies [oop]
 medialib.modulePlaceholder("timekeeper")
@@ -497,7 +502,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 5821/5821; Dependencies [oop,timekeeper,volume3d]
+-- 'service_html'; CodeLen/MinifiedLen 6026/6026; Dependencies [oop,timekeeper,volume3d]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -635,6 +640,10 @@ function HTMLMedia:handleHTMLEvent(id, event)
 			self.state = setToState
 			self:emit(setToState)
 		end
+	elseif id == "error" then
+		self:emit("error", {errorId = "service_error", errorName = "Error from service: " .. tostring(event.message)})
+	else
+		MsgN("[MediaLib] Unhandled HTML event " .. tostring(id))
 	end
 end
 function HTMLMedia:getState()
@@ -733,7 +742,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 3990/3990; Dependencies [oop,volume3d]
+-- 'service_bass'; CodeLen/MinifiedLen 4092/4092; Dependencies [oop,volume3d]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -833,6 +842,8 @@ function BASSMedia:bassCallback(chan, errId, errName)
 	if not IsValid(chan) then
 		ErrorNoHalt("[MediaLib] BassMedia play failed: ", errName)
 		self._stopped = true
+
+		self:emit("error", "loading_failed", string.format("BASS error id: %s; name: %s", errId, errName))
 		return
 	end
 
@@ -936,7 +947,7 @@ medialib.FolderItems["services/webaudio.lua"] = "local oop = medialib.load(\"oop
 medialib.FolderItems["services/webm.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal WebmService = oop.class(\"WebmService\", \"HTMLService\")\n\nlocal all_patterns = {\"^https?://.*%.webm\"}\n\nfunction WebmService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction WebmService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/webm.html?id=%s\"\nfunction WebmService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction WebmService:query(url, callback)\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nmedialib.load(\"media\").registerService(\"webm\", WebmService)"
 medialib.FolderItems["services/webradio.lua"] = "local oop = medialib.load(\"oop\")\nlocal WebRadioService = oop.class(\"WebRadioService\", \"BASSService\")\n\nlocal all_patterns = {\n\t\"^https?://(.*)%.pls\",\n\t\"^https?://(.*)%.m3u\"\n}\n\nfunction WebRadioService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction WebRadioService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nfunction WebRadioService:resolveUrl(url, callback)\n\tcallback(url, {})\nend\n\nlocal shoutcastmeta = medialib.load(\"shoutcastmeta\")\nfunction WebRadioService:query(url, callback)\n\tlocal function EmitBasicMeta()\n\t\tcallback(nil, {\n\t\t\ttitle = url:match(\"([^/]+)$\") -- the filename is the best we can get (unless we parse pls?)\n\t\t})\n\tend\n\n\t-- Use shoutcastmeta extension if available\n\tif shoutcastmeta then\n\t\tshoutcastmeta.fetch(url, function(err, data)\n\t\t\tif err then\n\t\t\t\tEmitBasicMeta()\n\t\t\t\treturn\n\t\t\tend\n\n\t\t\tcallback(nil, data)\n\t\tend)\n\t\treturn\n\tend\n\n\tEmitBasicMeta()\t\nend\n\nmedialib.load(\"media\").registerService(\"webradio\", WebRadioService)"
 medialib.FolderItems["services/youtube.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal YoutubeService = oop.class(\"YoutubeService\", \"HTMLService\")\n\nlocal raw_patterns = {\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtu%.be/([A-Za-z0-9_%-]+)\",\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/watch%?.*v=([A-Za-z0-9_%-]+)\",\n\t\"^https?://[A-Za-z0-9%.%-]*%.?youtube%.com/v/([A-Za-z0-9_%-]+)\",\n}\nlocal all_patterns = {}\n\n-- Appends time modifier patterns to each pattern\nfor k,p in pairs(raw_patterns) do\n\tlocal function with_sep(sep)\n\t\ttable.insert(all_patterns, p .. sep .. \"t=(%d+)m(%d+)s\")\n\t\ttable.insert(all_patterns, p .. sep .. \"t=(%d+)s?\")\n\tend\n\n\t-- We probably support more separators than youtube itself, but that does not matter\n\twith_sep(\"#\")\n\twith_sep(\"&\")\n\twith_sep(\"?\")\n\n\ttable.insert(all_patterns, p)\nend\n\nfunction YoutubeService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id, time1, time2 = string.match(url, pattern)\n\t\tif id then\n\t\t\tlocal time_sec = 0\n\t\t\tif time1 and time2 then\n\t\t\t\ttime_sec = tonumber(time1)*60 + tonumber(time2)\n\t\t\telse\n\t\t\t\ttime_sec = tonumber(time1)\n\t\t\tend\n\n\t\t\treturn {\n\t\t\t\tid = id,\n\t\t\t\tstart = time_sec\n\t\t\t}\n\t\tend\n\tend\nend\n\nfunction YoutubeService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"http://wyozi.github.io/gmod-medialib/youtube.html?id=%s\"\nfunction YoutubeService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\n-- http://en.wikipedia.org/wiki/ISO_8601#Durations\n-- Cheers wiox :))\nlocal function PTToSeconds(str)\n\tlocal h = str:match(\"(%d+)H\") or 0\n\tlocal m = str:match(\"(%d+)M\") or 0\n\tlocal s = str:match(\"(%d+)S\") or 0\n\treturn h*(60*60) + m*60 + s\nend\n\nlocal API_KEY = \"AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ\"\nfunction YoutubeService:query(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s\", urlData.id, API_KEY)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal data = {}\n\t\tdata.id = urlData.id\n\n\t\tlocal jsontbl = util.JSONToTable(result)\n\n\t\tif jsontbl and jsontbl.items then\n\t\t\tlocal item = jsontbl.items[1]\n\t\t\tif not item then\n\t\t\t\tcallback(\"No video id found\")\n\t\t\t\treturn\n\t\t\tend\n\n\t\t\tdata.title = item.snippet.title\n\t\t\tdata.duration = tonumber(PTToSeconds(item.contentDetails.duration))\n\t\telse\n\t\t\tcallback(result)\n\t\t\treturn\n\t\tend\n\n\t\tcallback(nil, data)\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nfunction YoutubeService:hasReliablePlaybackEvents(media)\n\treturn true\nend\n\nmedialib.load(\"media\").registerService(\"youtube\", YoutubeService)"
--- 'serviceloader'; CodeLen/MinifiedLen 311/311; Dependencies [servicebase,service_html,service_bass,oop,media,id3parser,mp3duration,shoutcastmeta]
+-- 'serviceloader'; CodeLen/MinifiedLen 311/311; Dependencies [servicebase,service_html,service_bass,oop,media,shoutcastmeta,id3parser,mp3duration]
 medialib.modulePlaceholder("serviceloader")
 do
 medialib.load("servicebase")

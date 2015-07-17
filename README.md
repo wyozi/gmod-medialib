@@ -27,23 +27,23 @@ mediaclip:play()
 
 -- Draw video
 hook.Add("HUDPaint", "DrawVideo", function()
-	local w = 500 
+	local w = 500
 	local h = w * (9/16)
-	
+
 	mediaclip:draw(0, 0, w, h)
-	
+
 	surface.SetDrawColor(255, 255, 255)
 	surface.DrawRect(0, h, w, 25)
 
 	-- Request metadata. 'meta' will be nil if metadata is still being fetched.
 	-- Note: this is a clientside shortcut to Service#query. You should use Service#query on serverside.
 	local meta = mediaclip:lookupMetadata()
-	
-	local title, duration = tostring(meta and meta.title), 
+
+	local title, duration = tostring(meta and meta.title),
 							(meta and meta.duration) or 0
-	
+
 	draw.SimpleText(title, "DermaDefaultBold", 5, h+3, Color(0, 0, 0))
-	
+
 	local timeStr = string.format("%.1f / %.1f", mediaclip:getTime(), duration)
 	draw.SimpleText(timeStr, "DermaDefaultBold", w - 5, h+3, Color(0, 0, 0), TEXT_ALIGN_RIGHT)
 end)
@@ -55,23 +55,23 @@ See ```examples/``` for more elaborate examples.
 - __Server ⇋ Client__  
 
 >Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.  
-> 
+>
 > For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.  
 
 - __Client__  
 
 > On clientside medialib uses either HTML Awesomium panels or BASS sound objects for playback.  
-> 
+>
 > HTML panels are relatively expensive way to playback videos, but having one or two of them should work fine.  
 > BASS sound objects (which are used for webaudio and webradio) are pretty cheap. There should be no problem having many of them playing at the same time if needed.  
-> 
+>
 > In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like media players that must accept Youtube links HTML media works fine.  
 > If there can be arbitrary amount of player controlled jukeboxes on the map, you might want to add some limitations so eg. more than two cannot play simultaneously.
 
 - __Shared (server and client)__  
 
 > Both server and client have the ability to query for video metadata.  
-> 
+>
 > This is not instant, as HTTP queries used for majority of services take their time, but querying for metadata is pretty cheap as long as you don't do it in a Think hook or similar.  
 
 
@@ -111,3 +111,4 @@ Event name | Parameters | Description
 ```buffering``` | | Called when media is buffering. A ```playing``` event is emitted when buffering stops.
 ```ended``` | | Called when media ends
 ```destroyed``` | | Called when media is destroyed/invalidated. ```isValid()``` will return false after this
+```error``` | ```errorId``` ```errorDesc``` | Called when media fails to play. ```errorId``` is short error identifier. ```errorDesc``` is a longer string type description.

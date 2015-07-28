@@ -77,7 +77,7 @@ local virt_file_meta = {
 		return self.source
 	end,
 	load = function(self)
-		RunString(self.source)
+		RunStringEx(self.source, self.name or "unknown virtual file")
 	end,
 	addcs = function() end
 }

@@ -18,7 +18,12 @@ medialib.VERSION = VERSION
 medialib.DISTRIBUTABLE = DISTRIBUTABLE
 
 medialib.Modules = {}
-medialib.DEBUG = false
+
+local cvar_debug = CreateConVar("medialib_debug", "0", FCVAR_ARCHIVE)
+cvars.AddChangeCallback(cvar_debug:GetName(), function(_, _, val)
+	medialib.DEBUG = val == "1"
+end)
+medialib.DEBUG = cvar_debug:GetBool()
 
 function medialib.modulePlaceholder(name)
 	medialib.Modules[name] = {}
@@ -45,6 +50,20 @@ if SERVER then
 	end
 end
 
+local file_Exists = file.Exists
+function medialib.tryInclude(file)
+	if file_Exists(file, "LUA") then
+		include(file)
+		return true
+	end
+
+	if medialib.DEBUG then
+		print("[MediaLib] Attempted to include nonexistent file " .. file)
+	end
+
+	return false
+end
+
 function medialib.load(name)
 	local mod = medialib.Modules[name]
 	if mod then return mod end
@@ -54,7 +73,7 @@ function medialib.load(name)
 	end
 
 	local file = "medialib/" .. name .. ".lua"
-	include(file)
+	if not medialib.tryInclude(file) then return nil end
 
 	return medialib.Modules[name]
 end

@@ -231,7 +231,7 @@ function build(shouldMinify, targetFile) {
 			}).then(function() {
 				var minified = shouldMinify ? minify(code) : code;
 				fragments.push("-- '" + mod + "'; CodeLen/MinifiedLen " + code.length + "/" + minified.length + "; Dependencies [" + deps + "]");
-				
+
 				// Add module placeholder, this is required for bundled modules that don't create the module themselves
 				fragments.push("medialib.modulePlaceholder(" + JSON.stringify(mod) + ")");
 
@@ -268,4 +268,4 @@ function build(shouldMinify, targetFile) {
 }
 
 build(false, "dist/medialib.lua");
-build(true, "dist/medialib.min.lua");
+//build(true, "dist/medialib.min.lua");

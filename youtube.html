@@ -66,6 +66,7 @@
 				},
 				events: {
 					onReady: function(event) {
+						event.target.setVolume(100);
 						event.target.pauseVideo();
 						medialib.emitEvent("stateChange", {state: "paused"});
 

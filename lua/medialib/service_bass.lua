@@ -1,4 +1,5 @@
 local oop = medialib.load("oop")
+local mediaregistry = medialib.load("mediaregistry")
 
 local volume3d = medialib.load("volume3d")
 
@@ -7,6 +8,8 @@ function BASSService:load(url, opts)
 	local media = oop.class("BASSMedia")()
 	media._unresolvedUrl = url
 	media._service = self
+
+	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		if opts and opts.use3D then

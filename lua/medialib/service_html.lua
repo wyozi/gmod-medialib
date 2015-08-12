@@ -1,4 +1,5 @@
 local oop = medialib.load("oop")
+local mediaregistry = medialib.load("mediaregistry")
 medialib.load("timekeeper")
 
 local volume3d = medialib.load("volume3d")
@@ -8,6 +9,8 @@ function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
 	media._unresolvedUrl = url
 	media._service = self
+
+	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		media:openUrl(resolvedUrl)

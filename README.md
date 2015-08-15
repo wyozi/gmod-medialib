@@ -99,6 +99,7 @@ Method | Description | Notes
 ```Media:getTime()``` | Returns the elapsed time
 ```Media:seek(time)``` | Seeks to specified time. | [Note](# "Not guaranteed to hop to the exact time. Not supported by all services.")
 ```Media:sync(time, errorMargin)``` | Seeks to given time, if the elapsed time differs from it too much (more than errorMargin) | [Note](# "Sync does not work on invalid or not playing media. Media can be synchronized at most once per five seconds.")
+```Media:runCommand(fn)``` | Runs a command after media has loaded or immediately if it is already loaded |
 
 ### Events
 

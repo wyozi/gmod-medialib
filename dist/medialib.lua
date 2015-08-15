@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@64072365"
+local VERSION = "git@068e2c65"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -307,7 +307,7 @@ function oop.Object:__tostring()
 	return string.format("%s@%s", self.class.name, self:hashCode())
 end
 end
--- 'mediabase'; CodeLen/MinifiedLen 3470/3470; Dependencies [oop]
+-- 'mediabase'; CodeLen/MinifiedLen 3619/3619; Dependencies [oop]
 medialib.modulePlaceholder("mediabase")
 do
 local oop = medialib.load("oop")
@@ -367,12 +367,12 @@ end
 -- True returned from this function does not imply anything related to how
 -- ready media is to play, just that it exists somewhere in memory and should
 -- at least in some point in the future be playable, but even that is not guaranteed
-function Media:isValid() 
+function Media:isValid()
 	return false
 end
 
 -- The GMod global IsValid requires the uppercase version
-function Media:IsValid() 
+function Media:IsValid()
 	return self:isValid()
 end
 
@@ -397,9 +397,9 @@ end
 function Media:sync(time, margin)
 	-- Only sync at most once per five seconds
 	if self._lastSync and self._lastSync > CurTime() - 5 then
-		return	
+		return
 	end
-	
+
 	local shouldSync = self:shouldSync(time, margin)
 	if not shouldSync then return end
 
@@ -435,7 +435,12 @@ function Media:play() end
 function Media:pause() end
 function Media:stop() end
 
+-- Queue a function to run after media is loaded. The function should run immediately
+-- if media is already loaded.
+function Media:runCommand(fn) end
+
 function Media:draw(x, y, w, h) end
+
 end
 -- 'servicebase'; CodeLen/MinifiedLen 526/526; Dependencies [oop]
 medialib.modulePlaceholder("servicebase")
@@ -541,7 +546,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6106/6106; Dependencies [oop,mediaregistry,timekeeper,volume3d]
+-- 'service_html'; CodeLen/MinifiedLen 6380/6380; Dependencies [oop,mediaregistry,timekeeper,volume3d]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -682,6 +687,10 @@ function HTMLMedia:handleHTMLEvent(id, event)
 			self.state = setToState
 			self:emit(setToState)
 		end
+	elseif id == "playerLoaded" then
+		for _,fn in pairs(self.commandQueue or {}) do
+			fn()
+		end
 	elseif id == "error" then
 		self:emit("error", {errorId = "service_error", errorName = "Error from service: " .. tostring(event.message)})
 	else
@@ -777,6 +786,15 @@ function HTMLMedia:stop()
 
 	self.timeKeeper:pause()
 	self:emit("destroyed")
+end
+
+function HTMLMedia:runCommand(fn)
+	if self._playerLoaded then
+		fn()
+	else
+		self.commandQueue = self.commandQueue or {}
+		self.commandQueue[#self.commandQueue+1] = fn
+	end
 end
 
 function HTMLMedia:isValid()

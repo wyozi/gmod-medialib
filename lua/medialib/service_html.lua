@@ -136,6 +136,10 @@ function HTMLMedia:handleHTMLEvent(id, event)
 			self.state = setToState
 			self:emit(setToState)
 		end
+	elseif id == "playerLoaded" then
+		for _,fn in pairs(self.commandQueue or {}) do
+			fn()
+		end
 	elseif id == "error" then
 		self:emit("error", {errorId = "service_error", errorName = "Error from service: " .. tostring(event.message)})
 	else
@@ -231,6 +235,15 @@ function HTMLMedia:stop()
 
 	self.timeKeeper:pause()
 	self:emit("destroyed")
+end
+
+function HTMLMedia:runCommand(fn)
+	if self._playerLoaded then
+		fn()
+	else
+		self.commandQueue = self.commandQueue or {}
+		self.commandQueue[#self.commandQueue+1] = fn
+	end
 end
 
 function HTMLMedia:isValid()

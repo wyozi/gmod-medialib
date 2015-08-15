@@ -55,12 +55,12 @@ end
 -- True returned from this function does not imply anything related to how
 -- ready media is to play, just that it exists somewhere in memory and should
 -- at least in some point in the future be playable, but even that is not guaranteed
-function Media:isValid() 
+function Media:isValid()
 	return false
 end
 
 -- The GMod global IsValid requires the uppercase version
-function Media:IsValid() 
+function Media:IsValid()
 	return self:isValid()
 end
 
@@ -85,9 +85,9 @@ end
 function Media:sync(time, margin)
 	-- Only sync at most once per five seconds
 	if self._lastSync and self._lastSync > CurTime() - 5 then
-		return	
+		return
 	end
-	
+
 	local shouldSync = self:shouldSync(time, margin)
 	if not shouldSync then return end
 
@@ -122,5 +122,9 @@ end
 function Media:play() end
 function Media:pause() end
 function Media:stop() end
+
+-- Queue a function to run after media is loaded. The function should run immediately
+-- if media is already loaded.
+function Media:runCommand(fn) end
 
 function Media:draw(x, y, w, h) end

@@ -142,6 +142,9 @@ medialib = {};
 
 		// Clear array
 		this.eventQueue = [];
+
+		// Notify gmod
+		medialib.emitEvent("playerLoaded");
 	};
 
 	exports.createEventDelegate = function(handlerMap) {

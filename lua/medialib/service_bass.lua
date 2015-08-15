@@ -132,7 +132,32 @@ function BASSMedia:setVolume(vol)
 end
 
 function BASSMedia:seek(time)
-	self:runCommand(function(chan) if chan:IsBlockStreamed() then return end chan:SetTime(time) end)
+	self:runCommand(function(chan)
+		if chan:IsBlockStreamed() then return end
+
+		self._seekingTo = time
+
+		local timerId = "MediaLib_BASSMedia_Seeker_" .. time .. "_" .. self:hashCode()
+		local function AttemptSeek()
+				-- someone used :seek with other time
+			if  self._seekingTo ~= time or
+				-- chan not valid
+				not IsValid(chan) then
+
+				timer.Destroy(timerId)
+				return
+			end
+
+			chan:SetTime(time)
+
+			-- seek succeeded
+			if math.abs(chan:GetTime() - time) < 1 then
+				timer.Destroy(timerId)
+			end
+		end
+		timer.Create(timerId, 0.5, 0, AttemptSeek)
+		AttemptSeek()
+	end)
 end
 function BASSMedia:getTime()
 	if self:isValid() and IsValid(self.chan) then

@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@068e2c65"
+local VERSION = "git@45391117"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -802,7 +802,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4172/4172; Dependencies [oop,mediaregistry,volume3d]
+-- 'service_bass'; CodeLen/MinifiedLen 4659/4659; Dependencies [oop,mediaregistry,volume3d]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -939,7 +939,32 @@ function BASSMedia:setVolume(vol)
 end
 
 function BASSMedia:seek(time)
-	self:runCommand(function(chan) if chan:IsBlockStreamed() then return end chan:SetTime(time) end)
+	self:runCommand(function(chan)
+		if chan:IsBlockStreamed() then return end
+
+		self._seekingTo = time
+
+		local timerId = "MediaLib_BASSMedia_Seeker_" .. time .. "_" .. self:hashCode()
+		local function AttemptSeek()
+				-- someone used :seek with other time
+			if  self._seekingTo ~= time or
+				-- chan not valid
+				not IsValid(chan) then
+
+				timer.Destroy(timerId)
+				return
+			end
+
+			chan:SetTime(time)
+
+			-- seek succeeded
+			if math.abs(chan:GetTime() - time) < 1 then
+				timer.Destroy(timerId)
+			end
+		end
+		timer.Create(timerId, 0.5, 0, AttemptSeek)
+		AttemptSeek()
+	end)
 end
 function BASSMedia:getTime()
 	if self:isValid() and IsValid(self.chan) then

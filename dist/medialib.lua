@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@b786750e"
+local VERSION = "git@74b853e8"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -588,7 +588,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6139/6139; Dependencies [oop,mediaregistry,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6206/6206; Dependencies [oop,mediaregistry,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -675,6 +675,7 @@ function HTMLMedia:initialize()
 		-- Filter some things out
 		if string.find(msg, "XMLHttpRequest") then return end
 		if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+		if string.find(msg, "Unable to post message to") then return end
 
 		return oldcm(pself, msg)
 	end

@@ -82,6 +82,7 @@ function HTMLMedia:initialize()
 		-- Filter some things out
 		if string.find(msg, "XMLHttpRequest") then return end
 		if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+		if string.find(msg, "Unable to post message to") then return end
 
 		return oldcm(pself, msg)
 	end

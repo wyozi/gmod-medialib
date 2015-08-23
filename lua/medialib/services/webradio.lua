@@ -23,28 +23,10 @@ function WebRadioService:resolveUrl(url, callback)
 	callback(url, {})
 end
 
-local shoutcastmeta = medialib.load("shoutcastmeta")
 function WebRadioService:directQuery(url, callback)
-	local function EmitBasicMeta()
-		callback(nil, {
-			title = url:match("([^/]+)$") -- the filename is the best we can get (unless we parse pls?)
-		})
-	end
-
-	-- Use shoutcastmeta extension if available
-	if shoutcastmeta then
-		shoutcastmeta.fetch(url, function(err, data)
-			if err then
-				EmitBasicMeta()
-				return
-			end
-
-			callback(nil, data)
-		end)
-		return
-	end
-
-	EmitBasicMeta()
+	callback(nil, {
+		title = url:match("([^/]+)$") -- the filename is the best we can get (unless we parse pls?)
+	})
 end
 
 medialib.load("media").registerService("webradio", WebRadioService)

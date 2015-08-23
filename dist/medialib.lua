@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@7c9b10d9"
+local VERSION = "git@1f44f84b"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined

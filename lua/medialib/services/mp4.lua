@@ -25,7 +25,7 @@ function Mp4Service:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
-function Mp4Service:query(url, callback)
+function Mp4Service:directQuery(url, callback)
 	callback(nil, {
 		title = url:match("([^/]+)$")
 	})

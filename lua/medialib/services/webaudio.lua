@@ -23,42 +23,7 @@ function WebAudioService:resolveUrl(url, callback)
 	callback(url, {})
 end
 
-local id3parser = medialib.load("id3parser")
-local mp3duration = medialib.load("mp3duration")
-function WebAudioService:query(url, callback)
-	-- If it's an mp3 we can use the included ID3/MP3-duration parser to try and parse some data
-	if string.EndsWith(url, ".mp3") and (id3parser or mp3duration) then
-		http.Fetch(url, function(data)
-			local title, duration
-
-			if id3parser then
-				local parsed = id3parser.readtags_data(data)
-				if parsed and parsed.title then
-					title = parsed.title
-					if parsed.artist then title = parsed.artist .. " - " .. title end
-
-					-- Some soundfiles have duration as a string containing milliseconds
-					if parsed.length then
-						local length = tonumber(parsed.length)
-						if length then duration = length / 1000 end
-					end
-				end
-			end
-
-			if mp3duration then
-				duration = mp3duration.estimate_data(data) or duration
-			end
-
-			callback(nil, {
-				title = title or url:match("([^/]+)$"),
-				duration = duration
-			})
-		end, function(err)
-			callback("Metadata fetch error: " .. tostring(err))
-		end)
-		return
-	end
-
+function WebAudioService:directQuery(url, callback)
 	callback(nil, {
 		title = url:match("([^/]+)$")
 	})

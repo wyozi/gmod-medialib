@@ -2,31 +2,23 @@ local oop = medialib.load("oop")
 local mediaregistry = medialib.load("mediaregistry")
 medialib.load("timekeeper")
 
-local volume3d = medialib.load("volume3d")
-
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
 	media._unresolvedUrl = url
 	media._service = self
 
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
 	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		media:openUrl(resolvedUrl)
 
-		-- TODO move to volume3d and call as a hook
-		if opts and opts.use3D then
-			volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
-		end
-
 		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
 	end)
 
 	return media
-end
-function HTMLService:resolveUrl(url, cb)
-	cb(url, self:parseUrl(url))
 end
 
 -- Whether or not we can trust that the HTML panel will send 'playing', 'paused'

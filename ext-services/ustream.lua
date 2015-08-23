@@ -31,7 +31,7 @@ function UstreamService:resolveUrl(url, callback)
 	end)
 end
 
-function UstreamService:query(url, callback)
+function UstreamService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://api.ustream.tv/json/channel/%s/getInfo", urlData.id)
 

@@ -29,7 +29,7 @@ function DailyMotionService:resolveUrl(url, callback)
 end
 
 -- https://api.dailymotion.com/video/x2isgrj_if-frank-underwood-was-your-coworker_fun
-function DailyMotionService:query(url, callback)
+function DailyMotionService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("https://api.dailymotion.com/video/%s?fields=duration,title", urlData.id)
 

@@ -19,4 +19,46 @@ end
 
 function Service:load(url, opts) end
 function Service:isValidUrl(url) end
-function Service:query(url, callback) end
+
+-- Sub-services should override this
+function Service:directQuery(url, callback) end
+
+-- A metatable for the callback chain
+local _service_cbchain_meta = {}
+_service_cbchain_meta.__index = _service_cbchain_meta
+function _service_cbchain_meta:addCallback(cb)
+	table.insert(self._callbacks, cb)
+end
+function _service_cbchain_meta:run(err, data)
+	local first = table.remove(self._callbacks, 1)
+	if not first then return end
+
+	first(err, data, function(err, data)
+		self:run(err, data)
+	end)
+end
+
+-- Query calls direct query and then passes the data through a medialib hook
+function Service:query(url, callback)
+	local cbchain = setmetatable({_callbacks = {}}, _service_cbchain_meta)
+
+	-- First add the data gotten from the service itself
+	cbchain:addCallback(function(_, _, cb) return self:directQuery(url, cb) end)
+
+	-- Then add custom callbacks
+	hook.Run("Medialib_ExtendQuery", url, cbchain)
+
+	-- Then add the user callback
+	cbchain:addCallback(function(err, data) callback(err, data) end)
+
+	-- Finally run the chain
+	cbchain:run(url)
+end
+
+function Service:parseUrl(url) end
+
+-- the second argument to cb() function call has some standard keys:
+--   `start` the time at which to start media in seconds
+function Service:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end

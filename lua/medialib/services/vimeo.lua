@@ -30,7 +30,7 @@ function VimeoService:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
-function VimeoService:query(url, callback)
+function VimeoService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://vimeo.com/api/v2/video/%s.json", urlData.id)
 

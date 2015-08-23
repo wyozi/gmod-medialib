@@ -8,7 +8,7 @@
 -- Adding peak listeners:
 --		beatdetector:addPeakListener("id", function(peakStrength) print("peak happened at ", peakStrength) end)
 
-local bdetector = medialib.module("beatdetector")
+local bdetector = {}
 
 bdetector.HookId = bdetector.HookId or 0
 
@@ -26,6 +26,23 @@ function bdetector.beatDetect(media)
 
 	return analyzer
 end
+
+
+hook.Add("Medialib_ProcessOpts", "Medialib_BeatDetector", function(media, opts)
+	function media:canBeatDetect()
+		return self:getBaseService() == "bass"
+	end
+
+	if not media:canBeatDetect() then return end
+
+	function media:getBeatDetector()
+		local bd = self._bdetector
+		if bd then return bd end
+
+		self._bdetector = bdetector.beatDetect(self)
+		return self._bdetector
+	end
+end)
 
 function analyzer:hook(name, cb)
 	self.hooks = self.hooks or {}

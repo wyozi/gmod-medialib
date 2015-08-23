@@ -10,16 +10,14 @@
 --
 -- You can optionally pass 'fadeMax3D = 1000' to set the maximum fade distance
 
-local volume3d = medialib.module("volume3d")
-
-function volume3d.startBASSThink(clip, params)
-	if params.fadeMax then
-		clip.chan:Set3DFadeDistance(0, params.fadeMax)	
+local function startBASSThink(clip)
+	if clip.fadeMax3D then
+		clip.chan:Set3DFadeDistance(0, clip.fadeMax3D)
 	end
 
-	if params.pos then
-		clip.chan:SetPos(params.pos)
-	elseif params.ent then
+	if clip.pos3D then
+		clip.chan:SetPos(clip.pos3D)
+	elseif clip.ent3D then
 		local hookId = "MediaLib.3DThink." .. clip:hashCode()
 		hook.Add("Think", hookId, function()
 			-- Stop hook if chan is invalid
@@ -29,17 +27,17 @@ function volume3d.startBASSThink(clip, params)
 			end
 
 			-- Stop media if entity is invalid
-			if not IsValid(params.ent) then
+			if not IsValid(clip.ent3D) then
 				clip:stop()
 				return
 			end
 
 			-- Update pos
-			clip.chan:SetPos(params.ent:GetPos())
+			clip.chan:SetPos(clip.ent3D:GetPos())
 		end)
 	end
 end
-function volume3d.startHTMLThink(clip, params)
+local function startHTMLThink(clip)
 	local hookId = "MediaLib.3DThink." .. clip:hashCode()
 	hook.Add("Think", hookId, function()
 		-- Stop hook if chan is invalid
@@ -49,15 +47,15 @@ function volume3d.startHTMLThink(clip, params)
 		end
 
 		local pos
-		if params.pos then
-			pos = params.pos
-		elseif params.ent then
+		if clip.pos3D then
+			pos = clip.pos3D
+		elseif clip.ent3D then
 			-- Stop media if entity is invalid
-			if not IsValid(params.ent) then
+			if not IsValid(clip.ent3D) then
 				clip:stop()
 				return
 			end
-			pos = params.ent:GetPos()
+			pos = clip.ent3D:GetPos()
 		end
 
 		if not pos then return end
@@ -65,7 +63,7 @@ function volume3d.startHTMLThink(clip, params)
 		local eyep = LocalPlayer():EyePos()
 		local dist = eyep:Distance(pos)
 
-		local fadeMax = params.fadeMax or 1024
+		local fadeMax = clip.fadeMax3D or 1024
 		local fadeFrac = (dist / fadeMax)
 
 		local vol = 1/((fadeFrac+1)^7)
@@ -77,10 +75,42 @@ function volume3d.startHTMLThink(clip, params)
 	end)
 end
 
-function volume3d.startThink(clip, params)
+local function startThink(clip)
 	if clip:getBaseService() == "bass" then
-		volume3d.startBASSThink(clip, params)
+		startBASSThink(clip)
 	elseif clip:getBaseService() == "html" then
-		volume3d.startHTMLThink(clip, params)
+		startHTMLThink(clip)
 	end
 end
+
+hook.Add("Medialib_ProcessOpts", "Medialib_Volume3d", function(media, opts)
+	if not opts.use3D then return end
+
+	media.is3D = true
+
+	if media:getBaseService() == "bass" then
+		table.insert(media.bassPlayOptions, "3d")
+	end
+
+	function media:set3DPos(pos)
+		self.pos3D = pos
+		self.ent3D = nil
+	end
+	function media:set3DEnt(ent)
+		self.pos3D = nil
+		self.ent3D = ent
+	end
+	function media:set3DFadeMax(fademax)
+		self.fadeMax3D = fademax
+		if IsValid(self.chan) and self:getBaseService() == "bass" then
+			self.chan:Set3DFadeDistance(0, clip.fadeMax3D)
+		end
+	end
+
+	if opts.pos3D then media:set3DPos(opts.pos3D) end
+	if opts.ent3D then media:set3DEnt(opts.ent3D) end
+
+	media:runCommand(function()
+		startThink(media)
+	end)
+end)

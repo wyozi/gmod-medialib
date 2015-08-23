@@ -28,7 +28,7 @@ function TwitchService:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
-function TwitchService:query(url, callback)
+function TwitchService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("https://api.twitch.tv/kraken/channels/%s", urlData.id)
 

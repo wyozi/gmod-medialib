@@ -20,3 +20,11 @@ end
 function Service:load(url, opts) end
 function Service:isValidUrl(url) end
 function Service:query(url, callback) end
+
+function Service:parseUrl(url) end
+
+-- the second argument to cb() function call has some standard keys:
+--   `start` the time at which to start media in seconds
+function Service:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end

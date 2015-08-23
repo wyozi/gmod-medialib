@@ -113,3 +113,10 @@ Event name | Parameters | Description
 ```ended``` | | Called when media ends
 ```destroyed``` | | Called when media is destroyed/invalidated. ```isValid()``` will return false after this
 ```error``` | ```errorId``` ```errorDesc``` | Called when media fails to play. ```errorId``` is short error identifier. ```errorDesc``` is a longer string type description.
+
+### Hooks
+
+Medialib calls some hooks. You can use Garry's Mod's ```hook.Add``` to hook them and modify extend medialib's functionality.
+
+__Medialib_ProcessOpts__(_Media_ mediaObj, _table_ opts)  
+Called before media is loaded but after it is created with the options passed to ```Service:load(url, options)```. You can use this hook to add new methods to the media object or set variables. Maybe even queue some things with ```Media:runCommand(fn)```.

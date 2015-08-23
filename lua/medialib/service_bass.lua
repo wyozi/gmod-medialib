@@ -1,25 +1,17 @@
 local oop = medialib.load("oop")
 local mediaregistry = medialib.load("mediaregistry")
 
-local volume3d = medialib.load("volume3d")
-
 local BASSService = oop.class("BASSService", "Service")
 function BASSService:load(url, opts)
 	local media = oop.class("BASSMedia")()
 	media._unresolvedUrl = url
 	media._service = self
 
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
 	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
-		if opts and opts.use3D then
-			media.is3D = true
-			media:runCommand(function(chan)
-				-- TODO move to volume3d and call as a hook
-				volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
-			end)
-		end
-
 		media:openUrl(resolvedUrl)
 
 		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
@@ -27,13 +19,11 @@ function BASSService:load(url, opts)
 
 	return media
 end
-function BASSService:resolveUrl(url, cb)
-	cb(url, self:parseUrl(url))
-end
 
 local BASSMedia = oop.class("BASSMedia", "Media")
 
 function BASSMedia:initialize()
+	self.bassPlayOptions = {"noplay", "noblock"}
 	self.commandQueue = {}
 end
 
@@ -78,16 +68,14 @@ function BASSMedia:draw(x, y, w, h)
 end
 
 function BASSMedia:openUrl(url)
-	local flags = "noplay noblock"
-	if self.is3D then flags = flags .. " 3d" end
+	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayURL(url, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)
 	end)
 end
 function BASSMedia:openFile(path)
-	local flags = "noplay noblock"
-	if self.is3D then flags = flags .. " 3d" end
+	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayFile(path, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)

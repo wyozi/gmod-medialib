@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@480f5228"
+local VERSION = "git@7c9b10d9"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -442,7 +442,7 @@ function Media:runCommand(fn) end
 function Media:draw(x, y, w, h) end
 
 end
--- 'servicebase'; CodeLen/MinifiedLen 526/526; Dependencies [oop]
+-- 'servicebase'; CodeLen/MinifiedLen 759/759; Dependencies [oop]
 medialib.modulePlaceholder("servicebase")
 do
 local oop = medialib.load("oop")
@@ -467,6 +467,14 @@ end
 function Service:load(url, opts) end
 function Service:isValidUrl(url) end
 function Service:query(url, callback) end
+
+function Service:parseUrl(url) end
+
+-- the second argument to cb() function call has some standard keys:
+--   `start` the time at which to start media in seconds
+function Service:resolveUrl(url, cb)
+	cb(url, self:parseUrl(url))
+end
 
 end
 -- 'mediaregistry'; CodeLen/MinifiedLen 287/287; Dependencies []
@@ -546,14 +554,12 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6380/6380; Dependencies [oop,mediaregistry,timekeeper,volume3d]
+-- 'service_html'; CodeLen/MinifiedLen 6139/6139; Dependencies [oop,mediaregistry,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
 local mediaregistry = medialib.load("mediaregistry")
 medialib.load("timekeeper")
-
-local volume3d = medialib.load("volume3d")
 
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
@@ -561,23 +567,17 @@ function HTMLService:load(url, opts)
 	media._unresolvedUrl = url
 	media._service = self
 
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
 	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
 		media:openUrl(resolvedUrl)
 
-		-- TODO move to volume3d and call as a hook
-		if opts and opts.use3D then
-			volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
-		end
-
 		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
 	end)
 
 	return media
-end
-function HTMLService:resolveUrl(url, cb)
-	cb(url, self:parseUrl(url))
 end
 
 -- Whether or not we can trust that the HTML panel will send 'playing', 'paused'
@@ -802,13 +802,11 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4991/4991; Dependencies [oop,mediaregistry,volume3d]
+-- 'service_bass'; CodeLen/MinifiedLen 4683/4683; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
 local mediaregistry = medialib.load("mediaregistry")
-
-local volume3d = medialib.load("volume3d")
 
 local BASSService = oop.class("BASSService", "Service")
 function BASSService:load(url, opts)
@@ -816,17 +814,11 @@ function BASSService:load(url, opts)
 	media._unresolvedUrl = url
 	media._service = self
 
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
 	mediaregistry.add(media)
 
 	self:resolveUrl(url, function(resolvedUrl, resolvedData)
-		if opts and opts.use3D then
-			media.is3D = true
-			media:runCommand(function(chan)
-				-- TODO move to volume3d and call as a hook
-				volume3d.startThink(media, {pos = opts.pos3D, ent = opts.ent3D, fadeMax = opts.fadeMax3D})
-			end)
-		end
-
 		media:openUrl(resolvedUrl)
 
 		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
@@ -834,13 +826,11 @@ function BASSService:load(url, opts)
 
 	return media
 end
-function BASSService:resolveUrl(url, cb)
-	cb(url, self:parseUrl(url))
-end
 
 local BASSMedia = oop.class("BASSMedia", "Media")
 
 function BASSMedia:initialize()
+	self.bassPlayOptions = {"noplay", "noblock"}
 	self.commandQueue = {}
 end
 
@@ -885,16 +875,14 @@ function BASSMedia:draw(x, y, w, h)
 end
 
 function BASSMedia:openUrl(url)
-	local flags = "noplay noblock"
-	if self.is3D then flags = flags .. " 3d" end
+	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayURL(url, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)
 	end)
 end
 function BASSMedia:openFile(path)
-	local flags = "noplay noblock"
-	if self.is3D then flags = flags .. " 3d" end
+	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayFile(path, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)

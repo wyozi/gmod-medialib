@@ -25,7 +25,7 @@ function WebmService:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
-function WebmService:query(url, callback)
+function WebmService:directQuery(url, callback)
 	callback(nil, {
 		title = url:match("([^/]+)$")
 	})

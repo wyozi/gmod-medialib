@@ -6,8 +6,6 @@
 --
 -- Orig. Source: https://gist.github.com/mkottman/1162235
 
-local id3 = medialib.module("id3parser")
-
 local function textFrame(name)
 	return function (reader, info, frameSize)
 		local encoding = reader.readByte()
@@ -38,7 +36,7 @@ end
 
 local function isbitset(x, p)
 	local b = 2 ^ (p - 1)
-	return x % (b + b) >= b       
+	return x % (b + b) >= b
 end
 
 --- Read ID3 tags from MP3 file. First tries ID3v2 tags, then ID3v1 and returns those
@@ -47,16 +45,16 @@ end
 -- @name readtags
 -- @param file Either string (filename) or a file object opened by io.open()
 -- @return Table containing the metadata from ID3 tag, or nil.
-function id3.readtags(file)
+local function readtags(file)
 	local position = file:seek()
-	
+
 	local function decodeID3v2(reader)
 		local info = {}
 		local rb = reader.readByte
 		local version = reader.readInt(2)
 		local flags = rb()
 		local size = reader.readInt(4, 128)
-		
+
 		if isbitset(flags, 7) then
 			local mult = version >= 0x0400 and 128 or 256
 			local extendedSize = reader.readInt(4, mult)
@@ -77,7 +75,7 @@ function id3.readtags(file)
 		file:seek('set', position)
 		return info
 	end
-	
+
 	local function decodeID3v1(reader)
 		local info = {}
 		info.title = reader.readStr(30)
@@ -94,7 +92,7 @@ function id3.readtags(file)
 		else
 			info.comment = unpad(info.comment .. string.char(zero, track, genre))
 		end
-		
+
 		file:seek('end', -128 - 227)
 		local hdr = reader.readStr(4)
 		if hdr == "TAG+" then
@@ -103,11 +101,11 @@ function id3.readtags(file)
 			info.album = unpad(info.album .. reader.readStr(60))
 			-- some other tags omitted
 		end
-		
+
 		file:seek('set', position)
 		return info
 	end
-	
+
 	local function readByte()
 		local byte = assert(file:read(1), 'Could not read byte.')
 		return string.byte(byte)
@@ -129,14 +127,14 @@ function id3.readtags(file)
 		position = function() return file:seek() end,
 		skip = function(offset) file:seek('cur', offset) end
 	}
-	
+
 	-- try ID3v2
 	file:seek('set', 0)
 	local header = file:read(3)
 	if header == "ID3" then
 		return decodeID3v2(reader)
 	end
-	
+
 	-- try ID3v1
 	file:seek('end', -128)
 	header = file:read(3)
@@ -145,12 +143,12 @@ function id3.readtags(file)
 	end
 end
 
-function id3.readtags_data(data)
+local function readtags_data(data)
 	-- Simulated file handle
 	local sfh = {pos = 0, data = data}
 	function sfh:seek(whence, offset)
 		offset = offset or 0
-		
+
 		if whence == "set" then
 			self.pos = offset + 0
 		elseif whence == "cur" then
@@ -165,6 +163,39 @@ function id3.readtags_data(data)
 		self.pos = self.pos + bytes
 		return subData
 	end
-	
-	return id3.readtags(sfh)
+
+	return readtags(sfh)
 end
+
+hook.Add("Medialib_ExtendQuery", "Medialib_ID3Parser", function(url, cbchain)
+	if not string.EndsWith(url, ".mp3") then return end
+
+	local function ParseID3(err, data, cb)
+		local tags = readtags_data(data._raw_fetcheddata)
+		if tags and tags.title then
+			local title = tags.title
+			if tags.artist then title = tags.artist .. " - " .. title end
+
+			data.title = title
+
+			-- Some soundfiles have duration as a string containing milliseconds
+			if tags.length then
+				local length = tonumber(tags.length)
+				if length then data.duration = length / 1000 end
+			end
+		end
+
+		cb(err, data)
+	end
+
+	cbchain:addCallback(function(err, data, cb)
+		if data._raw_fetcheddata then
+			ParseID3(err, data, cb)
+		else
+			http.Fetch(url, function(rawdata)
+				data._raw_fetcheddata = rawdata
+				ParseID3(err, data, cb)
+			end)
+		end
+	end)
+end)

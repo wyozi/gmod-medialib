@@ -120,3 +120,6 @@ Medialib calls some hooks. You can use Garry's Mod's ```hook.Add``` to hook them
 
 __Medialib_ProcessOpts__(_Media_ mediaObj, _table_ opts)  
 Called before media is loaded but after it is created with the options passed to ```Service:load(url, options)```. You can use this hook to add new methods to the media object or set variables. Maybe even queue some things with ```Media:runCommand(fn)```.
+
+__Medialib_ExtendQuery__(_string_ url, _CallbackChainObj_ cbchain)
+Can be used to add additional data to queried data. Because data querying requires callbacks and medialib doesn't have promises, it uses really hardcore callback chainer, which can be found from ```servicebase.lua```.

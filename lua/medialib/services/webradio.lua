@@ -24,7 +24,7 @@ function WebRadioService:resolveUrl(url, callback)
 end
 
 local shoutcastmeta = medialib.load("shoutcastmeta")
-function WebRadioService:query(url, callback)
+function WebRadioService:directQuery(url, callback)
 	local function EmitBasicMeta()
 		callback(nil, {
 			title = url:match("([^/]+)$") -- the filename is the best we can get (unless we parse pls?)
@@ -44,7 +44,7 @@ function WebRadioService:query(url, callback)
 		return
 	end
 
-	EmitBasicMeta()	
+	EmitBasicMeta()
 end
 
 medialib.load("media").registerService("webradio", WebRadioService)

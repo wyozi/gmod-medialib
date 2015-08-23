@@ -31,7 +31,7 @@ function SoundcloudService:resolveUrl(url, callback)
 		end)
 end
 
-function SoundcloudService:query(url, callback)
+function SoundcloudService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID", urlData.id)
 
@@ -45,7 +45,7 @@ function SoundcloudService:query(url, callback)
 
 		if entry.errors then
 			local msg = entry.errors[1].error_message or "error"
-			
+
 			local translated = msg
 			if string.StartWith(msg, "404") then
 				translated = "Invalid id"

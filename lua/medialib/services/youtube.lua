@@ -65,7 +65,7 @@ local function PTToSeconds(str)
 end
 
 local API_KEY = "AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ"
-function YoutubeService:query(url, callback)
+function YoutubeService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s", urlData.id, API_KEY)
 

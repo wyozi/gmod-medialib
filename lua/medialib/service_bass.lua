@@ -117,6 +117,18 @@ function BASSMedia:bassCallback(chan, errId, errName)
 
 	-- Empty queue
 	self.commandQueue = {}
+
+	self:startStateChecker()
+end
+
+function BASSMedia:startStateChecker()
+	local timerId = "MediaLib_BASS_EndChecker_" .. self:hashCode()
+	timer.Create(timerId, 1, 0, function()
+		if IsValid(self.chan) and self.chan:GetState() == GMOD_CHANNEL_STOPPED then
+			self:emit("ended")
+			timer.Destroy(timerId)
+		end
+	end)
 end
 
 function BASSMedia:runCommand(fn)
@@ -155,7 +167,7 @@ function BASSMedia:seek(time)
 				timer.Destroy(timerId)
 			end
 		end
-		timer.Create(timerId, 0.5, 0, AttemptSeek)
+		timer.Create(timerId, 0.2, 0, AttemptSeek)
 		AttemptSeek()
 	end)
 end
@@ -187,7 +199,7 @@ function BASSMedia:pause()
 end
 function BASSMedia:stop()
 	self._stopped = true
-	self:runCommand(function(chan) chan:Stop() self:emit("destroyed") end)
+	self:runCommand(function(chan) chan:Stop() self:emit("ended") self:emit("destroyed") end)
 end
 
 function BASSMedia:isValid()

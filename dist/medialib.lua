@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@45391117"
+local VERSION = "git@480f5228"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -802,7 +802,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4659/4659; Dependencies [oop,mediaregistry,volume3d]
+-- 'service_bass'; CodeLen/MinifiedLen 4991/4991; Dependencies [oop,mediaregistry,volume3d]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -924,6 +924,18 @@ function BASSMedia:bassCallback(chan, errId, errName)
 
 	-- Empty queue
 	self.commandQueue = {}
+
+	self:startStateChecker()
+end
+
+function BASSMedia:startStateChecker()
+	local timerId = "MediaLib_BASS_EndChecker_" .. self:hashCode()
+	timer.Create(timerId, 1, 0, function()
+		if IsValid(self.chan) and self.chan:GetState() == GMOD_CHANNEL_STOPPED then
+			self:emit("ended")
+			timer.Destroy(timerId)
+		end
+	end)
 end
 
 function BASSMedia:runCommand(fn)
@@ -962,7 +974,7 @@ function BASSMedia:seek(time)
 				timer.Destroy(timerId)
 			end
 		end
-		timer.Create(timerId, 0.5, 0, AttemptSeek)
+		timer.Create(timerId, 0.2, 0, AttemptSeek)
 		AttemptSeek()
 	end)
 end
@@ -994,7 +1006,7 @@ function BASSMedia:pause()
 end
 function BASSMedia:stop()
 	self._stopped = true
-	self:runCommand(function(chan) chan:Stop() self:emit("destroyed") end)
+	self:runCommand(function(chan) chan:Stop() self:emit("ended") self:emit("destroyed") end)
 end
 
 function BASSMedia:isValid()

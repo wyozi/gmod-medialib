@@ -103,7 +103,7 @@ hook.Add("Medialib_ProcessOpts", "Medialib_Volume3d", function(media, opts)
 	function media:set3DFadeMax(fademax)
 		self.fadeMax3D = fademax
 		if IsValid(self.chan) and self:getBaseService() == "bass" then
-			self.chan:Set3DFadeDistance(0, clip.fadeMax3D)
+			self.chan:Set3DFadeDistance(0, fademax)
 		end
 	end
 

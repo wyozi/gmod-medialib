@@ -20,20 +20,21 @@ function SoundcloudService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
+local API_KEY = "54b083f616aca3497e9e45b70c2892f5"
 function SoundcloudService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 
 	http.Fetch(
-		string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID", urlData.id),
+		string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.id, API_KEY),
 		function(data)
 			local sound_id = util.JSONToTable(data).id
-			callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=YOUR_CLIENT_ID", sound_id), {})
+			callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", sound_id, API_KEY), {})
 		end)
 end
 
 function SoundcloudService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
-	local metaurl = string.format("http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=YOUR_CLIENT_ID", urlData.id)
+	local metaurl = string.format("http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.id, API_KEY)
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then

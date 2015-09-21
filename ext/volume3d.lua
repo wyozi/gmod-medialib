@@ -37,6 +37,46 @@ local function startBASSThink(clip)
 		end)
 	end
 end
+
+local cvar_debugobs = CreateConVar("medialib_vol3d_debugobstacle", "0")
+
+local trQuery, trResult = {}, {}
+trQuery.output = trResult
+trQuery.mask = MASK_SOLID_BRUSHONLY
+local function getObstacleMultiplier(pos)
+	local eyepos = LocalPlayer():EyePos()
+	local debug = cvar_debugobs:GetBool()
+
+	local normal = (eyepos - pos):GetNormalized()
+	local crs_right = normal:Cross(Vector(0, 0, 1))
+	local crs_up = -normal:Cross(crs_right)
+
+	--debugoverlay.Line(pos, pos+crs_right*100, 0.1, Color(0, 255, 0))
+	--debugoverlay.Line(pos, pos+crs_up*100, 0.1, Color(255, 0, 0))
+
+	local traces = 8
+	local hitWall = 0
+
+	local circleRadius = 20
+
+	for i=1, traces do
+		local rad = math.pi*2 * (i/traces)
+
+		local start = pos + math.cos(rad)*circleRadius*crs_right + math.sin(rad)*circleRadius*crs_up
+		trQuery.start = start
+		trQuery.endpos = eyepos
+		local tr = util.TraceLine(trQuery)
+
+		if tr.Hit then hitWall = hitWall+1 end
+
+		if debug then debugoverlay.Line(start, eyepos, 0.1, tr.Hit and Color(255, 0, 0) or Color(255, 127, 0)) end
+	end
+
+	local frac = hitWall/traces
+
+	return math.Remap(1 - frac, 0, 1, 0.3, 1)
+end
+
 local function startHTMLThink(clip)
 	local hookId = "MediaLib.3DThink." .. clip:hashCode()
 	hook.Add("Think", hookId, function()
@@ -68,6 +108,7 @@ local function startHTMLThink(clip)
 
 		local vol = 1/((fadeFrac+1)^7)
 		vol = math.Clamp(vol, 0, 1)
+		vol = vol * getObstacleMultiplier(pos)
 
 		-- Set the internal volume so that users can still set relative volume
 		clip.internalVolume = vol

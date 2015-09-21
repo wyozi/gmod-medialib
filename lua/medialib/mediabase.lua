@@ -128,3 +128,7 @@ function Media:stop() end
 function Media:runCommand(fn) end
 
 function Media:draw(x, y, w, h) end
+
+function Media:getDebugInfo()
+	return string.format("Media [%s] valid:%s state:%s url:%s time:%d", self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
+end

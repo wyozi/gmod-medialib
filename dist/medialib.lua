@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@31be0643"
+local VERSION = "git@16a5ed24"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -307,7 +307,7 @@ function oop.Object:__tostring()
 	return string.format("%s@%s", self.class.name, self:hashCode())
 end
 end
--- 'mediabase'; CodeLen/MinifiedLen 3619/3619; Dependencies [oop]
+-- 'mediabase'; CodeLen/MinifiedLen 3814/3814; Dependencies [oop]
 medialib.modulePlaceholder("mediabase")
 do
 local oop = medialib.load("oop")
@@ -441,6 +441,10 @@ function Media:runCommand(fn) end
 
 function Media:draw(x, y, w, h) end
 
+function Media:getDebugInfo()
+	return string.format("Media [%s] valid:%s state:%s url:%s time:%d", self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
+end
+
 end
 -- 'servicebase'; CodeLen/MinifiedLen 1757/1757; Dependencies [oop]
 medialib.modulePlaceholder("servicebase")
@@ -511,7 +515,7 @@ function Service:resolveUrl(url, cb)
 end
 
 end
--- 'mediaregistry'; CodeLen/MinifiedLen 287/287; Dependencies []
+-- 'mediaregistry'; CodeLen/MinifiedLen 626/626; Dependencies []
 medialib.modulePlaceholder("mediaregistry")
 do
 local mediaregistry = medialib.module("mediaregistry")
@@ -528,6 +532,19 @@ concommand.Add("medialib_stopall", function()
 	end
 
 	table.Empty(cache)
+end)
+
+local cvar_debug = CreateConVar("medialib_debugmedia", "0")
+hook.Add("HUDPaint", "MediaLib_DebugMedia", function()
+	if not cvar_debug:GetBool() then return end
+
+	local i = 0
+	for _,media in pairs(cache) do
+		local t = string.format("#%d %s", i, media:getDebugInfo())
+		draw.SimpleText(t, "DermaDefault", 10, 10 + i*15)
+
+		i=i+1
+	end
 end)
 
 end

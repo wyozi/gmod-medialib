@@ -51,7 +51,7 @@ medialib = {};
 	};
 	exports.emitEvent = function(id, obj) {
 		obj = obj || {};
-		
+
 		if (!("medialiblua" in window)) {
 			console.log("MediaLib event: " + id + JSON.stringify(obj));
 			return;
@@ -122,11 +122,11 @@ medialib = {};
 				return;
 			}
 
-			fun.call(this.loadedPlayer, obj);
+			fun.call(this.loadedPlayer, obj, new Date().getTime());
 			//console.log("calling event "+ id + " directly")
 		}
 		else {
-			this.eventQueue.push({id: id, obj: obj});
+			this.eventQueue.push({id: id, obj: obj, added: new Date().getTime()});
 			//console.log("queueing event " + id);
 		}
 	};
@@ -139,7 +139,7 @@ medialib = {};
 
 		var that = this;
 		this.eventQueue.forEach(function(item) {
-			that.run(item.id, item.obj);
+			that.run(item.id, item.obj, item.added);
 		});
 
 		// Clear array

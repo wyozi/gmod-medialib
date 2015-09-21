@@ -30,6 +30,8 @@
 			high: "large",
 			veryhigh: "hd720"
 		}
+
+		var seeker;
 		medialibDelegate = medialib.createEventDelegate({
 			play: function() {
 				this.playVideo();
@@ -37,8 +39,8 @@
 			pause: function() {
 				this.pauseVideo();
 			},
-			seek: function(obj) {
-				this.seekTo(obj.time, true);
+			seek: function(obj, timeAdded) {
+				seeker = {started: timeAdded, target: obj.time, allowInaccurate: obj.allowInaccurate, targetAccuracy: obj.targetAccuracy || 0.2};
 			},
 			setVolume: function(obj) {
 				this.setVolume(obj.vol * 100);
@@ -48,6 +50,19 @@
 				this.setPlaybackQuality(mapped);
 			}
 		});
+
+		// we try to set the seek
+		setInterval(function() {
+			if (seeker && medialibDelegate.loaded) {
+				var newTarget = (new Date().getTime() - seeker.started)*0.001 + seeker.target;
+				medialibDelegate.loadedPlayer.seekTo(newTarget, true);
+
+				var curAccuracy = Math.abs(newTarget - medialibDelegate.loadedPlayer.getCurrentTime());
+				if (seeker.allowInaccurate || curAccuracy < seeker.targetAccuracy) {
+					seeker = undefined; // we made it fam
+				}
+			}
+		}, 200);
 
 		var params = medialib.getParams();
 		var id = params.id || params.vid;

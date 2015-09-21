@@ -199,7 +199,7 @@ function HTMLMedia:setVolume(vol)
 end
 
 function HTMLMedia:seek(time)
-	self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end
 
 -- See HTMLService:hasReliablePlaybackEvents()

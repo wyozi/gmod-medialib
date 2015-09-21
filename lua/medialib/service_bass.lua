@@ -151,7 +151,7 @@ function BASSMedia:seek(time)
 			chan:SetTime(time)
 
 			-- seek succeeded
-			if math.abs(chan:GetTime() - time) < 1 then
+			if math.abs(chan:GetTime() - time) < 0.25 then
 				timer.Destroy(timerId)
 			end
 		end

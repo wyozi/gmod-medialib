@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@16a5ed24"
+local VERSION = "git@081d309c"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -605,7 +605,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6206/6206; Dependencies [oop,mediaregistry,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6208/6208; Dependencies [oop,mediaregistry,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -809,7 +809,7 @@ function HTMLMedia:setVolume(vol)
 end
 
 function HTMLMedia:seek(time)
-	self:runJS("medialibDelegate.run('seek', {time: %d})", time)
+	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end
 
 -- See HTMLService:hasReliablePlaybackEvents()
@@ -854,7 +854,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4683/4683; Dependencies [oop,mediaregistry]
+-- 'service_bass'; CodeLen/MinifiedLen 4686/4686; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -1010,7 +1010,7 @@ function BASSMedia:seek(time)
 			chan:SetTime(time)
 
 			-- seek succeeded
-			if math.abs(chan:GetTime() - time) < 1 then
+			if math.abs(chan:GetTime() - time) < 0.25 then
 				timer.Destroy(timerId)
 			end
 		end

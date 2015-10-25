@@ -79,10 +79,12 @@ function HTMLMedia:initialize()
 	local oldcm = pnl._OldCM or pnl.ConsoleMessage
 	pnl._OldCM = oldcm
 	pnl.ConsoleMessage = function(pself, msg)
-		-- Filter some things out
-		if string.find(msg, "XMLHttpRequest") then return end
-		if string.find(msg, "Unsafe JavaScript attempt to access") then return end
-		if string.find(msg, "Unable to post message to") then return end
+		if msg then
+			-- Filter some things out
+			if string.find(msg, "XMLHttpRequest") then return end
+			if string.find(msg, "Unsafe JavaScript attempt to access") then return end
+			if string.find(msg, "Unable to post message to") then return end
+		end
 
 		return oldcm(pself, msg)
 	end

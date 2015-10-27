@@ -74,7 +74,7 @@ local function getObstacleMultiplier(pos)
 
 	local frac = hitWall/traces
 
-	return math.Remap(1 - frac, 0, 1, 0.3, 1)
+	return math.Remap(1 - frac, 0, 1, 0.3, 1), frac == 1 and 1.2 or 1
 end
 
 local function startHTMLThink(clip)
@@ -106,9 +106,11 @@ local function startHTMLThink(clip)
 		local fadeMax = clip.fadeMax3D or 1024
 		local fadeFrac = (dist / fadeMax)
 
-		local vol = 1/((fadeFrac+1)^7)
+		local obsVolMul, obsFadeMul = getObstacleMultiplier(pos)
+
+		local vol = 1/(((fadeFrac+1)*obsFadeMul)^7)
 		vol = math.Clamp(vol, 0, 1)
-		vol = vol * getObstacleMultiplier(pos)
+		vol = vol * obsVolMul
 
 		-- Set the internal volume so that users can still set relative volume
 		clip.internalVolume = vol

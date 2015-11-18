@@ -11,9 +11,18 @@ function media.service(name)
 end
 media.Service = media.service -- alias
 
-function media.guessService(url)
-	for _,service in pairs(media.Services) do
-		if service:isValidUrl(url) then
+function media.guessService(url, opts)
+	for name,service in pairs(media.Services) do
+		local isViable = true
+
+		if opts and opts.whitelist then
+			isViable = isViable and table.HasValue(opts.whitelist, name)
+		end
+		if opts and opts.blacklist then
+			isViable = isViable and not table.HasValue(opts.blacklist, name)
+		end
+
+		if isViable and service:isValidUrl(url) then
 			return service
 		end
 	end

@@ -80,7 +80,7 @@ See ```examples/``` for more elaborate examples.
 
 Method | Description | Notes
 ---|---|---
-```medialib.load("media").guessService(url)``` | Returns a ```Service``` object based on the URL. Returns ```nil``` if there is no service for the URL.
+```medialib.load("media").guessService(url, [opts])``` | Returns a ```Service``` object based on the URL. Returns ```nil``` if there is no service for the URL. | [Note](# "opts is an optional table. If the table exists and contains field 'whitelist', only services that are in the whitelist are checked for validity.")
 ```Service:load(url, options)``` | Creates a ```Media``` object using the URL
 ```Service:query(url, callback)``` | Queries for metadata about video (eg. ```title``` and ```duration```)
 ```Media:on(name, listener)``` | Adds an event listener. See below for a list of events

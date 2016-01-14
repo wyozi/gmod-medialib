@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@08538fe5"
+local VERSION = "git@8d53f392"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -605,7 +605,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6393/6393; Dependencies [oop,mediaregistry,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6554/6554; Dependencies [oop,mediaregistry,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -755,11 +755,14 @@ function HTMLMedia:getState()
 	return self.state
 end
 
+local cvar_updatestride = CreateConVar("medialib_html_updatestride", "1", FCVAR_ARCHIVE)
 function HTMLMedia:updateTexture()
-	-- Only update HTMLTexture once per frame
-	if self.lastUpdatedFrame ~= FrameNumber() then
+	local framenumber = FrameNumber()
+
+	local framesSinceUpdate = (framenumber - (self.lastUpdatedFrame or 0))
+	if framesSinceUpdate >= cvar_updatestride:GetInt() then
 		self.panel:UpdateHTMLTexture()
-		self.lastUpdatedFrame = FrameNumber()
+		self.lastUpdatedFrame = framenumber
 	end
 end
 

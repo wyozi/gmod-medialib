@@ -145,11 +145,14 @@ function HTMLMedia:getState()
 	return self.state
 end
 
+local cvar_updatestride = CreateConVar("medialib_html_updatestride", "1", FCVAR_ARCHIVE)
 function HTMLMedia:updateTexture()
-	-- Only update HTMLTexture once per frame
-	if self.lastUpdatedFrame ~= FrameNumber() then
+	local framenumber = FrameNumber()
+
+	local framesSinceUpdate = (framenumber - (self.lastUpdatedFrame or 0))
+	if framesSinceUpdate >= cvar_updatestride:GetInt() then
 		self.panel:UpdateHTMLTexture()
-		self.lastUpdatedFrame = FrameNumber()
+		self.lastUpdatedFrame = framenumber
 	end
 end
 

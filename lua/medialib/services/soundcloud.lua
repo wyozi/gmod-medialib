@@ -3,8 +3,8 @@ local oop = medialib.load("oop")
 local SoundcloudService = oop.class("SoundcloudService", "BASSService")
 
 local all_patterns = {
-	"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$",
-	"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?$",
+	"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$",
+	"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$",
 }
 
 function SoundcloudService:parseUrl(url)

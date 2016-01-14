@@ -153,11 +153,19 @@ function HTMLMedia:updateTexture()
 	end
 end
 
+function HTMLMedia:getHTMLMaterial()
+	if self._htmlMat then
+		return self._htmlMat
+	end
+	local mat = self.panel:GetHTMLMaterial()
+	self._htmlMat = mat
+	return mat
+end
+
 function HTMLMedia:draw(x, y, w, h)
 	self:updateTexture()
 
-	local mat = self.panel:GetHTMLMaterial()
-
+	local mat = self:getHTMLMaterial()
 	surface.SetMaterial(mat)
 	surface.SetDrawColor(255, 255, 255)
 

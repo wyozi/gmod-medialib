@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@56654aff"
+local VERSION = "git@08538fe5"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -605,7 +605,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6232/6232; Dependencies [oop,mediaregistry,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6393/6393; Dependencies [oop,mediaregistry,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -763,11 +763,19 @@ function HTMLMedia:updateTexture()
 	end
 end
 
+function HTMLMedia:getHTMLMaterial()
+	if self._htmlMat then
+		return self._htmlMat
+	end
+	local mat = self.panel:GetHTMLMaterial()
+	self._htmlMat = mat
+	return mat
+end
+
 function HTMLMedia:draw(x, y, w, h)
 	self:updateTexture()
 
-	local mat = self.panel:GetHTMLMaterial()
-
+	local mat = self:getHTMLMaterial()
 	surface.SetMaterial(mat)
 	surface.SetDrawColor(255, 255, 255)
 

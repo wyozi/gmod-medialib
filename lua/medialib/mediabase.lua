@@ -129,6 +129,24 @@ function Media:runCommand(fn) end
 
 function Media:draw(x, y, w, h) end
 
+function Media:getTag() return self._tag end
+function Media:setTag(tag) self._tag = tag end
+function Media:guessDefaultTag()
+	for i=1, 10 do
+		local info = debug.getinfo(i, "S")
+		if not info then break end
+
+		local src = info.short_src
+		local addon = src:match("addons/(.-)/")
+		if addon and addon ~= "medialib" then return string.format("addon:%s", addon) end
+	end
+
+	return "addon:medialib"
+end
+function Media:setDefaultTag()
+	self:setTag(self:guessDefaultTag())
+end
+
 function Media:getDebugInfo()
-	return string.format("Media [%s] valid:%s state:%s url:%s time:%d", self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
+	return string.format("[%s] Media [%s] valid:%s state:%s url:%s time:%d", self:getTag(), self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
 end

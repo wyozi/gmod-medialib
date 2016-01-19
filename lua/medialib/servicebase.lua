@@ -23,6 +23,8 @@ function Service:loadMediaObject(media, url, opts)
 	media._unresolvedUrl = url
 	media._service = self
 
+	media:setDefaultTag()
+
 	hook.Run("Medialib_ProcessOpts", media, opts or {})
 
 	mediaregistry.add(media)

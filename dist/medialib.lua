@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@a463bb37"
+local VERSION = "git@9eb5aac8"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -307,7 +307,7 @@ function oop.Object:__tostring()
 	return string.format("%s@%s", self.class.name, self:hashCode())
 end
 end
--- 'mediabase'; CodeLen/MinifiedLen 3814/3814; Dependencies [oop]
+-- 'mediabase'; CodeLen/MinifiedLen 4305/4305; Dependencies [oop]
 medialib.modulePlaceholder("mediabase")
 do
 local oop = medialib.load("oop")
@@ -441,8 +441,26 @@ function Media:runCommand(fn) end
 
 function Media:draw(x, y, w, h) end
 
+function Media:getTag() return self._tag end
+function Media:setTag(tag) self._tag = tag end
+function Media:guessDefaultTag()
+	for i=1, 10 do
+		local info = debug.getinfo(i, "S")
+		if not info then break end
+
+		local src = info.short_src
+		local addon = src:match("addons/(.-)/")
+		if addon and addon ~= "medialib" then return string.format("addon:%s", addon) end
+	end
+
+	return "addon:medialib"
+end
+function Media:setDefaultTag()
+	self:setTag(self:guessDefaultTag())
+end
+
 function Media:getDebugInfo()
-	return string.format("Media [%s] valid:%s state:%s url:%s time:%d", self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
+	return string.format("[%s] Media [%s] valid:%s state:%s url:%s time:%d", self:getTag(), self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
 end
 
 end
@@ -479,7 +497,7 @@ hook.Add("HUDPaint", "MediaLib_DebugMedia", function()
 end)
 
 end
--- 'servicebase'; CodeLen/MinifiedLen 2210/2210; Dependencies [oop,mediaregistry]
+-- 'servicebase'; CodeLen/MinifiedLen 2234/2234; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("servicebase")
 do
 local oop = medialib.load("oop")
@@ -506,6 +524,8 @@ function Service:load(url, opts) end
 function Service:loadMediaObject(media, url, opts)
 	media._unresolvedUrl = url
 	media._service = self
+
+	media:setDefaultTag()
 
 	hook.Run("Medialib_ProcessOpts", media, opts or {})
 

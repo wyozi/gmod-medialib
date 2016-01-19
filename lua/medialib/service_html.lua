@@ -1,23 +1,10 @@
 local oop = medialib.load("oop")
-local mediaregistry = medialib.load("mediaregistry")
 medialib.load("timekeeper")
 
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
-	media._unresolvedUrl = url
-	media._service = self
-
-	hook.Run("Medialib_ProcessOpts", media, opts or {})
-
-	mediaregistry.add(media)
-
-	self:resolveUrl(url, function(resolvedUrl, resolvedData)
-		media:openUrl(resolvedUrl)
-
-		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
-	end)
-
+	self:loadMediaObject(media, url, opts)
 	return media
 end
 

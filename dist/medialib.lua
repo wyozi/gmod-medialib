@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@44a90baf"
+local VERSION = "git@a463bb37"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -446,10 +446,44 @@ function Media:getDebugInfo()
 end
 
 end
--- 'servicebase'; CodeLen/MinifiedLen 1757/1757; Dependencies [oop]
+-- 'mediaregistry'; CodeLen/MinifiedLen 626/626; Dependencies []
+medialib.modulePlaceholder("mediaregistry")
+do
+local mediaregistry = medialib.module("mediaregistry")
+
+local cache = setmetatable({}, {__mode = "v"})
+
+function mediaregistry.add(media)
+	table.insert(cache, media)
+end
+
+concommand.Add("medialib_stopall", function()
+	for _,v in pairs(cache) do
+		v:stop()
+	end
+
+	table.Empty(cache)
+end)
+
+local cvar_debug = CreateConVar("medialib_debugmedia", "0")
+hook.Add("HUDPaint", "MediaLib_DebugMedia", function()
+	if not cvar_debug:GetBool() then return end
+
+	local i = 0
+	for _,media in pairs(cache) do
+		local t = string.format("#%d %s", i, media:getDebugInfo())
+		draw.SimpleText(t, "DermaDefault", 10, 10 + i*15)
+
+		i=i+1
+	end
+end)
+
+end
+-- 'servicebase'; CodeLen/MinifiedLen 2210/2210; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("servicebase")
 do
 local oop = medialib.load("oop")
+local mediaregistry = medialib.load("mediaregistry")
 
 local Service = oop.class("Service")
 
@@ -469,6 +503,21 @@ function Service:emit(event, ...)
 end
 
 function Service:load(url, opts) end
+function Service:loadMediaObject(media, url, opts)
+	media._unresolvedUrl = url
+	media._service = self
+
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
+	mediaregistry.add(media)
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		media:openUrl(resolvedUrl)
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+end
+
 function Service:isValidUrl(url) end
 
 -- Sub-services should override this
@@ -513,39 +562,6 @@ function Service:parseUrl(url) end
 function Service:resolveUrl(url, cb)
 	cb(url, self:parseUrl(url))
 end
-
-end
--- 'mediaregistry'; CodeLen/MinifiedLen 626/626; Dependencies []
-medialib.modulePlaceholder("mediaregistry")
-do
-local mediaregistry = medialib.module("mediaregistry")
-
-local cache = setmetatable({}, {__mode = "v"})
-
-function mediaregistry.add(media)
-	table.insert(cache, media)
-end
-
-concommand.Add("medialib_stopall", function()
-	for _,v in pairs(cache) do
-		v:stop()
-	end
-
-	table.Empty(cache)
-end)
-
-local cvar_debug = CreateConVar("medialib_debugmedia", "0")
-hook.Add("HUDPaint", "MediaLib_DebugMedia", function()
-	if not cvar_debug:GetBool() then return end
-
-	local i = 0
-	for _,media in pairs(cache) do
-		local t = string.format("#%d %s", i, media:getDebugInfo())
-		draw.SimpleText(t, "DermaDefault", 10, 10 + i*15)
-
-		i=i+1
-	end
-end)
 
 end
 -- 'timekeeper'; CodeLen/MinifiedLen 1016/1016; Dependencies [oop]
@@ -605,29 +621,16 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6554/6554; Dependencies [oop,mediaregistry,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6196/6196; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
-local mediaregistry = medialib.load("mediaregistry")
 medialib.load("timekeeper")
 
 local HTMLService = oop.class("HTMLService", "Service")
 function HTMLService:load(url, opts)
 	local media = oop.class("HTMLMedia")()
-	media._unresolvedUrl = url
-	media._service = self
-
-	hook.Run("Medialib_ProcessOpts", media, opts or {})
-
-	mediaregistry.add(media)
-
-	self:resolveUrl(url, function(resolvedUrl, resolvedData)
-		media:openUrl(resolvedUrl)
-
-		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
-	end)
-
+	self:loadMediaObject(media, url, opts)
 	return media
 end
 
@@ -867,28 +870,15 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4686/4686; Dependencies [oop,mediaregistry]
+-- 'service_bass'; CodeLen/MinifiedLen 4328/4328; Dependencies [oop]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
-local mediaregistry = medialib.load("mediaregistry")
 
 local BASSService = oop.class("BASSService", "Service")
 function BASSService:load(url, opts)
 	local media = oop.class("BASSMedia")()
-	media._unresolvedUrl = url
-	media._service = self
-
-	hook.Run("Medialib_ProcessOpts", media, opts or {})
-
-	mediaregistry.add(media)
-
-	self:resolveUrl(url, function(resolvedUrl, resolvedData)
-		media:openUrl(resolvedUrl)
-
-		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
-	end)
-
+	self:loadMediaObject(media, url, opts)
 	return media
 end
 

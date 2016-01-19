@@ -1,4 +1,5 @@
 local oop = medialib.load("oop")
+local mediaregistry = medialib.load("mediaregistry")
 
 local Service = oop.class("Service")
 
@@ -18,6 +19,21 @@ function Service:emit(event, ...)
 end
 
 function Service:load(url, opts) end
+function Service:loadMediaObject(media, url, opts)
+	media._unresolvedUrl = url
+	media._service = self
+
+	hook.Run("Medialib_ProcessOpts", media, opts or {})
+
+	mediaregistry.add(media)
+
+	self:resolveUrl(url, function(resolvedUrl, resolvedData)
+		media:openUrl(resolvedUrl)
+
+		if resolvedData and resolvedData.start and (not opts or not opts.dontSeek) then media:seek(resolvedData.start) end
+	end)
+end
+
 function Service:isValidUrl(url) end
 
 -- Sub-services should override this

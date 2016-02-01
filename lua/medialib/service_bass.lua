@@ -128,13 +128,12 @@ function BASSMedia:runCommand(fn)
 end
 
 function BASSMedia:setVolume(vol)
+	self.volume = vol
 	self:runCommand(function(chan) chan:SetVolume(vol) end)
 end
 
 function BASSMedia:getVolume()
-	if IsValid(self.chan) then
-		return self.chan:GetVolume()
-	end
+	return self.volume
 end
 
 function BASSMedia:seek(time)

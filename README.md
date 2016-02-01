@@ -52,27 +52,27 @@ end)
 See ```examples/``` for more elaborate examples.
 
 ### Resource usage
-- __Server ⇋ Client__  
+- __Server ⇋ Client__
 
->Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.  
+>Medialib provides no means of communication between server and client. This means that to for example synchronize video between clients, you must handle networking the media URL and the media start time yourself.
 >
-> For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.  
+> For this purpose you might find my [NetTable](https://github.com/wyozi/gmod-nettable) library useful, but medialib itself contains no networking code.
 
-- __Client__  
+- __Client__
 
-> On clientside medialib uses either HTML Awesomium panels or BASS sound objects for playback.  
+> On clientside medialib uses either HTML Awesomium panels or BASS sound objects for playback.
 >
-> HTML panels are relatively expensive way to playback videos, but having one or two of them should work fine.  
-> BASS sound objects (which are used for webaudio and webradio) are pretty cheap. There should be no problem having many of them playing at the same time if needed.  
+> HTML panels are relatively expensive way to playback videos, but having one or two of them should work fine.
+> BASS sound objects (which are used for webaudio and webradio) are pretty cheap. There should be no problem having many of them playing at the same time if needed.
 >
-> In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like media players that must accept Youtube links HTML media works fine.  
+> In a nutshell you should use mp3 or ogg files when possible, as they are way cheaper for media playback, but for things like media players that must accept Youtube links HTML media works fine.
 > If there can be arbitrary amount of player controlled jukeboxes on the map, you might want to add some limitations so eg. more than two cannot play simultaneously.
 
-- __Shared (server and client)__  
+- __Shared (server and client)__
 
-> Both server and client have the ability to query for video metadata.  
+> Both server and client have the ability to query for video metadata.
 >
-> This is not instant, as HTTP queries used for majority of services take their time, but querying for metadata is pretty cheap as long as you don't do it in a Think hook or similar.  
+> This is not instant, as HTTP queries used for majority of services take their time, but querying for metadata is pretty cheap as long as you don't do it in a Think hook or similar.
 
 
 
@@ -94,7 +94,8 @@ Method | Description | Notes
 ```Media:stop()``` | Pause media. A ```stopped``` event is emitted when media stops.
 ```Media:getState()``` | Returns state of media, which is one of the following: "error", "loading", "buffering", "playing", "paused", "stopped" | [Note](# "Not supported by all services.")
 ```Media:isPlaying()``` | Returns a boolean indicating whether media is playing. Uses ```getState()```.
-```Media:setVolume(vol)``` | Sets volume. ```vol``` must be a float between 0 and 1.
+```Media:setVolume(vol)``` | Sets volume. ```vol``` must be a float in the range of 0 and 1.
+```Media:getVolume()``` | Returns the volume (a float in the range of 0 and 1).
 ```Media:setQuality(qual)``` | Sets quality. ```qual``` must be one of the following: "low", "medium", "high", "veryhigh" | [Note](# "Not guaranteed to use equivalent quality on all services. Not supported by all services.")
 ```Media:getTime()``` | Returns the elapsed time
 ```Media:seek(time)``` | Seeks to specified time. | [Note](# "Not guaranteed to hop to the exact time. Not supported by all services.")
@@ -118,7 +119,7 @@ Event name | Parameters | Description
 
 Medialib calls some hooks. You can use Garry's Mod's ```hook.Add``` to hook them and modify extend medialib's functionality.
 
-__Medialib_ProcessOpts__(_Media_ mediaObj, _table_ opts)  
+__Medialib_ProcessOpts__(_Media_ mediaObj, _table_ opts)
 Called before media is loaded but after it is created with the options passed to ```Service:load(url, options)```. You can use this hook to add new methods to the media object or set variables. Maybe even queue some things with ```Media:runCommand(fn)```.
 
 __Medialib_ExtendQuery__(_string_ url, _CallbackChainObj_ cbchain)

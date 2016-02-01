@@ -133,7 +133,7 @@ function BASSMedia:setVolume(vol)
 end
 
 function BASSMedia:getVolume()
-	return self.volume
+	return self.volume or 1
 end
 
 function BASSMedia:seek(time)

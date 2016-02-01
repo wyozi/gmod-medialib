@@ -211,6 +211,10 @@ function HTMLMedia:setVolume(vol)
 	self:applyVolume()
 end
 
+function HTMLMedia:getVolume()
+	return self.volume
+end
+
 function HTMLMedia:seek(time)
 	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end

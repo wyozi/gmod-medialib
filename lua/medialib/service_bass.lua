@@ -131,6 +131,12 @@ function BASSMedia:setVolume(vol)
 	self:runCommand(function(chan) chan:SetVolume(vol) end)
 end
 
+function BASSMedia:getVolume()
+	if IsValid(self.chan) then
+		return self.chan:GetVolume()
+	end
+end
+
 function BASSMedia:seek(time)
 	self:runCommand(function(chan)
 		if chan:IsBlockStreamed() then return end

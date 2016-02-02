@@ -198,6 +198,11 @@ function HTMLMedia:setVolume(vol)
 	self:applyVolume()
 end
 
+function HTMLMedia:getVolume()
+	-- could cookies potentially set the volume to something other than 1?
+	return self.volume or 1
+end
+
 function HTMLMedia:seek(time)
 	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end

@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@9eb5aac8"
+local VERSION = "git@1d6f43fb"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -641,7 +641,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6196/6196; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6329/6329; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -844,6 +844,11 @@ function HTMLMedia:setVolume(vol)
 	self:applyVolume()
 end
 
+function HTMLMedia:getVolume()
+	-- could cookies potentially set the volume to something other than 1?
+	return self.volume or 1
+end
+
 function HTMLMedia:seek(time)
 	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end
@@ -890,7 +895,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4328/4328; Dependencies [oop]
+-- 'service_bass'; CodeLen/MinifiedLen 4408/4408; Dependencies [oop]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -1010,7 +1015,12 @@ function BASSMedia:runCommand(fn)
 end
 
 function BASSMedia:setVolume(vol)
+	self.volume = vol
 	self:runCommand(function(chan) chan:SetVolume(vol) end)
+end
+
+function BASSMedia:getVolume()
+	return self.volume or 1
 end
 
 function BASSMedia:seek(time)

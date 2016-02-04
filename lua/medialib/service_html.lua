@@ -232,6 +232,7 @@ function HTMLMedia:stop()
 	self.panel = nil
 
 	self.timeKeeper:pause()
+	self:emit("ended", {stopped = true})
 	self:emit("destroyed")
 end
 

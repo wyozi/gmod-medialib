@@ -111,7 +111,7 @@ Event name | Parameters | Description
 ```playing``` | | Called when media starts playing
 ```paused``` | | Called when media is paused
 ```buffering``` | | Called when media is buffering. A ```playing``` event is emitted when buffering stops.
-```ended``` | | Called when media ends
+```ended``` | ```{ stopped = bool }``` | Called when media ends. `stopped` is true if ended by call to `clip:stop()`
 ```destroyed``` | | Called when media is destroyed/invalidated. ```isValid()``` will return false after this
 ```error``` | ```errorId``` ```errorDesc``` | Called when media fails to play. ```errorId``` is short error identifier. ```errorDesc``` is a longer string type description.
 

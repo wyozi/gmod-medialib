@@ -1,6 +1,6 @@
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@1d6f43fb"
+local VERSION = "git@38692ebf"
 local DISTRIBUTABLE = true
 
 -- Check if medialib has already been defined
@@ -641,7 +641,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6329/6329; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6367/6367; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -878,6 +878,7 @@ function HTMLMedia:stop()
 	self.panel = nil
 
 	self.timeKeeper:pause()
+	self:emit("ended", {stopped = true})
 	self:emit("destroyed")
 end
 
@@ -895,7 +896,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4408/4408; Dependencies [oop]
+-- 'service_bass'; CodeLen/MinifiedLen 4443/4443; Dependencies [oop]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -1072,14 +1073,24 @@ function BASSMedia:getState()
 end
 
 function BASSMedia:play()
-	self:runCommand(function(chan) chan:Play() self:emit("playing") end)
+	self:runCommand(function(chan)
+		chan:Play()
+		self:emit("playing")
+	end)
 end
 function BASSMedia:pause()
-	self:runCommand(function(chan) chan:Pause() self:emit("paused") end)
+	self:runCommand(function(chan)
+		chan:Pause()
+		self:emit("paused")
+	end)
 end
 function BASSMedia:stop()
 	self._stopped = true
-	self:runCommand(function(chan) chan:Stop() self:emit("ended") self:emit("destroyed") end)
+	self:runCommand(function(chan)
+		chan:Stop()
+		self:emit("ended", {stopped = true})
+		self:emit("destroyed")
+	end)
 end
 
 function BASSMedia:isValid()

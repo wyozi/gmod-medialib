@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local TwitchService = oop.class("TwitchService", "HTMLService")
+TwitchService.identifier = "twitch"
 
 local all_patterns = {
 	"https?://www.twitch.tv/([A-Za-z0-9_%-]+)",
@@ -58,4 +59,4 @@ function TwitchService:directQuery(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
-medialib.load("media").registerService("twitch", TwitchService)
+return TwitchService

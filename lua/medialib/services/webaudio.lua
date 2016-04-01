@@ -1,5 +1,6 @@
 local oop = medialib.load("oop")
 local WebAudioService = oop.class("WebAudioService", "BASSService")
+WebAudioService.identifier = "webaudio"
 
 local all_patterns = {
 	"^https?://(.*)%.mp3",
@@ -29,4 +30,4 @@ function WebAudioService:directQuery(url, callback)
 	})
 end
 
-medialib.load("media").registerService("webaudio", WebAudioService)
+return WebAudioService

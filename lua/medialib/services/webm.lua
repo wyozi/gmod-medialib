@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local WebmService = oop.class("WebmService", "HTMLService")
+WebmService.identifier = "webm"
 
 local all_patterns = {"^https?://.*%.webm"}
 
@@ -31,4 +32,4 @@ function WebmService:directQuery(url, callback)
 	})
 end
 
-medialib.load("media").registerService("webm", WebmService)
+return WebmService

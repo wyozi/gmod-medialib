@@ -1,5 +1,6 @@
 local oop = medialib.load("oop")
 local WebRadioService = oop.class("WebRadioService", "BASSService")
+WebRadioService.identifier = "webradio"
 
 local all_patterns = {
 	"^https?://(.*)%.pls",
@@ -29,4 +30,4 @@ function WebRadioService:directQuery(url, callback)
 	})
 end
 
-medialib.load("media").registerService("webradio", WebRadioService)
+return WebRadioService

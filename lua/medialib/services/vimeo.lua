@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local VimeoService = oop.class("VimeoService", "HTMLService")
+VimeoService.identifier = "vimeo"
 
 local all_patterns = {
 	"https?://www.vimeo.com/([0-9]+)",
@@ -65,4 +66,4 @@ function VimeoService:hasReliablePlaybackEvents(media)
 	return true
 end
 
-medialib.load("media").registerService("vimeo", VimeoService)
+return VimeoService

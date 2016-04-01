@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local YoutubeService = oop.class("YoutubeService", "HTMLService")
+YoutubeService.identifier = "youtube"
 
 local raw_patterns = {
 	"^https?://[A-Za-z0-9%.%-]*%.?youtu%.be/([A-Za-z0-9_%-]+)",
@@ -102,4 +103,4 @@ function YoutubeService:hasReliablePlaybackEvents(media)
 	return true
 end
 
-medialib.load("media").registerService("youtube", YoutubeService)
+return YoutubeService

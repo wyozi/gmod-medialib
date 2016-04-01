@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local Mp4Service = oop.class("Mp4Service", "HTMLService")
+Mp4Service.identifier = "mp4"
 
 local all_patterns = {"^https?://.*%.mp4"}
 
@@ -31,4 +32,4 @@ function Mp4Service:directQuery(url, callback)
 	})
 end
 
-medialib.load("media").registerService("mp4", Mp4Service)
+return Mp4Service

@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local DailyMotionService = oop.class("DailyMotionService", "HTMLService")
+DailyMotionService.identifier = "dailymotion"
 
 local all_patterns = {
 	"https?://www.dailymotion.com/video/([A-Za-z0-9_%-]+)",
@@ -55,4 +56,4 @@ function DailyMotionService:directQuery(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
-medialib.load("media").registerService("dailymotion", DailyMotionService)
+return DailyMotionService

@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local UstreamService = oop.class("UstreamService", "HTMLService")
+UstreamService.identifier = "ustream"
 
 local all_patterns = {
 	"https?://www.ustream.tv/channel/([A-Za-z0-9_%-]+)",
@@ -61,4 +62,4 @@ function UstreamService:directQuery(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
-medialib.load("media").registerService("ustream", UstreamService)
+return UstreamService

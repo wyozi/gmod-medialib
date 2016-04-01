@@ -68,12 +68,20 @@ function medialib.load(name)
 	return medialib.Modules[name]
 end
 
+local medialibg = setmetatable({medialib = medialib}, {__index = _G})
+
 local real_file_meta = {
 	read = function(self)
 		return file.Read(self.lua_path, "LUA")
 	end,
 	load = function(self)
-		include(self.lua_path)
+		local str = self:read()
+		if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
+
+		-- TODO use include (need to set medialib in include env somehow??)
+		local compiled = CompileString(str, "MediaLib_DynFile_" .. self.lua_path)
+		setfenv(compiled, medialibg)
+		return compiled()
 	end,
 	addcs = function(self)
 		AddCSLuaFile(self.lua_path)
@@ -86,7 +94,9 @@ local virt_file_meta = {
 		return self.source
 	end,
 	load = function(self)
-		RunStringEx(self.source, self.name or "unknown virtual file")
+		local compiled = CompileString(self:read(), "MediaLib_DynFile_" .. self.name)
+		setfenv(compiled, medialibg)
+		return compiled()
 	end,
 	addcs = function() end
 }

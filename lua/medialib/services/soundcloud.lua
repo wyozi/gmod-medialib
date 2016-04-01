@@ -1,6 +1,7 @@
 local oop = medialib.load("oop")
 
 local SoundcloudService = oop.class("SoundcloudService", "BASSService")
+SoundcloudService.identifier = "soundcloud"
 
 local all_patterns = {
 	"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$",
@@ -63,4 +64,4 @@ function SoundcloudService:directQuery(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
-medialib.load("media").registerService("soundcloud", SoundcloudService)
+return SoundcloudService

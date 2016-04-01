@@ -47,7 +47,7 @@ function YoutubeService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-local player_url = "http://wyozi.github.io/gmod-medialib/youtube.html?id=%s"
+local player_url = "https://wyozi.github.io/gmod-medialib/youtube.html?id=%s"
 function YoutubeService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 	local playerUrl = string.format(player_url, urlData.id)

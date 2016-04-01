@@ -3,7 +3,12 @@
 Media library for Garry's Mod.
 
 ### Setup
-Easiest way to add gmod-medialib to your project is to copy ```dist/medialib.lua``` into your addon/gamemode. Make sure it is shared (```AddCSLuaFile``` on server and ```include``` on both server and client)
+
+1. Copy ```dist/medialib.lua``` into your addon/gamemode
+2. Make sure it is available to clients via `AddCSLuaFile`
+3. Include it where-ever you need it. See best-practises below:
+	- `local medialib = include("the/path/to/medialib.lua")` if you only use it in one file
+	- `MyGlobalTable.medialib = include("the/path/to/medialib.lua")` if you use it multiple times (you need to refer to medialib as `MyGlobalTable.medialib` or localize it if you do this)
 
 ### Example
 

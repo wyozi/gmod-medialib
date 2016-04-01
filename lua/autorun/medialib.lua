@@ -2,16 +2,6 @@
 local VERSION = "local"
 local DISTRIBUTABLE = false
 
--- Check if medialib has already been defined
-if medialib and medialib.VERSION ~= VERSION then
-	-- Overwrite only if we're using dev version
-	local shouldOverwrite = VERSION == "local"
-
-	print("[MediaLib] Warning: " .. (shouldOverwrite and "overwriting" or "found") .. " existing medialib. (local: " .. VERSION .. ", defined: " .. (medialib.VERSION or "-") .. ")")
-
-	if not shouldOverwrite then return end
-end
-
 medialib = {}
 
 medialib.VERSION = VERSION

@@ -263,6 +263,7 @@ function build(shouldMinify, targetFile) {
 			return fragments.concat(fragz);
 		})
 	}).done(function(fragments) {
+		fragments = ["local medialib\n"].concat(fragments).concat("return medialib")
 		finished(fragments);
 	});
 }

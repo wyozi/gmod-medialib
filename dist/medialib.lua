@@ -1,17 +1,9 @@
+local medialib
+
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@d14edd52"
+local VERSION = "git@ded60e22"
 local DISTRIBUTABLE = true
-
--- Check if medialib has already been defined
-if medialib and medialib.VERSION ~= VERSION then
-	-- Overwrite only if we're using dev version
-	local shouldOverwrite = VERSION == "local"
-
-	print("[MediaLib] Warning: " .. (shouldOverwrite and "overwriting" or "found") .. " existing medialib. (local: " .. VERSION .. ", defined: " .. (medialib.VERSION or "-") .. ")")
-
-	if not shouldOverwrite then return end
-end
 
 medialib = {}
 
@@ -1170,3 +1162,4 @@ medialib.load("serviceloader")
 
 medialib.load("media")
 end
+return medialib

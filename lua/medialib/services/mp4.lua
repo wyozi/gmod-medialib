@@ -17,7 +17,7 @@ function Mp4Service:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-local player_url = "http://wyozi.github.io/gmod-medialib/mp4.html?id=%s"
+local player_url = "https://wyozi.github.io/gmod-medialib/mp4.html?id=%s"
 function Mp4Service:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 	local playerUrl = string.format(player_url, urlData.id)

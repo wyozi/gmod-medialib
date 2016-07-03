@@ -114,9 +114,25 @@ function BASSMedia:runCommand(fn)
 	end
 end
 
+
+-- This applies the volume to the HTML panel
+-- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
+function BASSMedia:applyVolume()
+	local ivol = self.internalVolume or 1
+	local rvol = self.volume or 1
+
+	local vol = ivol * rvol
+
+	if self.lastSetVolume and self.lastSetVolume == vol then
+		return
+	end
+	self.lastSetVolume = vol
+
+	self:runCommand(function(chan) chan:SetVolume(vol) end)
+end
 function BASSMedia:setVolume(vol)
 	self.volume = vol
-	self:runCommand(function(chan) chan:SetVolume(vol) end)
+	self:applyVolume()
 end
 
 function BASSMedia:getVolume()

@@ -7,70 +7,56 @@
 				padding: 0;
 				overflow-y: hidden;
 			}
-			#twitch_wrapper {
+			#twitch_embed_player {
 				position: absolute;
 				left: 0; top: 0; right: 0; bottom: 0;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="twitch_wrapper">
-			<div id="twitch_embed_player"></div>
+		<div id="twitch_embed_player">
 		</div>
 
 		<script src="medialib.js"></script>
 		<script>
 			medialibDelegate = medialib.createEventDelegate({
 				play: function() {
-					this.playVideo();
+					this.play();
 				},
 				pause: function() {
-					this.pauseVideo();
+					this.pause();
 				},
 				seek: function(obj) {
-					this.videoSeek(obj.time);
+					this.seek(obj.time);
 				},
 				setVolume: function(obj) {
-					// Twitch pls
-					if (obj.vol == 0) {
-						this.mute();
-					}
-					else {
-						this.unmute();
-					}
+					this.setVolume(obj.vol);
 				}
 			});
 
-			if (medialib.checkFlash()) {
-				var params = medialib.getParams();
+			var params = medialib.getParams();
+			var channel = params.id || params.channel;
 
-				var channel = params.id || params.channel;
-
-				medialib.loadAsync("http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js", function() {
-					window.onPlayerEvent = function (data) {
-						data.forEach(function(event) {
-							if (event.event == "playerInit") {
-								var player = document.getElementById("twitch_embed_player");
-								medialibDelegate.playerLoaded(player);
-							}
-						});
-					}
-
-					swfobject.embedSWF("http://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf", "twitch_embed_player", "100%", "104%", "11", null,
-						{
-							"eventsCallback": "onPlayerEvent",
-							"embed": 1,
-							"channel": channel,
-							"auto_play": "false",
-							"scale": "exactFit"
-						},
-						{
-							"allowScriptAccess": "always",
-							"allowFullScreen": "true"
-						}
-					);
+			medialib.loadAsync("https://player.twitch.tv/js/embed/v1.js", function() {
+				var options = {
+					width: "100%",
+					height: "100%",
+					channel: channel
+				};
+				var player = new Twitch.Player("twitch_embed_player", options);
+				player.addEventListener("ready", function() {
+					medialibDelegate.playerLoaded(player);
 				});
-			}
+			});
+		</script>
+		<script>
+		(function(m,e,d,i,a,l,b){m['GoogleAnalyticsObject']=a;m[a]=m[a]||function(){
+		(m[a].q=m[a].q||[]).push(arguments)},m[a].l=1*new Date();l=e.createElement(d),
+		b=e.getElementsByTagName(d)[0];l.async=1;l.src=i;b.parentNode.insertBefore(l,b)
+		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-43467815-2', 'auto');
+		ga('send', 'pageview');
 		</script>
 	</body>
 </html>

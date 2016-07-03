@@ -98,7 +98,7 @@ function analyzer:debug()
 
 		plot("fft", spectrum, 50, 75, 250, 100)
 
-		if true then return end
+		--if true then return end
 
 		local flux = 0
 		for i=1, vals do

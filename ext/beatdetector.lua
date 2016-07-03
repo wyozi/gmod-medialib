@@ -9,18 +9,12 @@ MEDIALIB_BD_ANALYZER = analyzer -- lua refresh support
 analyzer.__index = analyzer
 
 function bdetector.beatDetect(media)
-	if not IsValid(media.chan) then
-		ErrorNoHalt("[MediaLib BeatDetector] beatDetect must be called with a media object with a valid channel. See BASSMedia:runCommand")
-		return
-	end
-
 	local analyzer = setmetatable({media=media, chan=media.chan}, analyzer)
 	analyzer:init()
-	analyzer:start()
+	media:runCommand(function() analyzer:start() end)
 
 	return analyzer
 end
-
 
 hook.Add("Medialib_ProcessOpts", "Medialib_BeatDetector", function(media, opts)
 	function media:canBeatDetect()

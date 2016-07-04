@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@6138cf34"
+local VERSION = "git@60f1af61"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -78,13 +78,11 @@ local real_file_meta = {
 		return file.Read(self.lua_path, "LUA")
 	end,
 	load = function(self)
-		local str = self:read()
-		if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
+		--local str = self:read()
+		--if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
 
-		-- TODO use include (need to set medialib in include env somehow??)
-		local compiled = CompileString(str, "MediaLib_DynFile_" .. self.lua_path)
-		setfenv(compiled, medialibg)
-		return compiled()
+		-- TODO this does not function correctly; embedded medialib loading real_file will use global medialib as its 'medialib' instance
+		return include(self.lua_path)
 	end,
 	addcs = function(self)
 		AddCSLuaFile(self.lua_path)
@@ -464,6 +462,41 @@ end
 function Media:getDebugInfo()
 	return string.format("[%s] Media [%s] valid:%s state:%s url:%s time:%d", self:getTag(), self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
 end
+
+end
+-- 'media'; CodeLen/MinifiedLen 746/746; Dependencies []
+medialib.modulePlaceholder("media")
+do
+local media = medialib.module("media")
+media.Services = {}
+
+function media.registerService(name, cls)
+	media.Services[name] = cls()
+end
+media.RegisterService = media.registerService -- alias
+
+function media.service(name)
+	return media.Services[name]
+end
+media.Service = media.service -- alias
+
+function media.guessService(url, opts)
+	for name,service in pairs(media.Services) do
+		local isViable = true
+
+		if opts and opts.whitelist then
+			isViable = isViable and table.HasValue(opts.whitelist, name)
+		end
+		if opts and opts.blacklist then
+			isViable = isViable and not table.HasValue(opts.blacklist, name)
+		end
+
+		if isViable and service:isValidUrl(url) then
+			return service
+		end
+	end
+end
+media.GuessService = media.guessService -- alias
 
 end
 -- 'mediaregistry'; CodeLen/MinifiedLen 626/626; Dependencies []
@@ -1116,41 +1149,6 @@ function BASSMedia:isValid()
 end
 
 end
--- 'media'; CodeLen/MinifiedLen 746/746; Dependencies []
-medialib.modulePlaceholder("media")
-do
-local media = medialib.module("media")
-media.Services = {}
-
-function media.registerService(name, cls)
-	media.Services[name] = cls()
-end
-media.RegisterService = media.registerService -- alias
-
-function media.service(name)
-	return media.Services[name]
-end
-media.Service = media.service -- alias
-
-function media.guessService(url, opts)
-	for name,service in pairs(media.Services) do
-		local isViable = true
-
-		if opts and opts.whitelist then
-			isViable = isViable and table.HasValue(opts.whitelist, name)
-		end
-		if opts and opts.blacklist then
-			isViable = isViable and not table.HasValue(opts.blacklist, name)
-		end
-
-		if isViable and service:isValidUrl(url) then
-			return service
-		end
-	end
-end
-media.GuessService = media.guessService -- alias
-
-end
 medialib.FolderItems["services/mp4.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal Mp4Service = oop.class(\"Mp4Service\", \"HTMLService\")\nMp4Service.identifier = \"mp4\"\n\nlocal all_patterns = {\"^https?://.*%.mp4\"}\n\nfunction Mp4Service:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction Mp4Service:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"https://wyozi.github.io/gmod-medialib/mp4.html?id=%s\"\nfunction Mp4Service:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction Mp4Service:directQuery(url, callback)\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nreturn Mp4Service"
 medialib.FolderItems["services/soundcloud.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal SoundcloudService = oop.class(\"SoundcloudService\", \"BASSService\")\nSoundcloudService.identifier = \"soundcloud\"\n\nlocal all_patterns = {\n\t\"^https?://www.soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$\",\n\t\"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$\",\n}\n\n-- Support url that passes track id directly\nlocal id_pattern = \"^https?://api.soundcloud.com/tracks/(%d+)\"\n\nfunction SoundcloudService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal path = string.match(url, pattern)\n\t\tif path then\n\t\t\treturn {path = path}\n\t\tend\n\tend\n\n\tlocal id = string.match(url, id_pattern)\n\tif id then\n\t\treturn {id = id}\n\tend\nend\n\nfunction SoundcloudService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal API_KEY = \"54b083f616aca3497e9e45b70c2892f5\"\nfunction SoundcloudService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\n\tif urlData.id then\n\t\t-- id passed directly; nice, we can skip resolve.json\n\t\tcallback(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=%s\", urlData.id, API_KEY), {})\n\telse\n\t\thttp.Fetch(\n\t\t\tstring.format(\"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s\", urlData.path, API_KEY),\n\t\t\tfunction(data)\n\t\t\t\tlocal jsonTable = util.JSONToTable(data)\n\t\t\t\tif not jsonTable then\n\t\t\t\t\terror(\"Failed to retrieve SC track id for \" .. urlData.path .. \": empty JSON\")\n\t\t\t\tend\n\t\t\t\t\n\t\t\t\tlocal id = jsonTable.id\n\t\t\t\tcallback(string.format(\"https://api.soundcloud.com/tracks/%s/stream?client_id=%s\", id, API_KEY), {})\n\t\t\tend)\n\tend\nend\n\nfunction SoundcloudService:directQuery(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s\", urlData.id, API_KEY)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal entry = util.JSONToTable(result)\n\n\t\tif entry.errors then\n\t\t\tlocal msg = entry.errors[1].error_message or \"error\"\n\n\t\t\tlocal translated = msg\n\t\t\tif string.StartWith(msg, \"404\") then\n\t\t\t\ttranslated = \"Invalid id\"\n\t\t\tend\n\n\t\t\tcallback(translated)\n\t\t\treturn\n\t\tend\n\n\t\tcallback(nil, {\n\t\t\ttitle = entry.title,\n\t\t\tduration = tonumber(entry.duration) / 1000\n\t\t})\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nreturn SoundcloudService\n"
 medialib.FolderItems["services/twitch.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal TwitchService = oop.class(\"TwitchService\", \"HTMLService\")\nTwitchService.identifier = \"twitch\"\n\nlocal all_patterns = {\n\t\"https?://www.twitch.tv/([A-Za-z0-9_%-]+)\",\n\t\"https?://twitch.tv/([A-Za-z0-9_%-]+)\"\n}\n\nfunction TwitchService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction TwitchService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"https://wyozi.github.io/gmod-medialib/twitch.html?channel=%s\"\nfunction TwitchService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction TwitchService:directQuery(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal metaurl = string.format(\"https://api.twitch.tv/kraken/channels/%s\", urlData.id)\n\n\thttp.Fetch(metaurl, function(result, size)\n\t\tif size == 0 then\n\t\t\tcallback(\"http body size = 0\")\n\t\t\treturn\n\t\tend\n\n\t\tlocal data = {}\n\t\tdata.id = urlData.id\n\n\t\tlocal jsontbl = util.JSONToTable(result)\n\n\t\tif jsontbl then\n\t\t\tif jsontbl.error then\n\t\t\t\tcallback(jsontbl.message)\n\t\t\t\treturn\n\t\t\telse\n\t\t\t\tdata.title = jsontbl.display_name .. \": \" .. jsontbl.status\n\t\t\tend\n\t\telse\n\t\t\tdata.title = \"ERROR\"\n\t\tend\n\n\t\tcallback(nil, data)\n\tend, function(err) callback(\"HTTP: \" .. err) end)\nend\n\nreturn TwitchService"
@@ -1183,7 +1181,7 @@ for _,file in medialib.folderIterator("services") do
 	end
 end
 end
--- '__loader'; CodeLen/MinifiedLen 326/326; Dependencies [mediabase,serviceloader,media]
+-- '__loader'; CodeLen/MinifiedLen 325/325; Dependencies [mediabase,media,serviceloader]
 medialib.modulePlaceholder("__loader")
 do
 -- This file loads required modules in the correct order.
@@ -1191,8 +1189,7 @@ do
 -- For distributable:       this file is loaded after packed modules have been added to medialib
 
 medialib.load("mediabase")
-medialib.load("serviceloader")
-
 medialib.load("media")
+medialib.load("serviceloader")
 end
 return medialib

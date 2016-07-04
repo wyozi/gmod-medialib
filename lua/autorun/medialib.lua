@@ -75,13 +75,11 @@ local real_file_meta = {
 		return file.Read(self.lua_path, "LUA")
 	end,
 	load = function(self)
-		local str = self:read()
-		if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
+		--local str = self:read()
+		--if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
 
-		-- TODO use include (need to set medialib in include env somehow??)
-		local compiled = CompileString(str, "MediaLib_DynFile_" .. self.lua_path)
-		setfenv(compiled, medialibg)
-		return compiled()
+		-- TODO this does not function correctly; embedded medialib loading real_file will use global medialib as its 'medialib' instance
+		return include(self.lua_path)
 	end,
 	addcs = function(self)
 		AddCSLuaFile(self.lua_path)

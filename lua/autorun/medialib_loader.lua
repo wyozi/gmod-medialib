@@ -3,6 +3,5 @@
 -- For distributable:       this file is loaded after packed modules have been added to medialib
 
 medialib.load("mediabase")
-medialib.load("serviceloader")
-
 medialib.load("media")
+medialib.load("serviceloader")

@@ -44,7 +44,7 @@ function SoundcloudService:resolveUrl(url, callback)
 				if not jsonTable then
 					error("Failed to retrieve SC track id for " .. urlData.path .. ": empty JSON")
 				end
-				
+
 				local id = jsonTable.id
 				callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", id, API_KEY), {})
 			end)
@@ -53,7 +53,13 @@ end
 
 function SoundcloudService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
-	local metaurl = string.format("http://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.id, API_KEY)
+
+	local metaurl
+	if urlData.path then
+		metaurl = string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, API_KEY)
+	else
+		metaurl = string.format("https://api.soundcloud.com/tracks/%s?client_id=%s", urlData.id, API_KEY)
+	end
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then

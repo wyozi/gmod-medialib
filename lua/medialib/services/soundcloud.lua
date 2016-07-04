@@ -8,12 +8,20 @@ local all_patterns = {
 	"^https?://soundcloud.com/([A-Za-z0-9_%-]+/[A-Za-z0-9_%-]+)/?.*$",
 }
 
+-- Support url that passes track id directly
+local id_pattern = "^https?://api.soundcloud.com/tracks/(%d+)"
+
 function SoundcloudService:parseUrl(url)
 	for _,pattern in pairs(all_patterns) do
-		local id = string.match(url, pattern)
-		if id then
-			return {id = id}
+		local path = string.match(url, pattern)
+		if path then
+			return {path = path}
 		end
+	end
+
+	local id = string.match(url, id_pattern)
+	if id then
+		return {id = id}
 	end
 end
 
@@ -25,12 +33,22 @@ local API_KEY = "54b083f616aca3497e9e45b70c2892f5"
 function SoundcloudService:resolveUrl(url, callback)
 	local urlData = self:parseUrl(url)
 
-	http.Fetch(
-		string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.id, API_KEY),
-		function(data)
-			local sound_id = util.JSONToTable(data).id
-			callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", sound_id, API_KEY), {})
-		end)
+	if urlData.id then
+		-- id passed directly; nice, we can skip resolve.json
+		callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", urlData.id, API_KEY), {})
+	else
+		http.Fetch(
+			string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, API_KEY),
+			function(data)
+				local jsonTable = util.JSONToTable(data)
+				if not jsonTable then
+					error("Failed to retrieve SC track id for " .. urlData.path .. ": empty JSON")
+				end
+				
+				local id = jsonTable.id
+				callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", id, API_KEY), {})
+			end)
+	end
 end
 
 function SoundcloudService:directQuery(url, callback)

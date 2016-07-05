@@ -19,10 +19,13 @@
 	</style>
 </head>
 <body>
-	<div id="player"></div>
+	<video id="player">
+		<source id="player-mp4src" type="video/mp4">
+	</video>
 
 	<script type="text/javascript" src="medialib.js"></script>
-	<script src="http://releases.flowplayer.org/js/flowplayer-3.2.12.min.js"></script>
+	
+	<script src="http://vjs.zencdn.net/5.10.4/video.js"></script>
 	<script type="text/javascript">
 		medialibDelegate = medialib.createEventDelegate({
 			play: function() {
@@ -32,10 +35,10 @@
 				this.pause();
 			},
 			seek: function(obj) {
-				this.seek(obj.time);
+				this.currentTime(obj.time);
 			},
 			setVolume: function(obj) {
-				this.setVolume(obj.vol * 100);
+				this.volume(obj.vol);
 			}
 		});
 
@@ -44,32 +47,31 @@
 
 		var el = document.getElementById("vid");
 
-		flowplayer("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf", {
-			clip: {
-				url: id,
-				autoPlay: false,
-				autoBuffering: true,
+		document.getElementById("player-mp4src").setAttribute("src", id);
+		videojs("player", {"autoplay": true, "controls": false, "preload": "auto"}, function() {
+			this.load();
+		}).ready(function() {
 
-				onResume: function() {
-					medialib.emitEvent("stateChange", {state: "playing", time: this.getTime()});
-				},
-				onPause: function() {
-					medialib.emitEvent("stateChange", {state: "paused", time: this.getTime()});
-				},
-				onFinish: function() {
-					medialib.emitEvent("stateChange", {state: "ended", time: this.getTime()});
-				}
-			},
-			plugins: {
-				controls: null,
-				play: null
-			},
-			onLoad: function() {
-				medialibDelegate.playerLoaded(this);
-				this.getPlay().hide();
-			}
+			this.on("play", function(e) {
+				medialib.emitEvent("stateChange", {state: "playing", time: this.currentTime()});
+			});
+			this.on("pause", function(e) {
+				medialib.emitEvent("stateChange", {state: "paused", time: this.currentTime()});
+			});
+			this.on("ended", function(e) {
+				medialib.emitEvent("stateChange", {state: "ended", time: this.currentTime()});
+			});
+			this.on("seeking", function(e) {
+				medialib.emitEvent("stateChange", {state: "buffering", time: this.currentTime()});
+			});
+			this.on("seeked", function(e) {
+				medialib.emitEvent("stateChange", {state: "playing", time: this.currentTime()});
+			});
+
+			medialibDelegate.playerLoaded(this);
 		});
 	</script>
+
 	<script>
 	(function(m,e,d,i,a,l,b){m['GoogleAnalyticsObject']=a;m[a]=m[a]||function(){
 	(m[a].q=m[a].q||[]).push(arguments)},m[a].l=1*new Date();l=e.createElement(d),

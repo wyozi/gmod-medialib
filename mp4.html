@@ -43,7 +43,7 @@
 		});
 
 		var params = medialib.getParams();
-		var id = params.id || params.vid;
+		var id = decodeURIComponent(params.id || params.vid);
 
 		var el = document.getElementById("vid");
 

@@ -48,7 +48,7 @@
 		var el = document.getElementById("vid");
 
 		document.getElementById("player-mp4src").setAttribute("src", id);
-		videojs("player", {"autoplay": true, "controls": false, "preload": "auto"}, function() {
+		videojs("player", {"controls": false, "preload": "auto"}, function() {
 			this.load();
 		}).ready(function() {
 

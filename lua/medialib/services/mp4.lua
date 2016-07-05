@@ -32,4 +32,8 @@ function Mp4Service:directQuery(url, callback)
 	})
 end
 
+function Mp4Service:hasReliablePlaybackEvents(media)
+	return true
+end
+
 return Mp4Service

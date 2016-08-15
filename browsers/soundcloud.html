@@ -10,6 +10,7 @@
 				max-width: 900px;
 				margin-left: auto;
 				margin-right: auto;
+				overflow-x: hidden;
 			}
 			#query {
 				display: block;
@@ -50,7 +51,7 @@
 	</head>
 	<body>
 		<div>
-			<input type="text" id="query" name="query" value="" onkeypress="handleQueryKeypress(event)" />
+			<input type="text" id="query" name="query" placeholder="Search..." value="" onkeypress="handleQueryKeypress(event)" />
 		</div>
 		<div id="results">
 

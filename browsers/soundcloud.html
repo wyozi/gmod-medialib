@@ -76,8 +76,8 @@
 						trackEl.innerText = track.title;
 
 						trackEl.addEventListener("click", function() {
-							if ("gmod" in window) {
-								gmod.QueueURL(track.permalink_url);
+							if ("medialib" in window) {
+								medialib.QueueURL(track.permalink_url);
 							} else {
 								console.log("If this was GMod I would queue this track now: " + track.permalink_url);
 							}

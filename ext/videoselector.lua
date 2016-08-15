@@ -5,30 +5,64 @@
 
 local PANEL = {}
 
-AccessorFunc(PANEL, "_callback", "Callback")
-
 function PANEL:GetDefaultHTML()
 	return [[
-    <!DOCTYPE html>
-    <html>
-    	<head>
-    		<meta charset="utf-8">
-    		<style>
-    			body {
-    				background-color: white;
-    			}
-    		</style>
-    	</head>
-    	<body>
-            <h1>Medialib video selector</h1>
-            <a href="http://youtube.com">Youtube</a>
-    	</body>
-    </html>
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8">
+			<style>
+				body {
+					background-color: #1d1f21;
+					color: white;
+
+					max-width: 900px;
+					margin-left: auto;
+					margin-right: auto;
+					text-align: center;
+				}
+				#servicelinks a {
+					display: block;
+					width: 80%;
+					margin: 10px auto 0 auto;
+					height: 50px;
+					line-height: 50px;
+					text-align: center;
+
+					font-size: 24px;
+					background-color: #505458;
+					color: rgb(240, 240, 240);
+				}
+				#servicelinks a:hover {
+					background-color: #777b80;
+				}
+			</style>
+		</head>
+		<body>
+			<h2>Media Selector</h2>
+			<div id="servicelinks">
+				<a href="http://youtube.com">Youtube</a>
+				<a href="https://wyozi.github.io/gmod-medialib/browsers/soundcloud.html">SoundCloud</a>
+			</div>
+		</body>
+	</html>
 	]]
 end
 
+function PANEL:InitCustomControls(ctrl)
+	local qbtn = ctrl:Add("DButton")
+	qbtn:Dock(RIGHT)
+	qbtn:SetWide(100)
+	qbtn:SetText("Add to Queue")
+	qbtn.DoClick = function()
+		self:OnURLSelected(ctrl.AddressBar:GetText())
+	end
+
+	self.addToQueueButton = qbtn
+end
+
 function PANEL:Init()
-	self.browser = vgui.Create("DHTML", self)
+	self.browser = self:Add("DHTML")
 	self.browser:Dock(FILL)
 	self.browser:SetHTML(self:GetDefaultHTML())
 
@@ -48,61 +82,35 @@ function PANEL:Init()
 
 	-- Needed because eg. youtube does non-documentreloading updates
 	self.browser.UrlChanged = function()end
-	self.browser:AddFunction("medialib", "CurrentUrl", function(curl)
+	self.browser:AddFunction("medialib", "CurrentURL", function(curl)
 		if curl ~= self.browser._lastcurl then
 			self.browser:UrlChanged(curl)
 			self.browser._lastcurl = curl
 		end
 	end)
-	function self.browser:RequestCurrentUrl()
-		self:RunJavascript("medialib.CurrentUrl(window.location.href);")
+	self.browser:AddFunction("medialib", "QueueURL", function(url)
+		self:OnURLSelected(url)
+	end)
+
+	function self.browser:RequestCurrentURL()
+		self:RunJavascript("medialib.CurrentURL(window.location.href);")
 	end
 
-	self.controls = vgui.Create("Panel", self)
+	self.controls = self:Add("DHTMLControls")
 	self.controls:Dock(TOP)
+	self.controls:SetHTML(self.browser)
 
-	local back = vgui.Create("DImageButton", self.controls)
-	back:Dock(LEFT)
-	back:SetSize(24, 24)
-	back:SetMaterial("gui/HTML/back")
-	back.DoClick = function() self.browser:GoBack() end
-
-	local fwd = vgui.Create("DImageButton", self.controls)
-	fwd:Dock(LEFT)
-	fwd:SetSize(24, 24)
-	fwd:SetMaterial("gui/HTML/forward")
-	fwd.DoClick = function() self.browser:GoForward() end
-
-	local refresh = vgui.Create("DImageButton", self.controls)
-	refresh:Dock(LEFT)
-	refresh:SetSize(24, 24)
-	refresh:SetMaterial("gui/HTML/refresh")
-	refresh.DoClick = function() self.browser:Refresh() end
-
-	local url = vgui.Create("DTextEntry", self.controls)
-	url:Dock(FILL)
-	url.OnEnter = function() self.browser:OpenURL(url:GetText()) end
-
-	local currentUrl
-
-	local req = vgui.Create("DButton", self.controls)
-	req:Dock(RIGHT)
-	req:SetText("Request Url")
-	req.DoClick = function()
-		self:GetCallback()(currentUrl)
-	end
-	req:SetEnabled(false)
+	self:InitCustomControls(self.controls)
 
 	local function UrlChanged(u)
-		currentUrl = u
-
-		if vgui.GetKeyboardFocus() ~= url then
-			url:SetText(u)
+		local addressBar = self.controls.AddressBar
+		if vgui.GetKeyboardFocus() ~= addressBar then
+			addressBar:SetText(u)
 		end
 
 		local vid = medialib.load("media").GuessService(u)
 		local enabled = vid ~= nil
-		req:SetEnabled(enabled)
+		self:OnURLValidityChanged(enabled)
 	end
 
 	self.browser.OnDocumentReady = function(s, u)
@@ -111,7 +119,14 @@ function PANEL:Init()
 	self.browser.UrlChanged = function(s, u)
 		UrlChanged(u)
 	end
-	self.browser.OnChangeTitle = function(s, u) self.browser:RequestCurrentUrl() end
+	self.browser.OnChangeTitle = function(s, u) self.browser:RequestCurrentURL() end
+end
+
+function PANEL:OnURLValidityChanged(b)
+	self.addToQueueButton:SetEnabled(b)
+end
+
+function PANEL:OnURLSelected(url)
 end
 
 vgui.Register("MedialibVideoSelector", PANEL, "Panel")
@@ -120,11 +135,11 @@ concommand.Add("medialib_videoselectortest", function()
 	local fr = vgui.Create("DFrame")
 
 	local vidsel = vgui.Create("MedialibVideoSelector", fr)
-	vidsel:SetCallback(function(url)
+	vidsel.OnURLSelected = function(_, url)
 		fr:Close()
 
 		print("playing " .. url)
-	end)
+	end
 	vidsel:Dock(FILL)
 
 	fr:SetSize(800, 600)

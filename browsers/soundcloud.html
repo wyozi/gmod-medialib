@@ -99,7 +99,7 @@
 					oReq.open("GET", url);
 					oReq.send();
 				}
-				fetch("http://api.soundcloud.com/tracks/?limit=5&linked_partitioning=1&client_id=54b083f616aca3497e9e45b70c2892f5&q=" + encodeURIComponent(q));
+				fetch("http://api.soundcloud.com/tracks/?limit=25&linked_partitioning=1&client_id=54b083f616aca3497e9e45b70c2892f5&q=" + encodeURIComponent(q));
 			}
 
 			function handleQueryKeypress(e) {

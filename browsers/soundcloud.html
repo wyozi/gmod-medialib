@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>SoundCloud browser</title>
+		<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+		<style media="screen">
+			body {
+				background-color: #1d1f21;
+				max-width: 900px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			#query {
+				display: block;
+				width: 100%;
+				height: 35px;
+
+				font-size: 25px;
+				font-family: "Segoe UI", serif;
+			}
+
+			.button {
+				display: block;
+				margin-top: 10px;
+				height: 50px;
+				line-height: 50px;
+				text-align: center;
+
+				cursor: pointer;
+				font-family: "Roboto";
+				font-size: 24px;
+				color: rgb(240, 240, 240);
+			}
+
+			#results .track {
+				background-color: #cd6a51;
+			}
+			#results .track:hover {
+				background-color: #ff6f4a;
+			}
+
+			#more {
+				background-color: #41ab38;
+			}
+			#more:hover {
+				background-color: #5acd51;
+			}
+		</style>
+	</head>
+	<body>
+		<div>
+			<input type="text" id="query" name="query" value="" onkeypress="handleQueryKeypress(event)" />
+		</div>
+		<div id="results">
+
+		</div>
+		<div class="button" id ="more" style="display: none">
+			Load more
+		</div>
+		<script type="text/javascript">
+			var searchData = {};
+
+			function search(q) {
+				searchData = {};
+
+				var res = document.getElementById("results");
+				res.innerHTML = "";
+
+				function callback() {
+					var j = JSON.parse(this.responseText);
+
+					j.collection.forEach(function(track) {
+						var trackEl = document.createElement("div");
+						trackEl.setAttribute("class", "button track");
+						trackEl.innerText = track.title;
+
+						trackEl.addEventListener("click", function() {
+							if ("gmod" in window) {
+								gmod.QueueURL(track.permalink_url);
+							} else {
+								console.log("If this was GMod I would queue this track now: " + track.permalink_url);
+							}
+						});
+
+						res.appendChild(trackEl);
+					});
+
+					var moreButton = document.getElementById("more");
+					moreButton.style.display = "inherit";
+					moreButton.onclick = function() {
+						fetch(j.next_href);
+					};
+				}
+
+				function fetch(url) {
+					var oReq = new XMLHttpRequest();
+					oReq.addEventListener("load", callback);
+					oReq.open("GET", url);
+					oReq.send();
+				}
+				fetch("http://api.soundcloud.com/tracks/?limit=5&linked_partitioning=1&client_id=54b083f616aca3497e9e45b70c2892f5&q=" + encodeURIComponent(q));
+			}
+
+			function handleQueryKeypress(e) {
+				if (e.keyCode == 13) {
+					var queryField = document.getElementById("query");
+
+					var q = queryField.value;
+					queryField.value = "";
+
+					search(q);
+				}
+			}
+		</script>
+	</body>
+</html>

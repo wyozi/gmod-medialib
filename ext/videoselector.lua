@@ -24,7 +24,7 @@ function PANEL:GetDefaultHTML()
 				#servicelinks a {
 					display: block;
 					width: 80%;
-					margin: 10px auto 0 auto;
+					margin: 10px 0 auto;
 					height: 50px;
 					line-height: 50px;
 					text-align: center;
@@ -100,17 +100,24 @@ function PANEL:Init()
 	self.controls:Dock(TOP)
 	self.controls:SetHTML(self.browser)
 
+	self.controls.AddressBar.OnChange = function(teself)
+		local u = teself:GetText()
+
+		local vid = wdj.medialib.load("media").GuessService(u)
+		local enabled = vid ~= nil
+		self:OnURLValidityChanged(enabled)
+	end
+
 	self:InitCustomControls(self.controls)
 
 	local function UrlChanged(u)
 		local addressBar = self.controls.AddressBar
 		if vgui.GetKeyboardFocus() ~= addressBar then
 			addressBar:SetText(u)
-		end
 
-		local vid = medialib.load("media").GuessService(u)
-		local enabled = vid ~= nil
-		self:OnURLValidityChanged(enabled)
+			-- this doesnt trigger on SetText
+			addressBar:OnChange()
+		end
 	end
 
 	self.browser.OnDocumentReady = function(s, u)

@@ -103,7 +103,7 @@ function PANEL:Init()
 	self.controls.AddressBar.OnChange = function(teself)
 		local u = teself:GetText()
 
-		local vid = wdj.medialib.load("media").GuessService(u)
+		local vid = medialib.load("media").GuessService(u)
 		local enabled = vid ~= nil
 		self:OnURLValidityChanged(enabled)
 	end

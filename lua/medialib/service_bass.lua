@@ -55,6 +55,8 @@ function BASSMedia:draw(x, y, w, h)
 end
 
 function BASSMedia:openUrl(url)
+	self._openingInfo = {"url", url}
+
 	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayURL(url, flags, function(chan, errId, errName)
@@ -62,11 +64,47 @@ function BASSMedia:openUrl(url)
 	end)
 end
 function BASSMedia:openFile(path)
+	self._openingInfo = {"file", path}
+
 	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayFile(path, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)
 	end)
+end
+
+-- Attempts to reload the stream
+function BASSMedia:reload()
+	local type, resource = unpack(self._openingInfo or {})
+	if not type then
+		MsgN("[Medialib] Attempting to reload BASS stream that was never started the first time!")
+		return
+	end
+
+	-- stop existing channel if it exists
+	if IsValid(self.chan) then
+		self.chan:Stop()
+		self.chan = nil
+	end
+
+	-- Remove stop flag, clear cmd queue, stop state checker
+	self._stopped = false
+	self:stopStateChecker()
+	self.commandQueue = {}
+
+	MsgN("[Medialib] Attempting to reload BASS stream ", type, resource)
+	if type == "url" then
+		self:openUrl(resource)
+	elseif type == "file" then
+		self:openFile(resource)
+	elseif type then
+		MsgN("[Medialib] Failed to reload audio resource ", type, resource)
+		return
+	end
+
+	if self._commandState == "play" then
+		self:play()
+	end
 end
 
 function BASSMedia:bassCallback(chan, errId, errName)
@@ -80,6 +118,7 @@ function BASSMedia:bassCallback(chan, errId, errName)
 
 	-- Check if media was stopped before loading
 	if self._stopped then
+		MsgN("[MediaLib] Loading BASS media aborted; stop flag was enabled")
 		chan:Stop()
 		return
 	end
@@ -97,13 +136,15 @@ function BASSMedia:bassCallback(chan, errId, errName)
 end
 
 function BASSMedia:startStateChecker()
-	local timerId = "MediaLib_BASS_EndChecker_" .. self:hashCode()
-	timer.Create(timerId, 1, 0, function()
+	timer.Create("MediaLib_BASS_EndChecker_" .. self:hashCode(), 1, 0, function()
 		if IsValid(self.chan) and self.chan:GetState() == GMOD_CHANNEL_STOPPED then
 			self:emit("ended")
-			timer.Destroy(timerId)
+			self:stopStateChecker()
 		end
 	end)
+end
+function BASSMedia:stopStateChecker()
+	timer.Remove("MediaLib_BASS_EndChecker_" .. self:hashCode())
 end
 
 function BASSMedia:runCommand(fn)
@@ -145,7 +186,7 @@ function BASSMedia:seek(time)
 
 		self._seekingTo = time
 
-		local timerId = "MediaLib_BASSMedia_Seeker_" .. time .. "_" .. self:hashCode()
+		local timerId = "MediaLib_BASSMedia_Seeker_" .. self:hashCode()
 		local function AttemptSeek()
 				-- someone used :seek with other time
 			if  self._seekingTo ~= time or
@@ -191,12 +232,14 @@ function BASSMedia:play()
 	self:runCommand(function(chan)
 		chan:Play()
 		self:emit("playing")
+		self._commandState = "play"
 	end)
 end
 function BASSMedia:pause()
 	self:runCommand(function(chan)
 		chan:Pause()
 		self:emit("paused")
+		self._commandState = "pause"
 	end)
 end
 function BASSMedia:stop()
@@ -205,9 +248,36 @@ function BASSMedia:stop()
 		chan:Stop()
 		self:emit("ended", {stopped = true})
 		self:emit("destroyed")
+
+		self:stopStateChecker()
 	end)
 end
 
 function BASSMedia:isValid()
 	return not self._stopped
+end
+
+local mediaregistry = medialib.load("mediaregistry")
+
+local netmsgid = "ML_MapCleanHack_" .. medialib.VERSION
+if CLIENT then
+
+	-- Logic for reloading BASS streams after map cleanups
+	-- Workaround until gmod issue #2874 gets fixed
+	net.Receive(netmsgid, function()
+		for _,v in pairs(mediaregistry.get()) do
+
+			-- BASS media that should play, yet does not
+			if v:getBaseService() == "bass" and v:isValid() and IsValid(v.chan) and v.chan:GetState() == GMOD_CHANNEL_STOPPED then
+				v:reload()
+			end
+		end
+	end)
+end
+if SERVER then
+	util.AddNetworkString(netmsgid)
+	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.VERSION, function()
+		net.Start(netmsgid)
+		net.Broadcast()
+	end)
 end

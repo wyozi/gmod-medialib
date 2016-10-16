@@ -8,7 +8,7 @@
 #!/bin/sh
 
 cd builder
-iojs build.js build
+nodejs build.js build
 cd ..
 
 OUT=$?

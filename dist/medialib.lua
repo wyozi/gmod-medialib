@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@29fb5c8a"
+local VERSION = "git@e525d593"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -499,7 +499,7 @@ end
 media.GuessService = media.guessService -- alias
 
 end
--- 'mediaregistry'; CodeLen/MinifiedLen 626/626; Dependencies []
+-- 'mediaregistry'; CodeLen/MinifiedLen 1248/1248; Dependencies []
 medialib.modulePlaceholder("mediaregistry")
 do
 local mediaregistry = medialib.module("mediaregistry")
@@ -509,8 +509,25 @@ local cache = setmetatable({}, {__mode = "v"})
 function mediaregistry.add(media)
 	table.insert(cache, media)
 end
+function mediaregistry.get()
+	return cache
+end
+
+concommand.Add("medialib_listall", function()
+	hook.Run("MediaLib_ListAll")
+end)
+local vers = medialib.VERSION
+hook.Add("MediaLib_ListAll", "MediaLib_" .. vers, function()
+	print("Media for medialib version " .. vers .. ":")
+	for _,v in pairs(cache) do
+		print(v:getDebugInfo())
+	end
+end)
 
 concommand.Add("medialib_stopall", function()
+	hook.Run("MediaLib_StopAll")
+end)
+hook.Add("MediaLib_StopAll", "MediaLib_" .. medialib.VERSION, function()
 	for _,v in pairs(cache) do
 		v:stop()
 	end
@@ -519,18 +536,22 @@ concommand.Add("medialib_stopall", function()
 end)
 
 local cvar_debug = CreateConVar("medialib_debugmedia", "0")
-hook.Add("HUDPaint", "MediaLib_DebugMedia", function()
+hook.Add("HUDPaint", "MediaLib_G_DebugMedia", function()
 	if not cvar_debug:GetBool() then return end
+	local counter = {0}
+	hook.Run("MediaLib_DebugPaint", counter)
+end)
 
-	local i = 0
+hook.Add("MediaLib_DebugPaint", "MediaLib_" .. medialib.VERSION, function(counter)
+	local i = counter[1]
 	for _,media in pairs(cache) do
 		local t = string.format("#%d %s", i, media:getDebugInfo())
 		draw.SimpleText(t, "DermaDefault", 10, 10 + i*15)
 
 		i=i+1
 	end
+	counter[1] = i
 end)
-
 end
 -- 'servicebase'; CodeLen/MinifiedLen 2234/2234; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("servicebase")
@@ -931,7 +952,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 4826/4826; Dependencies [oop]
+-- 'service_bass'; CodeLen/MinifiedLen 6640/6640; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -991,6 +1012,8 @@ function BASSMedia:draw(x, y, w, h)
 end
 
 function BASSMedia:openUrl(url)
+	self._openingInfo = {"url", url}
+
 	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayURL(url, flags, function(chan, errId, errName)
@@ -998,11 +1021,47 @@ function BASSMedia:openUrl(url)
 	end)
 end
 function BASSMedia:openFile(path)
+	self._openingInfo = {"file", path}
+
 	local flags = table.concat(self.bassPlayOptions, " ")
 
 	sound.PlayFile(path, flags, function(chan, errId, errName)
 		self:bassCallback(chan, errId, errName)
 	end)
+end
+
+-- Attempts to reload the stream
+function BASSMedia:reload()
+	local type, resource = unpack(self._openingInfo or {})
+	if not type then
+		MsgN("[Medialib] Attempting to reload BASS stream that was never started the first time!")
+		return
+	end
+
+	-- stop existing channel if it exists
+	if IsValid(self.chan) then
+		self.chan:Stop()
+		self.chan = nil
+	end
+
+	-- Remove stop flag, clear cmd queue, stop state checker
+	self._stopped = false
+	self:stopStateChecker()
+	self.commandQueue = {}
+
+	MsgN("[Medialib] Attempting to reload BASS stream ", type, resource)
+	if type == "url" then
+		self:openUrl(resource)
+	elseif type == "file" then
+		self:openFile(resource)
+	elseif type then
+		MsgN("[Medialib] Failed to reload audio resource ", type, resource)
+		return
+	end
+
+	if self._commandState == "play" then
+		self:play()
+	end
 end
 
 function BASSMedia:bassCallback(chan, errId, errName)
@@ -1016,6 +1075,7 @@ function BASSMedia:bassCallback(chan, errId, errName)
 
 	-- Check if media was stopped before loading
 	if self._stopped then
+		MsgN("[MediaLib] Loading BASS media aborted; stop flag was enabled")
 		chan:Stop()
 		return
 	end
@@ -1033,13 +1093,15 @@ function BASSMedia:bassCallback(chan, errId, errName)
 end
 
 function BASSMedia:startStateChecker()
-	local timerId = "MediaLib_BASS_EndChecker_" .. self:hashCode()
-	timer.Create(timerId, 1, 0, function()
+	timer.Create("MediaLib_BASS_EndChecker_" .. self:hashCode(), 1, 0, function()
 		if IsValid(self.chan) and self.chan:GetState() == GMOD_CHANNEL_STOPPED then
 			self:emit("ended")
-			timer.Destroy(timerId)
+			self:stopStateChecker()
 		end
 	end)
+end
+function BASSMedia:stopStateChecker()
+	timer.Remove("MediaLib_BASS_EndChecker_" .. self:hashCode())
 end
 
 function BASSMedia:runCommand(fn)
@@ -1081,7 +1143,7 @@ function BASSMedia:seek(time)
 
 		self._seekingTo = time
 
-		local timerId = "MediaLib_BASSMedia_Seeker_" .. time .. "_" .. self:hashCode()
+		local timerId = "MediaLib_BASSMedia_Seeker_" .. self:hashCode()
 		local function AttemptSeek()
 				-- someone used :seek with other time
 			if  self._seekingTo ~= time or
@@ -1127,12 +1189,14 @@ function BASSMedia:play()
 	self:runCommand(function(chan)
 		chan:Play()
 		self:emit("playing")
+		self._commandState = "play"
 	end)
 end
 function BASSMedia:pause()
 	self:runCommand(function(chan)
 		chan:Pause()
 		self:emit("paused")
+		self._commandState = "pause"
 	end)
 end
 function BASSMedia:stop()
@@ -1141,6 +1205,8 @@ function BASSMedia:stop()
 		chan:Stop()
 		self:emit("ended", {stopped = true})
 		self:emit("destroyed")
+
+		self:stopStateChecker()
 	end)
 end
 
@@ -1148,6 +1214,30 @@ function BASSMedia:isValid()
 	return not self._stopped
 end
 
+local mediaregistry = medialib.load("mediaregistry")
+
+local netmsgid = "ML_MapCleanHack_" .. medialib.VERSION
+if CLIENT then
+
+	-- Logic for reloading BASS streams after map cleanups
+	-- Workaround until gmod issue #2874 gets fixed
+	net.Receive(netmsgid, function()
+		for _,v in pairs(mediaregistry.get()) do
+
+			-- BASS media that should play, yet does not
+			if v:getBaseService() == "bass" and v:isValid() and IsValid(v.chan) and v.chan:GetState() == GMOD_CHANNEL_STOPPED then
+				v:reload()
+			end
+		end
+	end)
+end
+if SERVER then
+	util.AddNetworkString(netmsgid)
+	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.VERSION, function()
+		net.Start(netmsgid)
+		net.Broadcast()
+	end)
+end
 end
 medialib.FolderItems["services/gdrive.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal GDriveService = oop.class(\"GDriveService\", \"HTMLService\")\nGDriveService.identifier = \"GDrive\"\n\nlocal all_patterns = {\"^https?://drive.google.com/file/d/([^/]*)/edit\"}\n\nfunction GDriveService:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction GDriveService:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal function urlencode(str)\n   if (str) then\n      str = string.gsub (str, \"\\n\", \"\\r\\n\")\n      str = string.gsub (str, \"([^%w ])\",\n         function (c) return string.format (\"%%%02X\", string.byte(c)) end)\n      str = string.gsub (str, \" \", \"+\")\n   end\n   return str    \nend\n\nlocal player_url = \"https://wyozi.github.io/gmod-medialib/mp4.html?id=%s\"\nlocal gdrive_stream_url = \"https://drive.google.com/uc?export=download&confirm=yTib&id=%s\"\nfunction GDriveService:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlencode(string.format(gdrive_stream_url, urlData.id)))\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction GDriveService:directQuery(url, callback)\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nfunction GDriveService:hasReliablePlaybackEvents(media)\n\treturn true\nend\n\nreturn GDriveService"
 medialib.FolderItems["services/mp4.lua"] = "local oop = medialib.load(\"oop\")\n\nlocal Mp4Service = oop.class(\"Mp4Service\", \"HTMLService\")\nMp4Service.identifier = \"mp4\"\n\nlocal all_patterns = {\"^https?://.*%.mp4\"}\n\nfunction Mp4Service:parseUrl(url)\n\tfor _,pattern in pairs(all_patterns) do\n\t\tlocal id = string.match(url, pattern)\n\t\tif id then\n\t\t\treturn {id = id}\n\t\tend\n\tend\nend\n\nfunction Mp4Service:isValidUrl(url)\n\treturn self:parseUrl(url) ~= nil\nend\n\nlocal player_url = \"https://wyozi.github.io/gmod-medialib/mp4.html?id=%s\"\nfunction Mp4Service:resolveUrl(url, callback)\n\tlocal urlData = self:parseUrl(url)\n\tlocal playerUrl = string.format(player_url, urlData.id)\n\n\tcallback(playerUrl, {start = urlData.start})\nend\n\nfunction Mp4Service:directQuery(url, callback)\n\tcallback(nil, {\n\t\ttitle = url:match(\"([^/]+)$\")\n\t})\nend\n\nfunction Mp4Service:hasReliablePlaybackEvents(media)\n\treturn true\nend\n\nreturn Mp4Service"

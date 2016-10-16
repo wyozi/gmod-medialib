@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@de9f2e78"
+local VERSION = "git@0064b2a5"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6479/6479; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 6588/6588; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -802,6 +802,9 @@ function HTMLMedia:runJS(js, ...)
 end
 
 function HTMLMedia:handleHTMLEvent(id, event)
+	if medialib.DEBUG then
+		MsgN("[MediaLib] HTML Event: " .. id .. " (" .. table.ToString(event) .. ")")
+	end
 	if id == "stateChange" then
 		local state = event.state
 		local setToState

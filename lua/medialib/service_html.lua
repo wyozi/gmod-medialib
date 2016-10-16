@@ -100,6 +100,9 @@ function HTMLMedia:runJS(js, ...)
 end
 
 function HTMLMedia:handleHTMLEvent(id, event)
+	if medialib.DEBUG then
+		MsgN("[MediaLib] HTML Event: " .. id .. " (" .. table.ToString(event) .. ")")
+	end
 	if id == "stateChange" then
 		local state = event.state
 		local setToState

@@ -207,7 +207,16 @@ function HTMLMedia:getVolume()
 	return self.volume or 1
 end
 
+-- if we dont rely on callbacks from JS, this will be the 'buffer' time for seeks
+local SEEK_BUFFER = 0.2
+
 function HTMLMedia:seek(time)
+	-- Youtube does not seem to properly callback with a 'seek' event (works in Chrome)
+	-- Workaround by setting timeseeker time instantly here with a small buffer
+	-- Using workaround is ok because if we somehow get event later, it'll correct
+	-- the time that was set wrongly here
+	self.timeKeeper:seek(time - SEEK_BUFFER)
+
 	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end
 

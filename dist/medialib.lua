@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@0064b2a5"
+local VERSION = "git@67890b67"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6588/6588; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 7019/7019; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -909,7 +909,16 @@ function HTMLMedia:getVolume()
 	return self.volume or 1
 end
 
+-- if we dont rely on callbacks from JS, this will be the 'buffer' time for seeks
+local SEEK_BUFFER = 0.2
+
 function HTMLMedia:seek(time)
+	-- Youtube does not seem to properly callback with a 'seek' event (works in Chrome)
+	-- Workaround by setting timeseeker time instantly here with a small buffer
+	-- Using workaround is ok because if we somehow get event later, it'll correct
+	-- the time that was set wrongly here
+	self.timeKeeper:seek(time - SEEK_BUFFER)
+
 	self:runJS("medialibDelegate.run('seek', {time: %.1f})", time)
 end
 

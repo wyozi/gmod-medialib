@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@67890b67"
+local VERSION = "git@872ee049"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -965,7 +965,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 6640/6640; Dependencies [oop,mediaregistry]
+-- 'service_bass'; CodeLen/MinifiedLen 6685/6685; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -1072,6 +1072,8 @@ function BASSMedia:reload()
 		return
 	end
 
+	self:applyVolume(true)
+	
 	if self._commandState == "play" then
 		self:play()
 	end
@@ -1128,13 +1130,13 @@ end
 
 -- This applies the volume to the HTML panel
 -- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
-function BASSMedia:applyVolume()
+function BASSMedia:applyVolume(force)
 	local ivol = self.internalVolume or 1
 	local rvol = self.volume or 1
 
 	local vol = ivol * rvol
 
-	if self.lastSetVolume and self.lastSetVolume == vol then
+	if not force and self.lastSetVolume and self.lastSetVolume == vol then
 		return
 	end
 	self.lastSetVolume = vol

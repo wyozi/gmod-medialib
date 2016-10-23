@@ -102,6 +102,8 @@ function BASSMedia:reload()
 		return
 	end
 
+	self:applyVolume(true)
+	
 	if self._commandState == "play" then
 		self:play()
 	end
@@ -158,13 +160,13 @@ end
 
 -- This applies the volume to the HTML panel
 -- There is a undocumented 'internalVolume' variable, that can be used by eg 3d vol
-function BASSMedia:applyVolume()
+function BASSMedia:applyVolume(force)
 	local ivol = self.internalVolume or 1
 	local rvol = self.volume or 1
 
 	local vol = ivol * rvol
 
-	if self.lastSetVolume and self.lastSetVolume == vol then
+	if not force and self.lastSetVolume and self.lastSetVolume == vol then
 		return
 	end
 	self.lastSetVolume = vol

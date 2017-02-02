@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@872ee049"
+local VERSION = "git@d708bd17"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 7019/7019; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 7390/7390; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -743,6 +743,8 @@ function AwesomiumPool.free(inst)
 	table.insert(AwesomiumPool.instances, inst)
 end
 
+local cvar_showAllMessages = CreateConVar("medialib_showallmessages", "0")
+
 local HTMLMedia = oop.class("HTMLMedia", "Media")
 
 local panel_width, panel_height = 1280, 720
@@ -768,7 +770,7 @@ function HTMLMedia:initialize()
 	local oldcm = pnl._OldCM or pnl.ConsoleMessage
 	pnl._OldCM = oldcm
 	pnl.ConsoleMessage = function(pself, msg)
-		if msg then
+		if msg and not cvar_showAllMessages:GetBool() then
 			-- Filter some things out
 			if string.find(msg, "XMLHttpRequest", nil, true) then return end
 			if string.find(msg, "Unsafe JavaScript attempt to access", nil, true) then return end
@@ -778,6 +780,13 @@ function HTMLMedia:initialize()
 
 		return oldcm(pself, msg)
 	end
+
+	pnl:AddFunction("console", "warn", function(param)
+		-- Youtube seems to spam lots of useless stuff here (that requires this function still?), so block by default
+		if not cvar_showAllMessages:GetBool() then return end
+
+		pnl:ConsoleMessage(param)
+	end)
 
 	pnl:SetPaintedManually(true)
 	pnl:SetVisible(false)

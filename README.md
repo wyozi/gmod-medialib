@@ -10,6 +10,14 @@ Media library for Garry's Mod.
 	- `local medialib = include("the/path/to/medialib.lua")` if you only use it in one file
 	- `MyGlobalTable.medialib = include("the/path/to/medialib.lua")` if you use it multiple times (you need to refer to medialib as `MyGlobalTable.medialib` or localize it if you do this)
 
+##### Note: SoundCloud API
+SoundCloud support requires an API key (or 'client id'), which must be assigned to the medialib table manually. Here's an example:
+
+```lua
+local medialib = include("medialib.lua")
+medialib.SOUNDCLOUD_API_KEY = "my-key-here"
+```
+
 ### Example
 
 ```lua

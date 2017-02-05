@@ -29,36 +29,48 @@ function SoundcloudService:isValidUrl(url)
 	return self:parseUrl(url) ~= nil
 end
 
-local API_KEY = "54b083f616aca3497e9e45b70c2892f5"
 function SoundcloudService:resolveUrl(url, callback)
+	local apiKey = medialib.SOUNDCLOUD_API_KEY
+	if not apiKey then
+		ErrorNoHalt("SoundCloud error: Missing SoundCloud API key")
+		return
+	end
+
 	local urlData = self:parseUrl(url)
 
 	if urlData.id then
 		-- id passed directly; nice, we can skip resolve.json
-		callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", urlData.id, API_KEY), {})
+		callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", urlData.id, apiKey), {})
 	else
 		http.Fetch(
-			string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, API_KEY),
+			string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, apiKey),
 			function(data)
 				local jsonTable = util.JSONToTable(data)
 				if not jsonTable then
-					error("Failed to retrieve SC track id for " .. urlData.path .. ": empty JSON")
+					ErrorNoHalt("Failed to retrieve SC track id for " .. urlData.path .. ": empty JSON")
+					return
 				end
 
 				local id = jsonTable.id
-				callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", id, API_KEY), {})
+				callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", id, apiKey), {})
 			end)
 	end
 end
 
 function SoundcloudService:directQuery(url, callback)
+	local apiKey = medialib.SOUNDCLOUD_API_KEY
+	if not apiKey then
+		callback("Missing SoundCloud API key")
+		return
+	end
+
 	local urlData = self:parseUrl(url)
 
 	local metaurl
 	if urlData.path then
-		metaurl = string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, API_KEY)
+		metaurl = string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, apiKey)
 	else
-		metaurl = string.format("https://api.soundcloud.com/tracks/%s?client_id=%s", urlData.id, API_KEY)
+		metaurl = string.format("https://api.soundcloud.com/tracks/%s?client_id=%s", urlData.id, apiKey)
 	end
 
 	http.Fetch(metaurl, function(result, size)

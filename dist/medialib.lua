@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@1ce8adb2"
+local VERSION = "git@98c5fb4d"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 7506/7506; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 7574/7574; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -776,6 +776,7 @@ function HTMLMedia:initialize()
 			if string.find(msg, "Unsafe JavaScript attempt to access", nil, true) then return end
 			if string.find(msg, "Unable to post message to", nil, true) then return end
 			if string.find(msg, "ran insecure content from", nil, true) then return end
+			if string.find(msg, "Mixed Content:", nil, true) then return end
 		end
 
 		return oldcm(pself, msg)

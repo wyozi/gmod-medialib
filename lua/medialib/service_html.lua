@@ -74,6 +74,7 @@ function HTMLMedia:initialize()
 			if string.find(msg, "Unsafe JavaScript attempt to access", nil, true) then return end
 			if string.find(msg, "Unable to post message to", nil, true) then return end
 			if string.find(msg, "ran insecure content from", nil, true) then return end
+			if string.find(msg, "Mixed Content:", nil, true) then return end
 		end
 
 		return oldcm(pself, msg)

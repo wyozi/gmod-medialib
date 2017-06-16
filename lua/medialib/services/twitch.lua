@@ -29,34 +29,70 @@ function TwitchService:resolveUrl(url, callback)
 	callback(playerUrl, {start = urlData.start})
 end
 
-function TwitchService:directQuery(url, callback)
-	local urlData = self:parseUrl(url)
-	local metaurl = string.format("https://api.twitch.tv/kraken/channels/%s", urlData.id)
+local CLIENT_ID = "4cryixome326gh0x0j0fkulahsbdvx"
 
-	http.Fetch(metaurl, function(result, size)
-		if size == 0 then
-			callback("http body size = 0")
+local function nameToId(name, callback)
+	http.Fetch("https://api.twitch.tv/kraken/users?login=" .. name, function(b)
+		local obj = util.JSONToTable(b)
+		if not obj then
+			callback("malformed response JSON")
 			return
 		end
 
-		local data = {}
-		data.id = urlData.id
+		callback(nil, obj.users[1]._id)
+	end, function()
+		callback("failed HTTP request")
+	end, {
+		Accept = "application/vnd.twitchtv.v5+json",
+		["Client-ID"] = CLIENT_ID
+	})
+end
 
-		local jsontbl = util.JSONToTable(result)
-
-		if jsontbl then
-			if jsontbl.error then
-				callback(jsontbl.message)
-				return
-			else
-				data.title = jsontbl.display_name .. ": " .. jsontbl.status
-			end
-		else
-			data.title = "ERROR"
+local function metaQuery(id, callback)
+	http.Fetch("https://api.twitch.tv/kraken/channels/" .. id, function(b)
+		local obj = util.JSONToTable(b)
+		if not obj then
+			callback("malformed response JSON")
+			return
 		end
 
-		callback(nil, data)
-	end, function(err) callback("HTTP: " .. err) end)
+		callback(nil, obj)
+	end, function()
+		callback("failed HTTP request")
+	end, {
+		Accept = "application/vnd.twitchtv.v5+json",
+		["Client-ID"] = CLIENT_ID
+	})
+end
+
+function TwitchService:directQuery(url, callback)
+	local urlData = self:parseUrl(url)
+
+	nameToId(urlData.id, function(err, id)
+		if err then
+			callback(err)
+			return
+		end
+
+		metaQuery(id, function(err, meta)
+			if err then
+				callback(err)
+				return
+			end
+
+			local data = {}
+			data.id = urlData.id
+
+			if meta.error then
+				callback(meta.message)
+				return
+			else
+				data.title = meta.display_name .. ": " .. meta.status
+			end
+
+			callback(nil, data)
+		end)
+	end)
 end
 
 return TwitchService

@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@461c90fa"
+local VERSION = "git@1ce8adb2"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 7390/7390; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 7506/7506; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -871,6 +871,12 @@ function HTMLMedia:draw(x, y, w, h)
 	self:updateTexture()
 
 	local mat = self:getHTMLMaterial()
+
+	-- [June 2017] CEF GetHTMLMaterial returns nil for some time after panel creation
+	if not mat then
+		return
+	end
+
 	surface.SetMaterial(mat)
 	surface.SetDrawColor(255, 255, 255)
 

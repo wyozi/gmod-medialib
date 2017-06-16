@@ -169,6 +169,12 @@ function HTMLMedia:draw(x, y, w, h)
 	self:updateTexture()
 
 	local mat = self:getHTMLMaterial()
+
+	-- [June 2017] CEF GetHTMLMaterial returns nil for some time after panel creation
+	if not mat then
+		return
+	end
+
 	surface.SetMaterial(mat)
 	surface.SetDrawColor(255, 255, 255)
 

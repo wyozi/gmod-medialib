@@ -15,32 +15,6 @@ function HTMLService:hasReliablePlaybackEvents(media)
 	return false
 end
 
-local AwesomiumPool = {instances = {}}
-concommand.Add("medialib_awepoolinfo", function()
-	print("AwesomiumPool> Free instance count: " .. #AwesomiumPool.instances)
-end)
--- If there's bunch of awesomium instances in pool, we clean one up every 30 seconds
-timer.Create("MediaLib.AwesomiumPoolCleaner", 30, 0, function()
-	if #AwesomiumPool.instances < 3 then return end
-
-	local inst = table.remove(AwesomiumPool.instances, 1)
-	if IsValid(inst) then inst:Remove() end
-end)
-function AwesomiumPool.get()
-	local inst = table.remove(AwesomiumPool.instances, 1)
-	if not IsValid(inst) then
-		local pnl = vgui.Create("DHTML")
-		return pnl
-	end
-	return inst
-end
-function AwesomiumPool.free(inst)
-	if not IsValid(inst) then return end
-	inst:SetHTML("")
-
-	table.insert(AwesomiumPool.instances, inst)
-end
-
 local cvar_showAllMessages = CreateConVar("medialib_showallmessages", "0")
 
 local HTMLMedia = oop.class("HTMLMedia", "Media")
@@ -49,7 +23,7 @@ local panel_width, panel_height = 1280, 720
 function HTMLMedia:initialize()
 	self.timeKeeper = oop.class("TimeKeeper")()
 
-	self.panel = AwesomiumPool.get()
+	self.panel = vgui.Create("DHTML")
 
 	local pnl = self.panel
 	pnl:SetPos(0, 0)
@@ -257,7 +231,7 @@ function HTMLMedia:pause()
 	self:runJS("medialibDelegate.run('pause')")
 end
 function HTMLMedia:stop()
-	AwesomiumPool.free(self.panel)
+	self.panel:Remove()
 	self.panel = nil
 
 	self.timeKeeper:pause()

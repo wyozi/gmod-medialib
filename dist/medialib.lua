@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@004faae0"
+local VERSION = "git@6d038638"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -500,7 +500,7 @@ end
 media.GuessService = media.guessService -- alias
 
 end
--- 'mediaregistry'; CodeLen/MinifiedLen 1248/1248; Dependencies []
+-- 'mediaregistry'; CodeLen/MinifiedLen 1246/1246; Dependencies []
 medialib.modulePlaceholder("mediaregistry")
 do
 local mediaregistry = medialib.module("mediaregistry")
@@ -517,9 +517,8 @@ end
 concommand.Add("medialib_listall", function()
 	hook.Run("MediaLib_ListAll")
 end)
-local vers = medialib.VERSION
-hook.Add("MediaLib_ListAll", "MediaLib_" .. vers, function()
-	print("Media for medialib version " .. vers .. ":")
+hook.Add("MediaLib_ListAll", "MediaLib_" .. medialib.INSTANCE, function()
+	print("Media for medialib version " .. medialib.INSTANCE .. ":")
 	for _,v in pairs(cache) do
 		print(v:getDebugInfo())
 	end
@@ -528,7 +527,7 @@ end)
 concommand.Add("medialib_stopall", function()
 	hook.Run("MediaLib_StopAll")
 end)
-hook.Add("MediaLib_StopAll", "MediaLib_" .. medialib.VERSION, function()
+hook.Add("MediaLib_StopAll", "MediaLib_" .. medialib.INSTANCE, function()
 	for _,v in pairs(cache) do
 		v:stop()
 	end
@@ -543,7 +542,7 @@ hook.Add("HUDPaint", "MediaLib_G_DebugMedia", function()
 	hook.Run("MediaLib_DebugPaint", counter)
 end)
 
-hook.Add("MediaLib_DebugPaint", "MediaLib_" .. medialib.VERSION, function(counter)
+hook.Add("MediaLib_DebugPaint", "MediaLib_" .. medialib.INSTANCE, function(counter)
 	local i = counter[1]
 	for _,media in pairs(cache) do
 		local t = string.format("#%d %s", i, media:getDebugInfo())
@@ -1015,7 +1014,7 @@ function HTMLMedia:isValid()
 end
 
 end
--- 'service_bass'; CodeLen/MinifiedLen 6685/6685; Dependencies [oop,mediaregistry]
+-- 'service_bass'; CodeLen/MinifiedLen 6686/6686; Dependencies [oop,mediaregistry]
 medialib.modulePlaceholder("service_bass")
 do
 local oop = medialib.load("oop")
@@ -1123,7 +1122,7 @@ function BASSMedia:reload()
 	end
 
 	self:applyVolume(true)
-	
+
 	if self._commandState == "play" then
 		self:play()
 	end
@@ -1281,7 +1280,7 @@ end
 
 local mediaregistry = medialib.load("mediaregistry")
 
-local netmsgid = "ML_MapCleanHack_" .. medialib.VERSION
+local netmsgid = "ML_MapCleanHack_" .. medialib.INSTANCE
 if CLIENT then
 
 	-- Logic for reloading BASS streams after map cleanups
@@ -1298,7 +1297,7 @@ if CLIENT then
 end
 if SERVER then
 	util.AddNetworkString(netmsgid)
-	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.VERSION, function()
+	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.INSTANCE, function()
 		net.Start(netmsgid)
 		net.Broadcast()
 	end)

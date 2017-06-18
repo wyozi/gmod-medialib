@@ -12,9 +12,8 @@ end
 concommand.Add("medialib_listall", function()
 	hook.Run("MediaLib_ListAll")
 end)
-local vers = medialib.VERSION
-hook.Add("MediaLib_ListAll", "MediaLib_" .. vers, function()
-	print("Media for medialib version " .. vers .. ":")
+hook.Add("MediaLib_ListAll", "MediaLib_" .. medialib.INSTANCE, function()
+	print("Media for medialib version " .. medialib.INSTANCE .. ":")
 	for _,v in pairs(cache) do
 		print(v:getDebugInfo())
 	end
@@ -23,7 +22,7 @@ end)
 concommand.Add("medialib_stopall", function()
 	hook.Run("MediaLib_StopAll")
 end)
-hook.Add("MediaLib_StopAll", "MediaLib_" .. medialib.VERSION, function()
+hook.Add("MediaLib_StopAll", "MediaLib_" .. medialib.INSTANCE, function()
 	for _,v in pairs(cache) do
 		v:stop()
 	end
@@ -38,7 +37,7 @@ hook.Add("HUDPaint", "MediaLib_G_DebugMedia", function()
 	hook.Run("MediaLib_DebugPaint", counter)
 end)
 
-hook.Add("MediaLib_DebugPaint", "MediaLib_" .. medialib.VERSION, function(counter)
+hook.Add("MediaLib_DebugPaint", "MediaLib_" .. medialib.INSTANCE, function(counter)
 	local i = counter[1]
 	for _,media in pairs(cache) do
 		local t = string.format("#%d %s", i, media:getDebugInfo())

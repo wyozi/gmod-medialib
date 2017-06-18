@@ -103,7 +103,7 @@ function BASSMedia:reload()
 	end
 
 	self:applyVolume(true)
-	
+
 	if self._commandState == "play" then
 		self:play()
 	end
@@ -261,7 +261,7 @@ end
 
 local mediaregistry = medialib.load("mediaregistry")
 
-local netmsgid = "ML_MapCleanHack_" .. medialib.VERSION
+local netmsgid = "ML_MapCleanHack_" .. medialib.INSTANCE
 if CLIENT then
 
 	-- Logic for reloading BASS streams after map cleanups
@@ -278,7 +278,7 @@ if CLIENT then
 end
 if SERVER then
 	util.AddNetworkString(netmsgid)
-	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.VERSION, function()
+	hook.Add("PostCleanupMap", "MediaLib_BassReload" .. medialib.INSTANCE, function()
 		net.Start(netmsgid)
 		net.Broadcast()
 	end)

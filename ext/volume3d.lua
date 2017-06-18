@@ -113,15 +113,15 @@ local function startHTMLThink(clip)
 			if clip.attenuationType == "linear" then
 				vol = (1 - fadeFrac)
 			else
-				vol = 1/(((fadeFrac+1)*obsFadeMul)^7)
+				vol = 1/((fadeFrac+1)^7)
 			end
-			
+
 			vol = vol * obsVolMul
 			vol = math.Clamp(vol, 0, 1)
 		end
 
 		-- Set the internal volume so that users can still set relative volume
-		clip.internalVolume = vol
+		clip.internalVolume = math.Approach(clip.internalVolume or 0, vol, FrameTime() * 2)
 		clip:applyVolume()
 	end)
 end

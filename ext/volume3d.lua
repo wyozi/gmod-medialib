@@ -106,11 +106,19 @@ local function startHTMLThink(clip)
 		local fadeMax = clip.fadeMax3D or 1024
 		local fadeFrac = (dist / fadeMax)
 
-		local obsVolMul, obsFadeMul = getObstacleMultiplier(pos)
+		local vol = 0
+		if fadeFrac < 1 then
+			local obsVolMul, obsFadeMul = getObstacleMultiplier(pos)
 
-		local vol = 1/(((fadeFrac+1)*obsFadeMul)^7)
-		vol = math.Clamp(vol, 0, 1)
-		vol = vol * obsVolMul
+			if clip.attenuationType == "linear" then
+				vol = (1 - fadeFrac)
+			else
+				vol = 1/(((fadeFrac+1)*obsFadeMul)^7)
+			end
+			
+			vol = vol * obsVolMul
+			vol = math.Clamp(vol, 0, 1)
+		end
 
 		-- Set the internal volume so that users can still set relative volume
 		clip.internalVolume = vol
@@ -149,9 +157,13 @@ hook.Add("Medialib_ProcessOpts", "Medialib_Volume3d", function(media, opts)
 			self.chan:Set3DFadeDistance(0, fademax)
 		end
 	end
+	function media:set3DAttenuationType(type)
+		self.attenuationType = type
+	end
 
 	if opts.pos3D then media:set3DPos(opts.pos3D) end
 	if opts.ent3D then media:set3DEnt(opts.ent3D) end
+	if opts.attenuationType then media:set3DAttenuationType(opts.attenuationType) end
 
 	media:runCommand(function()
 		startThink(media)

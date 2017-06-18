@@ -6,6 +6,7 @@ medialib = {}
 
 medialib.VERSION = VERSION
 medialib.DISTRIBUTABLE = DISTRIBUTABLE
+medialib.INSTANCE = medialib.VERSION .. "_" .. tostring(10000 + math.random(90000))
 
 medialib.Modules = {}
 

@@ -2,13 +2,14 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@7edcb5bf"
+local VERSION = "git@004faae0"
 local DISTRIBUTABLE = true
 
 medialib = {}
 
 medialib.VERSION = VERSION
 medialib.DISTRIBUTABLE = DISTRIBUTABLE
+medialib.INSTANCE = medialib.VERSION .. "_" .. tostring(10000 + math.random(90000))
 
 medialib.Modules = {}
 
@@ -697,7 +698,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 6773/6773; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 8426/8426; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -717,6 +718,65 @@ function HTMLService:hasReliablePlaybackEvents(media)
 	return false
 end
 
+local HTMLPool = {instances = {}}
+local function GetMaxPoolInstances()
+	return medialib.MAX_HTMLPOOL_INSTANCES or 0
+end
+
+hook.Add("MediaLib_HTMLPoolInfo", medialib.INSTANCE, function()
+	print(medialib.INSTANCE .. "> Free HTMLPool instance count: " .. #HTMLPool.instances .. "/" .. GetMaxPoolInstances())
+end)
+concommand.Add("medialib_htmlpoolinfo", function()
+	hook.Run("MediaLib_HTMLPoolInfo")
+end)
+
+-- Automatic periodic cleanup of html pool objects
+timer.Create("MediaLib." .. medialib.INSTANCE .. ".HTMLPoolCleaner", 60, 0, function()
+	if #HTMLPool.instances == 0 then return end
+
+	local inst = table.remove(HTMLPool.instances, 1)
+	if IsValid(inst) then inst:Remove() end
+end)
+function HTMLPool.newInstance()
+	return vgui.Create("DHTML")
+end
+function HTMLPool.get()
+	if #HTMLPool.instances == 0 then
+		if medialib.DEBUG then
+			MsgN("[MediaLib] Returning new instance; htmlpool empty")
+		end
+		return HTMLPool.newInstance()
+	end
+
+	local inst = table.remove(HTMLPool.instances, 1)
+	if not IsValid(inst) then
+		if medialib.DEBUG then
+			MsgN("[MediaLib] Returning new instance; instance was invalid")
+		end
+		return HTMLPool.newInstance()
+	end
+	if medialib.DEBUG then
+		MsgN("[MediaLib] Returning an instance from the HTML pool")
+	end
+	return inst
+end
+function HTMLPool.free(inst)
+	if not IsValid(inst) then return end
+
+	if #HTMLPool.instances >= GetMaxPoolInstances() then
+		if medialib.DEBUG then
+			MsgN("[MediaLib] HTMLPool full; removing the freed instance")
+		end
+		inst:Remove()
+	else
+		if medialib.DEBUG then
+			MsgN("[MediaLib] Freeing an instance to the HTMLPool")
+		end
+		inst:SetHTML("")
+		table.insert(HTMLPool.instances, inst)
+	end
+end
+
 local cvar_showAllMessages = CreateConVar("medialib_showallmessages", "0")
 
 local HTMLMedia = oop.class("HTMLMedia", "Media")
@@ -725,7 +785,7 @@ local panel_width, panel_height = 1280, 720
 function HTMLMedia:initialize()
 	self.timeKeeper = oop.class("TimeKeeper")()
 
-	self.panel = vgui.Create("DHTML")
+	self.panel = HTMLPool.get()
 
 	local pnl = self.panel
 	pnl:SetPos(0, 0)
@@ -933,7 +993,7 @@ function HTMLMedia:pause()
 	self:runJS("medialibDelegate.run('pause')")
 end
 function HTMLMedia:stop()
-	self.panel:Remove()
+	HTMLPool.free(self.panel)
 	self.panel = nil
 
 	self.timeKeeper:pause()

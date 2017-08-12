@@ -18,7 +18,8 @@ Medialib offers some configuration options that can be set by setting members of
 -- Example library import
 local medialib = include("medialib.lua")
 
--- SoundCloud API key. Required for usage of soundcloud at all
+-- SoundCloud API key. Required for SoundCloud service
+-- Can also be a table in which case a random key is picked for each query.
 medialib.SOUNDCLOUD_API_KEY = "my-key-here"
 
 -- The maximum number of HTML panel instances in the HTML pool

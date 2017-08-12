@@ -36,6 +36,10 @@ function SoundcloudService:resolveUrl(url, callback)
 		return
 	end
 
+	if type(apiKey) == "table" then
+		apiKey = table.Random(apiKey)
+	end
+
 	local urlData = self:parseUrl(url)
 
 	if urlData.id then
@@ -62,6 +66,10 @@ function SoundcloudService:directQuery(url, callback)
 	if not apiKey then
 		callback("Missing SoundCloud API key")
 		return
+	end
+
+	if type(apiKey) == "table" then
+		apiKey = table.Random(apiKey)
 	end
 
 	local urlData = self:parseUrl(url)

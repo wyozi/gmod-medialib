@@ -269,4 +269,4 @@ function build(shouldMinify, targetFile) {
 }
 
 build(false, "dist/medialib.lua");
-//build(true, "dist/medialib.min.lua");
+build(true, "dist/medialib.min.lua");

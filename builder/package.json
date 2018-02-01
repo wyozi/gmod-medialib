@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-  	"luaparse": "git://github.com/mathiasbynens/luamin.git#3d9153b2",
+  	"luamin": "1.0.4",
   	"q": "1.4.0"
   },
   "author": "",

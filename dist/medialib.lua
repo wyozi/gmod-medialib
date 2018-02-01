@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@c4078dce"
+local VERSION = "git@75ecf4d8"
 local DISTRIBUTABLE = true
 
 medialib = {}

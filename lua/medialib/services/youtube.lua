@@ -90,6 +90,7 @@ function YoutubeService:directQuery(url, callback)
 
 			data.title = item.snippet.title
 			data.duration = tonumber(PTToSeconds(item.contentDetails.duration))
+			data.raw = item
 		else
 			callback(result)
 			return

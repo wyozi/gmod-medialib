@@ -2,6 +2,10 @@
 
 Media library for Garry's Mod.
 
+### Workaround as of 2018/09/30
+
+Awesomium (the embedded web browser) in Garry's Mod doesn't work with Youtube. To fix this you need to use the `chromium` branch for Garry's Mod. See https://github.com/wyozi/gmod-medialib/issues/64 for details.
+
 ### Setup
 
 1. Copy ```dist/medialib.lua``` into your addon/gamemode

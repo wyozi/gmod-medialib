@@ -30,8 +30,10 @@
 		background-color: #f5fdff;
 		margin: auto;
 		width: 630px;
-		height: 550px;
+		height: 660px;
 		text-align: center;
+		font-size: 20px;
+		font-weight: 600;
 		padding: 10px;
 	}
 	</style>
@@ -192,7 +194,7 @@
 			return raw ? parseInt(raw[2], 10) : false;
 		}
 		var chromeVersion = getChromeVersion();
-		if (chromeVersion && chromeVersion < 30) {
+		if (chromeVersion && chromeVersion < 90) {
 			document.getElementById("wrongbranchpopup").style.display = "inherit";
 		}
 	</script>

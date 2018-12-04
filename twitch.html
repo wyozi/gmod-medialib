@@ -19,6 +19,13 @@
 
 		<script src="medialib.js"></script>
 		<script>
+			var qualityMap = {
+				low: "360",
+				medium: "480",
+				high: "720",
+				veryhigh: "chunked"
+			}
+
 			medialibDelegate = medialib.createEventDelegate({
 				play: function() {
 					this.play();
@@ -31,6 +38,39 @@
 				},
 				setVolume: function(obj) {
 					this.setVolume(obj.vol);
+				},
+				setQuality: function(obj) {
+					var mapped = qualityMap[obj.quality] || "auto";
+
+					var applyQuality = function() {
+						var qualities = this.getQualities();
+
+						if (qualities.length === 0) {
+							// qualities did not load yet. Try again later
+							setTimeout(applyQuality, 500);
+							console.log("[Medialib] Delaying applyQuality..");
+							return;
+						}
+
+						var foundQual = null;
+
+						for (var key in qualities) {
+							var qualObj = qualities[key];
+
+							if (qualObj.group.startsWith(mapped)) {
+								foundQual = qualObj.group;
+								break;
+							}
+						}
+
+						if (!foundQual) {
+							console.log("[Medialib] warning: twitch does not have quality " + (obj.quality || "null"));
+							foundQual = "auto";
+						}
+
+						this.setQuality(foundQual);
+					}.bind(this);
+					applyQuality();
 				}
 			});
 
@@ -44,8 +84,19 @@
 					channel: channel
 				};
 				var player = new Twitch.Player("twitch_embed_player", options);
-				player.addEventListener("ready", function() {
-					medialibDelegate.playerLoaded(player);
+				player.addEventListener(Twitch.Player.READY, function() {
+					var startPaused = function() {
+						this.pause();
+						if (!this.isPaused()) {
+							// player does not actually accept commands yet, waiting
+							setTimeout(startPaused, 300);
+							console.log("[Medialib] Delaying startPaused..");
+						} else {
+							// loaded, run commands
+							medialibDelegate.playerLoaded(player);
+						}
+					}.bind(player);
+					startPaused();
 				});
 			});
 		</script>

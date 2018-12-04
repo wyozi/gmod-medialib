@@ -180,11 +180,17 @@ function HTMLMedia:getState()
 end
 
 local cvar_updatestride = CreateConVar("medialib_html_updatestride", "1", FCVAR_ARCHIVE)
+
+function HTMLMedia:setUpdateStrideOverride(override)
+	self._updateStrideOverride = override
+end
+
 function HTMLMedia:updateTexture()
 	local framenumber = FrameNumber()
 
 	local framesSinceUpdate = (framenumber - (self.lastUpdatedFrame or 0))
-	if framesSinceUpdate >= cvar_updatestride:GetInt() then
+	local stride = self._updateStrideOverride or cvar_updatestride:GetInt()
+	if framesSinceUpdate >= stride then
 		self.panel:UpdateHTMLTexture()
 		self.lastUpdatedFrame = framenumber
 	end

@@ -2,7 +2,7 @@ local medialib
 
 do
 -- Note: build file expects these exact lines for them to be automatically replaced, so please don't change anything
-local VERSION = "git@8f56e9d9"
+local VERSION = "git@5ac78a78"
 local DISTRIBUTABLE = true
 
 medialib = {}
@@ -697,7 +697,7 @@ function TimeKeeper:seek(time)
 	end
 end
 end
--- 'service_html'; CodeLen/MinifiedLen 8577/8577; Dependencies [oop,timekeeper]
+-- 'service_html'; CodeLen/MinifiedLen 8598/8598; Dependencies [oop,timekeeper]
 medialib.modulePlaceholder("service_html")
 do
 local oop = medialib.load("oop")
@@ -890,11 +890,12 @@ end
 function HTMLMedia:updateTexture()
 	local framenumber = FrameNumber()
 
-	local framesSinceUpdate = (framenumber - (self.lastUpdatedFrame or 0))
+	local nextTextureUpdateFrame = self._nextTextureUpdateFrame or 0
+
 	local stride = self._updateStrideOverride or cvar_updatestride:GetInt()
-	if framesSinceUpdate >= stride then
+	if nextTextureUpdateFrame <= framenumber then
 		self.panel:UpdateHTMLTexture()
-		self.lastUpdatedFrame = framenumber
+		self._nextTextureUpdateFrame = framenumber + stride
 	end
 end
 

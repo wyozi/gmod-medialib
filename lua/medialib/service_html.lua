@@ -188,11 +188,12 @@ end
 function HTMLMedia:updateTexture()
 	local framenumber = FrameNumber()
 
-	local framesSinceUpdate = (framenumber - (self.lastUpdatedFrame or 0))
+	local nextTextureUpdateFrame = self._nextTextureUpdateFrame or 0
+
 	local stride = self._updateStrideOverride or cvar_updatestride:GetInt()
-	if framesSinceUpdate >= stride then
+	if nextTextureUpdateFrame <= framenumber then
 		self.panel:UpdateHTMLTexture()
-		self.lastUpdatedFrame = framenumber
+		self._nextTextureUpdateFrame = framenumber + stride
 	end
 end
 

@@ -8,7 +8,7 @@ Awesomium (the embedded web browser) in Garry's Mod doesn't work with Youtube. T
 
 ### Setup
 
-1. Copy ```dist/medialib.lua``` into your addon/gamemode
+1. Download `medialib.lua` or minimized `medialib.min.lua` from https://github.com/wyozi/gmod-medialib/releases/latest and place into your addon/gamemode
 2. Make sure it is available to clients via `AddCSLuaFile`
 3. Include it where-ever you need it. See best-practises below:
 	- `local medialib = include("the/path/to/medialib.lua")` if you only use it in one file

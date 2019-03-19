@@ -9,13 +9,14 @@ action "Build distributable" {
 
 action "Upload .lua" {
   uses = "JasonEtco/upload-to-release@master"
-  args = "dist/medialib.lua"
+  args = "dist/medialib.lua application/x-lua"
   secrets = ["GITHUB_TOKEN"]
   needs = ["Build distributable"]
 }
+
 action "Upload .min.lua" {
   uses = "JasonEtco/upload-to-release@master"
-  args = "dist/medialib.min.lua"
+  args = "dist/medialib.min.lua application/x-lua"
   secrets = ["GITHUB_TOKEN"]
   needs = ["Build distributable"]
 }

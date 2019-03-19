@@ -19,8 +19,6 @@ fi
 git add dist/*.lua
 */
 
-process.chdir(".."); // We want to be at the addon root
-
 var Q = require("q");
 
 var buildNoGit = false;

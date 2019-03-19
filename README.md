@@ -26,6 +26,10 @@ local medialib = include("medialib.lua")
 -- Can also be a table in which case a random key is picked for each query.
 medialib.SOUNDCLOUD_API_KEY = "my-key-here"
 
+-- Youtube API key. Medialib comes bundled with a Youtube data API v3 key, so this is optional.
+-- If you want to generate your own you can do so at https://console.developers.google.com/apis/dashboard
+medialib.YOUTUBE_API_KEY = "my-key-here"
+
 -- The maximum number of HTML panel instances in the HTML pool
 -- Set this to a sensible number (1-5) if you spawn a lot of HTML medias
 medialib.MAX_HTMLPOOL_INSTANCES = 0

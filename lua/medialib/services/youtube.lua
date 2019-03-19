@@ -65,10 +65,13 @@ local function PTToSeconds(str)
 	return h*(60*60) + m*60 + s
 end
 
-local API_KEY = "AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ"
+local DEFAULT_API_KEY = "AIzaSyBmQHvMSiOTrmBKJ0FFJ2LmNtc4YHyUJaQ"
+
 function YoutubeService:directQuery(url, callback)
+	local apiKey = medialib.YOUTUBE_API_KEY or DEFAULT_API_KEY
+
 	local urlData = self:parseUrl(url)
-	local metaurl = string.format("https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s", urlData.id, API_KEY)
+	local metaurl = string.format("https://www.googleapis.com/youtube/v3/videos?part=snippet%%2CcontentDetails&id=%s&key=%s", urlData.id, apiKey)
 
 	http.Fetch(metaurl, function(result, size)
 		if size == 0 then

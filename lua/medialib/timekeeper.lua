@@ -37,7 +37,7 @@ end
 
 function TimeKeeper:pause()
 	if not self.running then return end
-	
+
 	local runningTime = RealTime() - self.runningTimeStart
 	self.cachedTime = self.cachedTime + runningTime
 

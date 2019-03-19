@@ -47,7 +47,10 @@ function SoundcloudService:resolveUrl(url, callback)
 		callback(string.format("https://api.soundcloud.com/tracks/%s/stream?client_id=%s", urlData.id, apiKey), {})
 	else
 		http.Fetch(
-			string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, apiKey),
+			string.format(
+				"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s",
+				urlData.path, apiKey
+			),
 			function(data)
 				local jsonTable = util.JSONToTable(data)
 				if not jsonTable then
@@ -76,7 +79,10 @@ function SoundcloudService:directQuery(url, callback)
 
 	local metaurl
 	if urlData.path then
-		metaurl = string.format("https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s", urlData.path, apiKey)
+		metaurl = string.format(
+			"https://api.soundcloud.com/resolve.json?url=http://soundcloud.com/%s&client_id=%s",
+			urlData.path, apiKey
+		)
 	else
 		metaurl = string.format("https://api.soundcloud.com/tracks/%s?client_id=%s", urlData.id, apiKey)
 	end

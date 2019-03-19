@@ -25,7 +25,7 @@ local function urlencode(str)
          function (c) return string.format ("%%%02X", string.byte(c)) end)
       str = string.gsub (str, " ", "+")
    end
-   return str    
+   return str
 end
 
 local player_url = "https://wyozi.github.io/gmod-medialib/mp4.html?id=%s"
@@ -43,7 +43,7 @@ function GDriveService:directQuery(url, callback)
 	})
 end
 
-function GDriveService:hasReliablePlaybackEvents(media)
+function GDriveService:hasReliablePlaybackEvents()
 	return true
 end
 

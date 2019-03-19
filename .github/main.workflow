@@ -20,3 +20,13 @@ action "Upload .min.lua" {
   secrets = ["GITHUB_TOKEN"]
   needs = ["Build distributable"]
 }
+
+workflow "Check" {
+    on = "push"
+    resolves = ["Luacheck"]
+}
+
+action "Luacheck" {
+    uses = "wyozi/luacheck-action@master"
+    args = "lua -g --no-self --ignore 212/_.* --ignore 211/_.* --ignore 213/_.*"
+}

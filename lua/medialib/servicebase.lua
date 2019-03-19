@@ -18,7 +18,7 @@ function Service:emit(event, ...)
 	end
 end
 
-function Service:load(url, opts) end
+function Service:load() end
 function Service:loadMediaObject(media, url, opts)
 	media._unresolvedUrl = url
 	media._service = self
@@ -36,10 +36,10 @@ function Service:loadMediaObject(media, url, opts)
 	end)
 end
 
-function Service:isValidUrl(url) end
+function Service:isValidUrl() end
 
 -- Sub-services should override this
-function Service:directQuery(url, callback) end
+function Service:directQuery() end
 
 -- A metatable for the callback chain
 local _service_cbchain_meta = {}
@@ -51,8 +51,8 @@ function _service_cbchain_meta:run(err, data)
 	local first = table.remove(self._callbacks, 1)
 	if not first then return end
 
-	first(err, data, function(err, data)
-		self:run(err, data)
+	first(err, data, function(chainedErr, chainedData)
+		self:run(chainedErr, chainedData)
 	end)
 end
 
@@ -73,7 +73,7 @@ function Service:query(url, callback)
 	cbchain:run(url)
 end
 
-function Service:parseUrl(url) end
+function Service:parseUrl() end
 
 -- the second argument to cb() function call has some standard keys:
 --   `start` the time at which to start media in seconds

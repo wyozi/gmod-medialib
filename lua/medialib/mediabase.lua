@@ -65,16 +65,16 @@ function Media:IsValid()
 end
 
 -- vol must be a float between 0 and 1
-function Media:setVolume(vol) end
+function Media:setVolume(_vol) end
 function Media:getVolume() end
 
 -- "Quality" must be one of following strings: "low", "medium", "high", "veryhigh"
 -- Qualities do not map equally between services (ie "low" in youtube might be "medium" in twitch)
 -- Services are not guaranteed to change to the exact provided quality, or even to do anything at all
-function Media:setQuality(quality) end
+function Media:setQuality(_quality) end
 
 -- time must be an integer between 0 and duration
-function Media:seek(time) end
+function Media:seek(_time) end
 function Media:getTime()
 	return 0
 end
@@ -125,9 +125,9 @@ function Media:stop() end
 
 -- Queue a function to run after media is loaded. The function should run immediately
 -- if media is already loaded.
-function Media:runCommand(fn) end
+function Media:runCommand(_fn) end
 
-function Media:draw(x, y, w, h) end
+function Media:draw(_x, _y, _w, _h) end
 
 function Media:getTag() return self._tag end
 function Media:setTag(tag) self._tag = tag end
@@ -148,5 +148,8 @@ function Media:setDefaultTag()
 end
 
 function Media:getDebugInfo()
-	return string.format("[%s] Media [%s] valid:%s state:%s url:%s time:%d", self:getTag(), self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime())
+	return string.format(
+		"[%s] Media [%s] valid:%s state:%s url:%s time:%d",
+		self:getTag(), self.class.name, tostring(self:isValid()), self:getState(), self:getUrl(), self:getTime()
+	)
 end

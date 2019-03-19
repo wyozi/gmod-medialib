@@ -43,7 +43,6 @@ function BASSMedia:draw(x, y, w, h)
 	if not fftValues then return end
 
 	local valCount = #fftValues
-	local valsPerX = (valCount == 0 and 1 or (w/valCount))
 
 	local barw = w / (valCount)
 	for i=1, valCount do
@@ -270,7 +269,10 @@ if CLIENT then
 		for _,v in pairs(mediaregistry.get()) do
 
 			-- BASS media that should play, yet does not
-			if v:getBaseService() == "bass" and v:isValid() and IsValid(v.chan) and v.chan:GetState() == GMOD_CHANNEL_STOPPED then
+			if v:getBaseService() == "bass"
+				and v:isValid()
+				and IsValid(v.chan)
+				and v.chan:GetState() == GMOD_CHANNEL_STOPPED then
 				v:reload()
 			end
 		end

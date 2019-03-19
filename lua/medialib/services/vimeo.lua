@@ -35,7 +35,7 @@ function VimeoService:directQuery(url, callback)
 	local urlData = self:parseUrl(url)
 	local metaurl = string.format("http://vimeo.com/api/v2/video/%s.json", urlData.id)
 
-	http.Fetch(metaurl, function(result, size, headers, httpcode)
+	http.Fetch(metaurl, function(result, size, _headers, httpcode)
 		if size == 0 then
 			callback("http body size = 0")
 			return
@@ -62,7 +62,7 @@ function VimeoService:directQuery(url, callback)
 	end, function(err) callback("HTTP: " .. err) end)
 end
 
-function VimeoService:hasReliablePlaybackEvents(media)
+function VimeoService:hasReliablePlaybackEvents()
 	return true
 end
 

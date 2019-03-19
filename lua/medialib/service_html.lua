@@ -11,7 +11,7 @@ end
 -- Whether or not we can trust that the HTML panel will send 'playing', 'paused'
 -- and other playback related events. If this returns true, 'timekeeper' will
 -- not be updated in playback related methods (except stop).
-function HTMLService:hasReliablePlaybackEvents(media)
+function HTMLService:hasReliablePlaybackEvents(_media)
 	return false
 end
 

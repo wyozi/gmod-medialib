@@ -74,9 +74,9 @@ function TwitchService:directQuery(url, callback)
 			return
 		end
 
-		metaQuery(id, function(err, meta)
-			if err then
-				callback(err)
+		metaQuery(id, function(metaErr, meta)
+			if metaErr then
+				callback(metaErr)
 				return
 			end
 

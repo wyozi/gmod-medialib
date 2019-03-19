@@ -68,9 +68,9 @@ function oop.createClass(name, parent)
 		cls_instance_meta.__index = cls.members
 
 		-- Add metamethods. The class does not have members yet, so we need to use runtime lookup
-		for _,name in pairs(metamethods) do
-			cls_instance_meta[name] = function(...)
-				local method = cls.members[name]
+		for _,metaName in pairs(metamethods) do
+			cls_instance_meta[metaName] = function(...)
+				local method = cls.members[metaName]
 				if method then
 					return method(...)
 				end

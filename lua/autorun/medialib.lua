@@ -79,7 +79,8 @@ local real_file_meta = {
 		--local str = self:read()
 		--if not str then error("MedialibDynLoad: could not load " .. self.lua_path) end
 
-		-- TODO this does not function correctly; embedded medialib loading real_file will use global medialib as its 'medialib' instance
+		-- TODO this does not function correctly;
+		-- embedded medialib loading real_file will use global medialib as its 'medialib' instance
 		return include(self.lua_path)
 	end,
 	addcs = function(self)
@@ -139,7 +140,8 @@ if CLIENT then
 		SetClipboardText("http://get.adobe.com/flashplayer/otherversions/")
 
 		MsgN("[ MediaLib: How to get Flash Player ]")
-		MsgN("1. Open this website in your browser (not the ingame Steam browser): http://get.adobe.com/flashplayer/otherversions/")
+		MsgN("1. Open this website in your browser (not the ingame Steam browser): " ..
+			"http://get.adobe.com/flashplayer/otherversions/")
 		MsgN("   (the link has been automatically copied to your clipboard)")
 		MsgN("2. Download and install the NSAPI (for Firefox) version")
 		MsgN("3. Restart your Garry's Mod and rejoin this server")
@@ -152,14 +154,15 @@ if CLIENT then
 		SetClipboardText("http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
 
 		MsgN("[ MediaLib: How to fix muted sound ]")
-		MsgN("1. Follow instructions here: http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
+		MsgN("1. Follow instructions here: " ..
+			"http://windows.microsoft.com/en-us/windows7/adjust-the-sound-level-on-your-computer")
 		MsgN("   (the link has been automatically copied to your clipboard, you can open it in the steam ingame browser)")
 		MsgN("2. Increase the volume of a process called 'Awesomium Core'")
 		MsgN("3. You should immediately start hearing sound if a mediaclip is playing")
 		MsgN("[ ======================= ]")
 	end)
 
-	hook.Add("OnPlayerChat", "MediaLib.ShowInstructions", function(ply, text)
+	hook.Add("OnPlayerChat", "MediaLib.ShowInstructions", function(_, text)
 		if text:match("!ml_noflash") then
 			RunConsoleCommand("medialib_noflash", "rainbow")
 			RunConsoleCommand("showconsole")

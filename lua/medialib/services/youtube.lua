@@ -95,7 +95,13 @@ function YoutubeService:directQuery(url, callback)
 			end
 
 			data.title = item.snippet.title
-			data.duration = tonumber(PTToSeconds(item.contentDetails.duration))
+			
+			local live = item.snippet.liveBroadcastContent == "live"
+			if live then
+				data.live = true
+			else
+				data.duration = tonumber(PTToSeconds(item.contentDetails.duration))
+			end
 			data.raw = item
 		else
 			callback(result)

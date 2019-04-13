@@ -95,7 +95,7 @@ function YoutubeService:directQuery(url, callback)
 			end
 
 			data.title = item.snippet.title
-			
+
 			local live = item.snippet.liveBroadcastContent == "live"
 			if live then
 				data.live = true

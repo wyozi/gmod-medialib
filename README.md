@@ -13,6 +13,7 @@ Awesomium (the embedded web browser) in Garry's Mod doesn't work with Youtube. T
 3. Include it where-ever you need it. See best-practises below:
 	- `local medialib = include("the/path/to/medialib.lua")` if you only use it in one file
 	- `MyGlobalTable.medialib = include("the/path/to/medialib.lua")` if you use it multiple times (you need to refer to medialib as `MyGlobalTable.medialib` or localize it if you do this)
+4. Setup API keys as needed (see Configuration section below)
 
 ### Configuration
 
@@ -26,7 +27,7 @@ local medialib = include("medialib.lua")
 -- Can also be a table in which case a random key is picked for each query.
 medialib.SOUNDCLOUD_API_KEY = "my-key-here"
 
--- Youtube API key. Medialib comes bundled with a Youtube data API v3 key, so this is optional.
+-- Youtube API key. Required for Youtube service
 -- If you want to generate your own you can do so at https://console.developers.google.com/apis/dashboard
 medialib.YOUTUBE_API_KEY = "my-key-here"
 

@@ -2,7 +2,7 @@
 local VERSION = "local"
 local DISTRIBUTABLE = false
 
-medialib = {}
+medialib = medialib or {}
 
 medialib.VERSION = VERSION
 medialib.DISTRIBUTABLE = DISTRIBUTABLE

@@ -4,7 +4,7 @@ local mediaregistry = medialib.load("mediaregistry")
 local Service = oop.class("Service")
 
 function Service:on(event, callback)
-	self._events = {}
+	self._events = self._events or {}
 	self._events[event] = self._events[event] or {}
 	self._events[event][callback] = true
 end
